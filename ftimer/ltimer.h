@@ -32,6 +32,8 @@ int ftimer_start(f_timer*);
 int	ftimer_del(f_timer*);
 
 #ifdef __linux__
+#define _HAS_TIMER_FD_ 1
+
 #include <sys/timerfd.h>
 
 int	ftimerfd_create();

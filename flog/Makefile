@@ -1,17 +1,17 @@
-TARGET = libfconf.a
+TARGET = libflog.a
 
-INCLUDE_FILES = read_conf.h
+INCLUDE_FILES = log_inc.h
 INSTALL_PATH = ../final_libraries
 INCLUDE_PATH = include
 LIBS_PATH = libs
 
 CC = gcc
 AR = ar -rcs
-INC = 
+INC = -I$(INSTALL_PATH)/$(INCLUDE_PATH)
 LL = 
 LIBS = 
 
-SRCS = conf.c read_conf.c
+SRCS = log_inc.c log.c
 DEPS = $(patsubst %.c,%.d,$(SRCS))
 OBJS = $(patsubst %.c,%.o,$(SRCS))
 
