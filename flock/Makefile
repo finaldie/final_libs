@@ -1,6 +1,7 @@
 TARGET = libflock.a
 
-INCLUDE_FILES = lmutex.h
+INCLUDE_FILES = lmutex.h \
+				lcas.h
 INSTALL_PATH = ../final_libraries
 INCLUDE_PATH = include
 LIBS_PATH = libs
