@@ -7,7 +7,7 @@ LIBS_PATH = libs
 
 CC = gcc
 AR = ar -rcs
-INC = 
+INC = -I$(INSTALL_PATH)/$(INCLUDE_PATH)
 LL = 
 LIBS = 
 
@@ -15,7 +15,7 @@ SRCS = thread_pool.c
 DEPS = $(patsubst %.c,%.d,$(SRCS))
 OBJS = $(patsubst %.c,%.o,$(SRCS))
 
-CFLAGS = -Wall -Werror -g -O2 -std=c99
+CFLAGS = -Wall -Werror -g -O2
 
 all:$(TARGET)
 $(TARGET):$(OBJS) $(DEPS)
