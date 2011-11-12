@@ -51,7 +51,7 @@ void ftimer_create_signal(){
 }
 
 int	ftimer_create(f_timer* pt, long long nsecs, long long alter, ptimer pfunc, void* arg){
-    pthread_once(init_catch, ftimer_create_signal);
+    pthread_once(&init_catch, ftimer_create_signal);
 
 	pt->sev.sigev_notify = SIGEV_SIGNAL;
 	pt->sev.sigev_signo = SIG;
