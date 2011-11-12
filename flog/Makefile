@@ -15,14 +15,14 @@ SRCS = log_inc.c log.c
 DEPS = $(patsubst %.c,%.d,$(SRCS))
 OBJS = $(patsubst %.c,%.o,$(SRCS))
 
-CFLAGS = -Wall -Werror -g -O2 -std=c99
+CFLAGS = -Wall -Werror -g -O2
 
 all:$(TARGET)
 $(TARGET):$(OBJS) $(DEPS)
 	$(AR) $(TARGET) $(OBJS)
 
 %.d:%.c
-	$(CC) -MM $< > $@
+	$(CC) $(INC) -MM $< > $@
 %.o:%.c
 	$(CC) $(CFLAGS) $(INC) -c $< 
 
