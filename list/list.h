@@ -8,6 +8,10 @@
 #ifndef _LIST_H_
 #define _LIST_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct
 {
 	void* begin;
@@ -30,5 +34,9 @@ int		is_empty(pl_mgr);
 void*	list_foreach(pl_mgr, plist_call_back);
 liter	list_iter(pl_mgr);
 void*	list_each(liter*);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
