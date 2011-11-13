@@ -1,5 +1,4 @@
-# Build all libs by order
-
+# Build all libs by order 
 LIST = flist
 HASH = fhash
 LOCK = flock
@@ -9,6 +8,7 @@ CONF = fconf
 TIMER = ftimer
 MEMPOOL = fmempool
 THREAD_POOL = fthread_pool
+NETWORK = fnet
 
 all:
 	-( test -d $(LIST) && cd $(LIST) && make )
@@ -29,6 +29,8 @@ all:
 	-( test -d $(MEMPOOL) && cd $(MEMPOOL) && make install )
 	-( test -d $(THREAD_POOL) && cd $(THREAD_POOL) && make )
 	-( test -d $(THREAD_POOL) && cd $(THREAD_POOL) && make install )
+	-( test -d $(NETWORK) && cd $(NETWORK) && make )
+	-( test -d $(NETWORK) && cd $(NETWORK) && make install )
 
 .PHONY:clean
 clean:
@@ -41,3 +43,4 @@ clean:
 	-( test -d $(TIMER) && cd $(TIMER) && make clean )
 	-( test -d $(MEMPOOL) && cd $(MEMPOOL) && make clean )
 	-( test -d $(THREAD_POOL) && cd $(THREAD_POOL) && make clean)
+	-( test -d $(NETWORK) && cd $(NETWORK) && make clean)
