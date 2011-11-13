@@ -1,8 +1,11 @@
 #ifndef _NET_UTIL_H_
 #define	_NET_UTIL_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <netinet/in.h>
-#include "core.h"
 
 #define SOCKET_IDLE		-3
 #define SOCKET_ERROR 	-2
@@ -45,8 +48,8 @@ typedef union{
 	struct sockaddr 		sa;
 }sockaddr_u_t;
 
-uint	get_lowdata(uint data);
-uint	get_highdata(uint data);
+unsigned int get_lowdata(unsigned int data);
+unsigned int get_highdata(unsigned int data);
 
 void 	net_set_keepalive(int fd, int idle_time, int interval, int count);
 void	net_set_nonblocking(int fd);
@@ -84,4 +87,9 @@ char*	net_get_peerip(int fd);
 // dns , after use must call net_free_host
 int		net_get_host(const char* host_name, host_info_t* hinfo);
 void	net_free_host(host_info_t* hinfo);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif

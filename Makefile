@@ -12,24 +12,22 @@ THREAD_POOL = fthread_pool
 
 all:
 	-( test -d $(LIST) && cd $(LIST) && make )
-	-( test -d $(HASH) && cd $(HASH) && make )
-	-( test -d $(LOCK) && cd $(LOCK) && make )
-	-( test -d $(MBUF) && cd $(MBUF) && make )
-	-( test -d $(LOG) && cd $(LOG) && make )
-	-( test -d $(CONF) && cd $(CONF) && make )
-	-( test -d $(TIMER) && cd $(TIMER) && make )
-	-( test -d $(MEMPOOL) && cd $(MEMPOOL) && make )
-	-( test -d $(THREAD_POOL) && cd $(THREAD_POOL) && make )
-
-install:
 	-( test -d $(LIST) && cd $(LIST) && make install )
+	-( test -d $(HASH) && cd $(HASH) && make )
 	-( test -d $(HASH) && cd $(HASH) && make install )
+	-( test -d $(LOCK) && cd $(LOCK) && make )
 	-( test -d $(LOCK) && cd $(LOCK) && make install )
+	-( test -d $(MBUF) && cd $(MBUF) && make )
 	-( test -d $(MBUF) && cd $(MBUF) && make install )
+	-( test -d $(LOG) && cd $(LOG) && make )
 	-( test -d $(LOG) && cd $(LOG) && make install )
+	-( test -d $(CONF) && cd $(CONF) && make )
 	-( test -d $(CONF) && cd $(CONF) && make install )
+	-( test -d $(TIMER) && cd $(TIMER) && make )
 	-( test -d $(TIMER) && cd $(TIMER) && make install )
+	-( test -d $(MEMPOOL) && cd $(MEMPOOL) && make )
 	-( test -d $(MEMPOOL) && cd $(MEMPOOL) && make install )
+	-( test -d $(THREAD_POOL) && cd $(THREAD_POOL) && make )
 	-( test -d $(THREAD_POOL) && cd $(THREAD_POOL) && make install )
 
 .PHONY:clean

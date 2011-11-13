@@ -14,7 +14,6 @@
 #include <unistd.h>
 #include <assert.h>
 
-#include "core.h"
 #include "net_core.h"
 #include "libnet.h"
 #include "list.h"
@@ -45,6 +44,9 @@
 #define UNLOCK(lock)	mutex_unlock(lock)
 #define LOCK_DEL(lock)	mutex_del(lock)
 #endif
+
+#define TRUE    1
+#define FALSE   0
 
 typedef struct _net_interface
 {

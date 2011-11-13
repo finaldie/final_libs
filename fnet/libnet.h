@@ -11,6 +11,10 @@
 #ifndef _LIB_NET_H_FINAL_
 #define _LIB_NET_H_FINAL_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 
 #define LNET_BUFF_READ		0
@@ -94,6 +98,10 @@ net_buff* lnet_get_nbuff(int vfd);
 typedef void (*lnet_each_cb)(net_buff*);
 void	lnet_foreach(lnet_each_cb);
 int		lnet_buff_count();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 
