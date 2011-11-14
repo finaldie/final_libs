@@ -23,20 +23,31 @@
 extern "C" {
 #endif
 
-typedef struct fev fev;
+typedef struct fev_state fev_state;
 #define FEV_ADD     0x1
 #define FEV_MOD     0x2
 #define FEV_DEL     0x4
 
-#define FEV_READ    0x8
-#define FEV_WRITE   0x10
+// fev fd state
+#define FEV_NIL     0x0
+#define FEV_READ    0x1
+#define FEV_WRITE   0x2
 
-typedef (*pfev_process)(fev*, int event, void* arg);
+// fev event type
+#define FEV_IO      0x1
+#define FEV_TIMER   0x2
 
-fev* fev_create();
-void fev_destroy(fev*);
-int  fev_mod(fev*, int fd, int opt, void* arg);
-int  fev_poll(fev*, int timeout, pfev_process);
+typedef (*pfev_process)(fev_state*, int fd, void* arg, int mask);
+
+fev_state* fev_create();
+void fev_destroy(fev_state*);
+int  fev_poll(fev_state*, int timeout);
+
+// the two category interfaces as follow return fd
+int  fev_add_io_event(fev_state*, int fd, mask, pfev_process, void* arg);
+int  fev_del_io_event(fev_state*, int fd);
+int  fev_add_timer_event(fev_state*, long long nsec, long long alter, pfev_process, void* arg);
+int  fev_del_timer_event(fev_state*, int fd);
 
 #ifdef __cplusplus
 }
