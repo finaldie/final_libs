@@ -51,7 +51,6 @@ static fev_event fevents[FEV_MAX_EVENT_NUM];
 
 fev_state*    fev_create()
 {
-    int i = 0;
     fev_state* fev = (fev_state*)malloc(sizeof(fev_state));   
     if( !fev ){
         perror("fev create malloc");
@@ -147,7 +146,7 @@ int     fev_del_timer_event(fev_state* fev, int fd)
     return 0;
 }
 
-int     fev_poll(fev_state* fev, int timeout, pfev_process pfunc)
+int     fev_poll(fev_state* fev, int timeout)
 {
     if( !fev ) return 0;
 

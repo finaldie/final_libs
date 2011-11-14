@@ -11,12 +11,11 @@ INC = -I$(INSTALL_PATH)/$(INCLUDE_PATH)
 LL = 
 LIBS = 
 
-SRCS = fev.c \
-	   fev_epoll.c
+SRCS = fev.c 
 DEPS = $(patsubst %.c,%.d,$(SRCS))
 OBJS = $(patsubst %.c,%.o,$(SRCS))
 
-CFLAGS = -Wall -Werror -g -O2 -std=c99
+CFLAGS = -Wall -Werror -g -O2
 
 all:$(TARGET)
 $(TARGET):$(OBJS) $(DEPS)
@@ -24,7 +23,7 @@ $(TARGET):$(OBJS) $(DEPS)
 
 %.d:%.c
 	$(CC) $(INC) -MM $< > $@
-%.o:%.c
+%.o:%.c 
 	$(CC) $(CFLAGS) $(INC) -c $< 
 
 install:

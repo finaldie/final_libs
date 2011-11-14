@@ -37,15 +37,15 @@ typedef struct fev_state fev_state;
 #define FEV_IO      0x1
 #define FEV_TIMER   0x2
 
-typedef (*pfev_process)(fev_state*, int fd, void* arg, int mask);
+typedef void (*pfev_process)(fev_state*, int fd, void* arg, int mask);
 
 fev_state* fev_create();
 void fev_destroy(fev_state*);
 int  fev_poll(fev_state*, int timeout);
 
 // the two category interfaces as follow return fd
-int  fev_add_io_event(fev_state*, int fd, mask, pfev_process, void* arg);
-int  fev_del_io_event(fev_state*, int fd);
+int  fev_add_io_event(fev_state*, int fd, int mask, pfev_process, void* arg);
+int  fev_del_io_event(fev_state*, int fd, int mask);
 int  fev_add_timer_event(fev_state*, long long nsec, long long alter, pfev_process, void* arg);
 int  fev_del_timer_event(fev_state*, int fd);
 

@@ -64,6 +64,7 @@ static int fev_state_addevent(fev_state* fev, int fd, int mask)
 
 static int fev_state_delevent(fev_state* fev, int fd, int delmask)
 {
+    state* st = fev->state; 
     int mask = fevents[fd].mask & (~delmask);   //reserved state except delmask
     struct epoll_event ee;
     ee.data.u64 = 0;
@@ -87,7 +88,7 @@ static int fev_state_poll(fev_state* fev, int timeout)
     state* st = fev->state;
     int nums, i;
 
-    nums = epoll_wait(st->epfd, state->events, FEV_MAX_EVENT_NUM, timeout);
+    nums = epoll_wait(st->epfd, st->events, FEV_MAX_EVENT_NUM, timeout);
     if( nums < 0 ) {
         if( errno == EINTR )
             return 0;
@@ -95,12 +96,13 @@ static int fev_state_poll(fev_state* fev, int timeout)
     }
 
     for(i=0; i< nums; i++){
-        struct epoll_event* ee = state->events[i];
+        struct epoll_event* ee = &(st->events[i]);
 
         int mask = FEV_NIL;
         if( ee->events & EPOLLIN ) mask |= FEV_READ;
         if( ee->events & EPOLLOUT ) mask |= FEV_WRITE;
 
+		int fd = ee->data.fd;
         if( fevents[fd].mask & mask & FEV_READ ) 
             fevents[fd].pfunc(fev, fd, fevents[fd].arg, mask);
 
