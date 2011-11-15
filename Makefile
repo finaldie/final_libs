@@ -9,6 +9,7 @@ TIMER = ftimer
 MEMPOOL = fmempool
 THREAD_POOL = fthread_pool
 NETWORK = fnet
+EVENT = fev
 
 all:
 	-( test -d $(LIST) && cd $(LIST) && make )
@@ -31,6 +32,8 @@ all:
 	-( test -d $(THREAD_POOL) && cd $(THREAD_POOL) && make install )
 	-( test -d $(NETWORK) && cd $(NETWORK) && make )
 	-( test -d $(NETWORK) && cd $(NETWORK) && make install )
+	-( test -d $(EVENT) && cd $(EVENT) && make )
+	-( test -d $(EVENT) && cd $(EVENT) && make install )
 
 .PHONY:clean
 clean:
@@ -44,3 +47,4 @@ clean:
 	-( test -d $(MEMPOOL) && cd $(MEMPOOL) && make clean )
 	-( test -d $(THREAD_POOL) && cd $(THREAD_POOL) && make clean)
 	-( test -d $(NETWORK) && cd $(NETWORK) && make clean)
+	-( test -d $(EVENT) && cd $(EVENT) && make clean)
