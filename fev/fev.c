@@ -6,7 +6,7 @@
  *    Description:  a light-weight event framework
  *
  *        Version:  1.0
- *        Created:  2011年11月13日 15时59分50秒
+ *        Created:  2011年11月13日 15/59/50
  *       Revision:  none
  *       Compiler:  gcc
  *
