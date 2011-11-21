@@ -6,7 +6,7 @@
  *    Description:  a light-weight event framework
  *
  *        Version:  1.0
- *        Created:  2011年11月13日 15/59/50
+ *        Created:  2011/11/13 15/59/50
  *       Revision:  none
  *       Compiler:  gcc
  *
@@ -26,15 +26,14 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include "fev.h"
-#include "ltimer.h"
 
 #define FEV_MAX_EVENT_NUM   (1024 * 10)
 
 typedef struct fev_event {
-    int type;   // io or timer or ...
-    int mask;   //READ OR WRITE
-    pfev_process pfunc;
-    void* arg;
+    int         mask;   //READ OR WRITE
+    pfev_read   pread;
+    pfev_write  pwrite;
+    void*       arg;
 }fev_event;
 
 struct fev_state{
@@ -75,27 +74,38 @@ void    fev_destroy(fev_state* fev)
 }
 
 // return -1 : fev is null
-// return -2 : add event failed
+// return -2 : reg event failed
 // return > 0 : sucess
-int     fev_add_io_event(fev_state* fev, int fd, int mask, pfev_process pfunc, void* arg)
+int     fev_reg_event(fev_state* fev, int fd, int mask, pfev_read pread, pfev_write pwrite, void* arg)
 {
     if( !fev ) return -1; 
 
     if( fev_state_addevent(fev, fd, mask) == -1 ) 
         return -2;
 
-    fevents[fd].type = FEV_IO;
     fevents[fd].mask = mask;
-    fevents[fd].pfunc = pfunc;
+    fevents[fd].pread = pread;
+    fevents[fd].pwrite = pwrite;
     fevents[fd].arg = arg;
 
+    return 0;
+}
+
+int fev_add_event(fev_state* fev, int fd, int mask)
+{
+    if( !fev ) return -1; 
+
+    if( fev_state_addevent(fev, fd, mask) == -1 ) 
+        return -2;
+
+    fevents[fd].mask = mask;
     return 0;
 }
 
 // return -1 : fev is null
 // return -2 : del event failed
 // return > 0 : sucess
-int     fev_del_io_event(fev_state* fev, int fd, int mask)
+int     fev_del_event(fev_state* fev, int fd, int mask)
 {
     if( !fev ) return -1;
 
@@ -103,46 +113,6 @@ int     fev_del_io_event(fev_state* fev, int fd, int mask)
         return -2;
 
     fevents[fd].mask = mask;
-
-    return 0;
-}
-
-// return < 0 : failed
-// return > 0(fd) : sucess
-int     fev_add_timer_event(fev_state* fev, long long nsec, long long alter, pfev_process pfunc, void* arg)
-{
-    if( !fev ) return -1;
-
-    int fd = ftimerfd_create();
-    if( fd == -1 ) return -2;
-    
-    if( ftimerfd_start(fd, nsec, alter) ) return -3;
-
-    int mask = FEV_READ;
-    if( fev_state_addevent(fev, fd, mask) == -1 ) return -4;
-
-    fevents[fd].type = FEV_TIMER;
-    fevents[fd].mask = mask;
-    fevents[fd].pfunc = pfunc;
-    fevents[fd].arg = arg;
-
-    return fd;
-}
-
-// return 0 : sucess
-int     fev_del_timer_event(fev_state* fev, int fd)
-{
-    int mask = FEV_NIL;
-    if( !fev ) return -1;
-
-    if( ftimerfd_stop(fd) )
-        return -2;
-
-    if( fev_state_addevent(fev, fd, mask) == -1 ) return -3;
-
-    close(fd);
-    fevents[fd].mask = mask;
-    
     return 0;
 }
 

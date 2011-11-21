@@ -103,11 +103,11 @@ static int fev_state_poll(fev_state* fev, int timeout)
         if( ee->events & EPOLLOUT ) mask |= FEV_WRITE;
 
 		int fd = ee->data.fd;
-        if( fevents[fd].mask & mask & FEV_READ ) 
-            fevents[fd].pfunc(fev, fd, fevents[fd].arg, mask);
+        if( fevents[fd].pread && (fevents[fd].mask & mask & FEV_READ) ) 
+            fevents[fd].pread(fev, fd, mask, fevents[fd].arg);
 
-        if( fevents[fd].mask & mask & FEV_WRITE ) 
-            fevents[fd].pfunc(fev, fd, fevents[fd].arg, mask);
+        if( fevents[fd].pwrite && (fevents[fd].mask & mask & FEV_WRITE) ) 
+            fevents[fd].pwrite(fev, fd, mask, fevents[fd].arg);
     }
 
     return nums;
