@@ -1,7 +1,6 @@
 TARGET = libfnet.a
 
-INCLUDE_FILES = net_core.h \
-				libnet.h
+INCLUDE_FILES = net_core.h
 INSTALL_PATH = ../final_libraries
 INCLUDE_PATH = include
 LIBS_PATH = libs
@@ -12,8 +11,7 @@ INC = -I$(INSTALL_PATH)/$(INCLUDE_PATH)
 LL = 
 LIBS = 
 
-SRCS = libnet.c \
-	   net_core.c
+SRCS = net_core.c
 DEPS = $(patsubst %.c,%.d,$(SRCS))
 OBJS = $(patsubst %.c,%.o,$(SRCS))
 
