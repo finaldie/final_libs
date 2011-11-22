@@ -7,29 +7,9 @@ extern "C" {
 
 #include <netinet/in.h>
 
-#define SOCKET_IDLE		-3
-#define SOCKET_ERROR 	-2
-#define SOCKET_BUSY		-1
+#define SOCKET_IDLE		-2
+#define SOCKET_ERROR 	-1
 #define	SOCKET_CLOSE	0
-
-#define FREAD			0x1
-#define FWRITE			0x2
-
-typedef int	(*pfunc_read)(void* data);
-typedef	int (*pfunc_write)(void* data);
-typedef	int (*pfunc_error)(void* data);
-typedef	int (*pfunc_timeout)(void);
-
-// net call back
-typedef struct{
-	void*			events_list;
-	int				events_len;
-
-	pfunc_read 		pread;
-	pfunc_write 	pwrite;
-	pfunc_error 	perror;
-	pfunc_timeout 	ptimeout;
-}event_data;
 
 // host struct
 typedef struct{
@@ -60,17 +40,6 @@ void	net_set_recv_timeout(int fd, int timeout);
 void	net_set_send_timeout(int fd, int timeout);
 void 	net_set_linger(int fd);
 void	net_set_reuse_addr(int fd);
-
-int		net_epoll_create(int queue_num);
-int		net_epoll_add(int epfd, int fd, int opt, void* ptr);
-int		net_epoll_mod(int epfd, int fd, int opt, void* ptr);
-void	net_epoll_del(int epfd, int fd);
-
-void	net_create_event(event_data*, int event_num, 
-						pfunc_read, pfunc_write, 
-						pfunc_error, pfunc_timeout);
-void	net_delete_event(event_data*);
-void	net_epoll_wait(int epfd, int timeout, event_data* ed);
 
 int		net_create_listen(char* ip, int port, int max_link, int isblock);
 int		net_accept(int listen_fd);

@@ -2,8 +2,6 @@
 #include <string.h>
 #include "mbuf.h"
 
-#define	BUFF_SIZE	2048
-
 #define MBUF_START(pbuf)			( pbuf->buf )
 #define MBUF_END(pbuf)				( pbuf->buf + pbuf->size - 1 )
 #define	MBUF_HEAD(pbuf) 			( pbuf->head )
@@ -294,12 +292,17 @@ mbuf*	mbuf_realloc(mbuf* pbuf, size_t size)
 	return new_buf;
 }
 
-void*	mbuf_get_start(mbuf* pbuf)
+void*	mbuf_get_head(mbuf* pbuf)
 {
-	return MBUF_START(pbuf);
+	return MBUF_HEAD(pbuf);
 }
 
-void*	mbuf_get_end(mbuf* pbuf)
+void*	mbuf_get_tail(mbuf* pbuf)
 {
-	return MBUF_END(pbuf);
+	return MBUF_TAIL(pbuf);
+}
+
+int     mbuf_size(mbuf* pbuf)
+{
+    return MBUF_SIZE(pbuf);
 }
