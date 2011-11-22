@@ -16,10 +16,18 @@
  * =====================================================================================
  */
 
+#ifndef _FEV_BUFF_H_
+#define _FEV_BUFF_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include "fev.h"
+
 #define FEVBUFF_TYPE_READ    0
 #define FEVBUFF_TYPE_WRITE   1
 
-struct fev_state;
 typedef struct fev_buff fev_buff;
 typedef void (*fev_buff_read)(fev_buff*, void* arg);
 typedef void (*fev_buff_error)(fev_buff*, void* arg);
@@ -40,5 +48,11 @@ int		fevbuff_get_bufflen(fev_buff*, int type);
 int		fevbuff_get_usedlen(fev_buff*, int type);
 
 int 	fevbuff_read(fev_buff*, void* pbuf, size_t len);        // only read from fd and copy data to local buff, not pop 
-int		fevbuff_write(fev_buff*, const char* buff, size_t len);
+int		fevbuff_write(fev_buff*, const void* buff, size_t len);
 int     fevbuff_pop(fev_buff*, size_t len); // pop data from local buff
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

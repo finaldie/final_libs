@@ -34,7 +34,7 @@ struct fev_buff {
     mbuf*           rbuf;
     mbuf*           wbuf;
     fev_buff_read   read_cb;
-    fev_buff_error  write_cb;
+    fev_buff_error  error_cb;
     void*           arg;
 };
 
@@ -111,7 +111,7 @@ static void evbuff_write(fev_state* fev, int fd, int mask, void* arg)
 }
 
 fev_buff*	fevbuff_new(
-                fev_state* fev
+                fev_state* fev,
                 int fd,
 				fev_buff_read read_cb,		// call when the fd can read
 				fev_buff_error error_cb,	// call when socket has error
@@ -151,7 +151,7 @@ fev_buff*	fevbuff_new(
     return evbuff;
 }
 
-int  fevbuff_destroy(fevbuff* evbuff)
+int  fevbuff_destroy(fev_buff* evbuff)
 {
     if( !evbuff ) return -1;
 
@@ -171,7 +171,7 @@ int fevbuff_get_fd(fev_buff* evbuff)
     return evbuff->fd;
 }
 
-void*   fevbuff_get_arg(fev_buff*)
+void*   fevbuff_get_arg(fev_buff* evbuff)
 {
     return evbuff->arg;
 }
@@ -227,7 +227,7 @@ int fevbuff_read(fev_buff* evbuff, void* pbuf, size_t len)
     }
 }
 
-static int fevbuff_cache_data(fev_buff* evbuff, void* pbuf, size_t len)
+static int fevbuff_cache_data(fev_buff* evbuff, const void* pbuf, size_t len)
 {
     if( len == 0 ) return 0;
 
@@ -245,7 +245,7 @@ static int fevbuff_cache_data(fev_buff* evbuff, void* pbuf, size_t len)
     return 0;
 }
 
-int	fevbuff_write(fev_buff* evbuff, const char* pbuf, size_t len)
+int	fevbuff_write(fev_buff* evbuff, const void* pbuf, size_t len)
 {
     if( !pbuf ) return 0;
     if( len == 0 ) return 0;
