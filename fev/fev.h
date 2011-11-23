@@ -34,7 +34,7 @@ typedef struct fev_state fev_state;
 typedef void (*pfev_read)(fev_state*, int fd, int mask, void* arg);
 typedef void (*pfev_write)(fev_state*, int fd, int mask, void* arg);
 
-fev_state* fev_create();
+fev_state* fev_create(int max_ev_size);
 void fev_destroy(fev_state*);
 int  fev_poll(fev_state*, int timeout);
 

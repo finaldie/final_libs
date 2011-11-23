@@ -38,9 +38,11 @@ typedef struct fev_event {
 
 struct fev_state{
     void*       state;
+    fev_event*  fevents;
+    char*       firelist;
+    int         max_ev_size;
 };
 
-static fev_event fevents[FEV_MAX_EVENT_NUM];
 
 #ifdef __linux__
 #include "fev_epoll.c"
@@ -48,8 +50,10 @@ static fev_event fevents[FEV_MAX_EVENT_NUM];
 #error "only support linux os now!"
 #endif
 
-fev_state*    fev_create()
+fev_state*    fev_create(int max_ev_size)
 {
+    if( max_ev_size <= 0 ) max_ev_size = FEV_MAX_EVENT_NUM;
+
     fev_state* fev = (fev_state*)malloc(sizeof(fev_state));   
     if( !fev ){
         perror("fev create malloc");
@@ -62,6 +66,19 @@ fev_state*    fev_create()
         return NULL;
     }
 
+    fev->fevents = (fev_event*)malloc( sizeof(fev_event) * max_ev_size );
+    fev->firelist = (char*)malloc( sizeof(char) * max_ev_size );
+    if( !fev->fevents || !fev->firelist ) {
+        perror("fev create events pool failed");
+        fev_state_destroy(fev);
+        free(fev->fevents);
+        free(fev->firelist);
+        free(fev);
+        return NULL;
+    }
+
+    fev->max_ev_size = max_ev_size;
+
     return fev;
 }
 
@@ -69,7 +86,7 @@ void    fev_destroy(fev_state* fev)
 {
     if( !fev ) return;
 
-    fev_state_destroy(fev->state);
+    fev_state_destroy(fev);
     free(fev);
 }
 
@@ -83,10 +100,10 @@ int     fev_reg_event(fev_state* fev, int fd, int mask, pfev_read pread, pfev_wr
     if( fev_state_addevent(fev, fd, mask) == -1 ) 
         return -2;
 
-    fevents[fd].mask = mask;
-    fevents[fd].pread = pread;
-    fevents[fd].pwrite = pwrite;
-    fevents[fd].arg = arg;
+    fev->fevents[fd].mask = mask;
+    fev->fevents[fd].pread = pread;
+    fev->fevents[fd].pwrite = pwrite;
+    fev->fevents[fd].arg = arg;
 
     return 0;
 }
@@ -98,7 +115,7 @@ int fev_add_event(fev_state* fev, int fd, int mask)
     if( fev_state_addevent(fev, fd, mask) == -1 ) 
         return -2;
 
-    fevents[fd].mask = mask;
+    fev->fevents[fd].mask = mask;
     return 0;
 }
 
@@ -112,7 +129,13 @@ int     fev_del_event(fev_state* fev, int fd, int mask)
     if( fev_state_delevent(fev, fd, mask) == -1 )
         return -2;
 
-    fevents[fd].mask = mask;
+    fev->fevents[fd].mask = mask;
+
+    //if the mask is FEV_READ | FEV_WRITE , then put the fd into firelist
+    if( mask & (FEV_READ | FEV_WRITE) ) {
+        fev->firelist[fd] = 1;
+    }
+
     return 0;
 }
 
