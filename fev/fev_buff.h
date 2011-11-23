@@ -29,8 +29,8 @@ extern "C" {
 #define FEVBUFF_TYPE_WRITE   1
 
 typedef struct fev_buff fev_buff;
-typedef void (*fev_buff_read)(fev_buff*, void* arg);
-typedef void (*fev_buff_error)(fev_buff*, void* arg);
+typedef void (*fev_buff_read)(fev_state*, fev_buff*, void* arg);
+typedef void (*fev_buff_error)(fev_state*, fev_buff*, void* arg);
 
 fev_buff*	fevbuff_new(
                 fev_state*,
@@ -47,7 +47,7 @@ void*   fevbuff_get_arg(fev_buff*);
 int		fevbuff_get_bufflen(fev_buff*, int type);
 int		fevbuff_get_usedlen(fev_buff*, int type);
 
-int 	fevbuff_read(fev_buff*, void* pbuf, size_t len);        // only read from fd and copy data to local buff, not pop 
+int 	fevbuff_read(fev_buff*, void* pbuf, size_t len);        // only read from fd or copy data to local buff, not pop 
 int		fevbuff_write(fev_buff*, const void* buff, size_t len);
 int     fevbuff_pop(fev_buff*, size_t len); // pop data from local buff
 

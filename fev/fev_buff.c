@@ -79,7 +79,7 @@ static void evbuff_read(fev_state* fev, int fd, int mask, void* arg)
 {
     fev_buff* evbuff = (fev_buff*)arg;
     if( evbuff->read_cb ) 
-        evbuff->read_cb(evbuff, evbuff->arg);
+        evbuff->read_cb(fev, evbuff, evbuff->arg);
 }
 
 static void evbuff_write(fev_state* fev, int fd, int mask, void* arg)
@@ -102,7 +102,7 @@ static void evbuff_write(fev_state* fev, int fd, int mask, void* arg)
         }  
         else {
             if ( evbuff->error_cb ) 
-                evbuff->error_cb(evbuff, evbuff->arg);
+                evbuff->error_cb(fev, evbuff, evbuff->arg);
         }
 
     }while(1);
@@ -220,7 +220,7 @@ int fevbuff_read(fev_buff* evbuff, void* pbuf, size_t len)
     else {
         //error
         if( evbuff->error_cb ) 
-            evbuff->error_cb(evbuff, evbuff->arg);
+            evbuff->error_cb(evbuff->fstate, evbuff, evbuff->arg);
         return -1;
     }
 }
@@ -256,7 +256,7 @@ int	fevbuff_write(fev_buff* evbuff, const void* pbuf, size_t len)
         bytes = fev_write(evbuff->fd, pbuf, len);
         if( bytes < 0 ){
             if(evbuff->error_cb) 
-                evbuff->error_cb(evbuff, evbuff->arg);
+                evbuff->error_cb(evbuff->fstate, evbuff, evbuff->arg);
             return -1;
         }
     }
