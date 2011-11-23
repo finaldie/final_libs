@@ -24,30 +24,23 @@ extern "C" {
 #endif
 
 typedef struct fev_state fev_state;
-#define FEV_ADD     0x1
-#define FEV_MOD     0x2
-#define FEV_DEL     0x4
 
-// fev fd state
+// fev fd mask
 #define FEV_NIL     0x0
 #define FEV_READ    0x1
 #define FEV_WRITE   0x2
+#define FEV_ERROR   0x4
 
-// fev event type
-#define FEV_IO      0x1
-#define FEV_TIMER   0x2
+typedef void (*pfev_read)(fev_state*, int fd, int mask, void* arg);
+typedef void (*pfev_write)(fev_state*, int fd, int mask, void* arg);
 
-typedef void (*pfev_process)(fev_state*, int fd, void* arg, int mask);
-
-fev_state* fev_create();
+fev_state* fev_create(int max_ev_size);
 void fev_destroy(fev_state*);
 int  fev_poll(fev_state*, int timeout);
 
-// the two category interfaces as follow return fd
-int  fev_add_io_event(fev_state*, int fd, int mask, pfev_process, void* arg);
-int  fev_del_io_event(fev_state*, int fd, int mask);
-int  fev_add_timer_event(fev_state*, long long nsec, long long alter, pfev_process, void* arg);
-int  fev_del_timer_event(fev_state*, int fd);
+int  fev_reg_event(fev_state*, int fd, int mask, pfev_read, pfev_write, void* arg);
+int  fev_add_event(fev_state*, int fd, int mask);
+int  fev_del_event(fev_state*, int fd, int mask);
 
 #ifdef __cplusplus
 }

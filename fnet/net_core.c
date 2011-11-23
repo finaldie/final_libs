@@ -90,62 +90,6 @@ void	net_set_send_timeout(int fd, int timeout)
 	assert(s == 0);
 }
 
-inline
-int		net_epoll_create(int queue_num)
-{
-    return epoll_create( queue_num );   
-}
-
-int		net_epoll_add(int epfd, int sockfd, int opt, void* ptr)
-{
-	struct epoll_event 	ev;
-
-	if( opt == FREAD )
-    	ev.events = EPOLLIN;
-	else if ( opt == FWRITE )
-    	ev.events = EPOLLOUT;
-	else	// warning to use it
-    	ev.events = EPOLLIN | EPOLLOUT;
-
-	//ev.events |= EPOLLET;
-
-    ev.data.ptr = ptr; 
-	
-    if (epoll_ctl(epfd, EPOLL_CTL_ADD, sockfd, &ev) < 0)
-    {   
-        printf("add epoll event error fd =%d errno =%d(%s)\n", sockfd, errno, strerror(errno));   
-		return -1;
-    }   
-
-	return sockfd;
-}
-
-int		net_epoll_mod(int epfd, int fd, int opt, void* ptr)
-{
-	struct epoll_event 	ev;
-
-	if( opt == FREAD )
-		ev.events = EPOLLIN;
-	else if ( opt == FWRITE )
-		ev.events = EPOLLOUT;
-	else 	// warning to use it
-		ev.events = EPOLLIN | EPOLLOUT;
-
-	//ev.events |= EPOLLET;
-    ev.data.ptr = ptr; 
-
-    return epoll_ctl(epfd, EPOLL_CTL_MOD, fd, &ev);
-}
-
-inline
-void	net_epoll_del(int epfd, int sockfd)
-{
-	struct epoll_event ev;
-	ev.data.ptr = NULL;
-	if( 0 != epoll_ctl(epfd, EPOLL_CTL_DEL, sockfd, &ev) )
-		printf("net_core: epoll del failed efd=%d delsockfd=%d\n", epfd, sockfd);
-}
-
 int		net_create_listen(char* ip, int port, int max_link, int isblock)
 {
     int            			listen_fd;   
@@ -236,39 +180,11 @@ int 	net_send(int fd, const char* data, int len)
 				continue;
 			else if( errno == EAGAIN )
 				return SOCKET_IDLE;
-			else if ( errno == EWOULDBLOCK )
-				return SOCKET_BUSY;
 			else
 				return SOCKET_ERROR;
 		}
 	}while(1);
 }
-
-/*
-inline
-int		net_send(int fd, char* data, int len){
-	int send_num = 0, total_num = 0;
-
-	while( total_num < len ){
-		send_num = send(fd, data+total_num, len-total_num, MSG_NOSIGNAL);
-		if( send_num != -1 ){
-			total_num += send_num;
-			if( total_num == len )
-				break;
-		}
-		else{
-			if( errno == EINTR )
-				continue;
-			else if( errno == EAGAIN || errno == EWOULDBLOCK )
-				break;
-			else
-				break;
-		}
-	}
-
-	return total_num;
-}
-*/
 
 // return <=0 the peer has quit, >0 can read
 inline
@@ -283,8 +199,6 @@ int 	net_recv(int fd, char* data, int len)
 				continue;
 			else if( errno == EAGAIN )
 				return SOCKET_IDLE;
-			else if(errno == EWOULDBLOCK )
-				return SOCKET_BUSY;
 			return SOCKET_ERROR;
 		}
 		else if( recv_size == 0 )	// client quit
@@ -317,7 +231,7 @@ int		net_accept(int listen_fd)
 		if (sock_fd == -1)
 			if( errno == EINTR )
 				continue;
-			else if( errno == EAGAIN || errno == EWOULDBLOCK )
+			else if( errno == EAGAIN )
 				return SOCKET_IDLE;
 			else
 				return SOCKET_ERROR;
@@ -396,55 +310,6 @@ int		net_conn_a(const char* ip, int port, int* outfd)
 	printf("lnet_conn:connect sucess fd = %d\n", sockfd);
 
 	return	0;
-}
-
-void	net_create_event(event_data* ed, int event_num,
-						pfunc_read pr, pfunc_write pw, 
-						pfunc_error pe, pfunc_timeout pt){
-	ed->events_list = malloc(sizeof(struct epoll_event) * event_num);
-	ed->events_len = event_num;
-
-	ed->pread = pr;
-	ed->pwrite = pw;
-	ed->perror = pe;
-	ed->ptimeout = pt;
-}
-
-void	net_delete_event(event_data* ed){
-	free(ed->events_list);
-	ed->pread = NULL;
-	ed->pwrite = NULL;
-	ed->perror = NULL;
-	ed->ptimeout = NULL;
-
-	free(ed);
-}
-
-void	net_epoll_wait(int epfd, int timeout, event_data* ed){
-	if( !ed ) return;
-	int nfds = 0, i = 0;
-
-	struct epoll_event* events = (struct epoll_event*)ed->events_list;
-	nfds = epoll_wait(epfd, events, ed->events_len, timeout);  
-
-	for (i=0; i<nfds; ++i){
-		void* data = events[i].data.ptr;
-
-		if( events[i].events & (EPOLLHUP | EPOLLRDHUP) ){
-			if( ed->perror && ed->perror(data) ){}
-			continue;
-		}
-
-		if( events[i].events & EPOLLIN )
-			if( ed->pread && ed->pread(data)){}
-
-		if( events[i].events & EPOLLOUT )
-			if( ed->pwrite && ed->pwrite(data) ){}
-	}
-
-	// time out
-	if( nfds == 0 )
-		if( ed->ptimeout && ed->ptimeout() ){}
 }
 
 char* 	net_get_localip(int fd)

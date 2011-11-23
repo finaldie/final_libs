@@ -15,8 +15,9 @@ void	mbuf_clear(mbuf* pbuf);
 int		mbuf_total_free(mbuf* pbuf);
 int		mbuf_tail_free(mbuf* pbuf);
 int		mbuf_head_free(mbuf* pbuf);
-void*	mbuf_get_start(mbuf* pbuf);
-void*	mbuf_get_end(mbuf* pbuf);
+void*	mbuf_get_head(mbuf* pbuf);
+void*	mbuf_get_tail(mbuf* pbuf);
+int     mbuf_size(mbuf* pbuf);
 
 //push data into mbuf : if tail free space not enough that continue write from start
 //return 0/1 : 0-> sucess 1->fail

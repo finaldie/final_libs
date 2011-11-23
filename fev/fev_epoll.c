@@ -23,12 +23,12 @@ typedef struct state {
     struct epoll_event events[FEV_MAX_EVENT_NUM];
 }state;
 
-static int fev_state_create(fev_state* fev)
+static int fev_state_create(fev_state* fev, int max_ev_size)
 {
     state* st = (state*)malloc(sizeof(state));
     if( !st ) return 1;
 
-    st->epfd = epoll_create(1024);
+    st->epfd = epoll_create(max_ev_size);
     if( st->epfd == -1 ) return 2; 
 
     fev->state = st;
@@ -51,10 +51,10 @@ static int fev_state_addevent(fev_state* fev, int fd, int mask)
     ee.data.fd = fd;
     ee.events = 0;
     
-    int op = fevents[fd].mask == FEV_NIL ? 
+    int op = fev->fevents[fd].mask == FEV_NIL ? 
             EPOLL_CTL_ADD : EPOLL_CTL_MOD;
 
-    mask |= fevents[fd].mask;   // merge old mask state
+    mask |= fev->fevents[fd].mask;   // merge old mask state
     if( mask & FEV_READ ) ee.events |= EPOLLIN;
     if( mask & FEV_WRITE ) ee.events |= EPOLLOUT;
 
@@ -65,7 +65,7 @@ static int fev_state_addevent(fev_state* fev, int fd, int mask)
 static int fev_state_delevent(fev_state* fev, int fd, int delmask)
 {
     state* st = fev->state; 
-    int mask = fevents[fd].mask & (~delmask);   //reserved state except delmask
+    int mask = fev->fevents[fd].mask & (~delmask);   //reserved state except delmask
     struct epoll_event ee;
     ee.data.u64 = 0;
     ee.data.fd = fd;
@@ -88,6 +88,9 @@ static int fev_state_poll(fev_state* fev, int timeout)
     state* st = fev->state;
     int nums, i;
 
+    // clear firelist
+    memset(fev->firelist, 0, fev->max_ev_size);
+
     nums = epoll_wait(st->epfd, st->events, FEV_MAX_EVENT_NUM, timeout);
     if( nums < 0 ) {
         if( errno == EINTR )
@@ -97,17 +100,22 @@ static int fev_state_poll(fev_state* fev, int timeout)
 
     for(i=0; i< nums; i++){
         struct epoll_event* ee = &(st->events[i]);
+		int fd = ee->data.fd;
+
+        // check the fd whether or not in firelist , if in, we ignore it
+        // because sometimes we modify another fd state to FEV_NIL, so that we process it unnecessary 
+        if( fev->firelist[fd] ) continue;
 
         int mask = FEV_NIL;
         if( ee->events & EPOLLIN ) mask |= FEV_READ;
         if( ee->events & EPOLLOUT ) mask |= FEV_WRITE;
+        if( ee->events & (EPOLLHUP | EPOLLERR) ) mask |= FEV_ERROR;     // FEV_ERROR only used by framework
 
-		int fd = ee->data.fd;
-        if( fevents[fd].mask & mask & FEV_READ ) 
-            fevents[fd].pfunc(fev, fd, fevents[fd].arg, mask);
+        if( fev->fevents[fd].pread && (fev->fevents[fd].mask & mask & FEV_READ) ) 
+            fev->fevents[fd].pread(fev, fd, mask, fev->fevents[fd].arg);
 
-        if( fevents[fd].mask & mask & FEV_WRITE ) 
-            fevents[fd].pfunc(fev, fd, fevents[fd].arg, mask);
+        if( fev->fevents[fd].pwrite && (fev->fevents[fd].mask & mask & FEV_WRITE) ) 
+            fev->fevents[fd].pwrite(fev, fd, mask, fev->fevents[fd].arg);
     }
 
     return nums;
