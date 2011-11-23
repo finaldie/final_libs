@@ -3,7 +3,8 @@ TARGET = libfev.a
 INCLUDE_FILES = fev.h \
 				fev_timer.h \
 				fev_buff.h \
-				fev_conn.h
+				fev_conn.h \
+				fev_listen.h
 INSTALL_PATH = ../final_libraries
 INCLUDE_PATH = include
 LIBS_PATH = libs
@@ -17,7 +18,8 @@ LIBS =
 SRCS = fev.c \
 	   fev_timer.c \
 	   fev_buff.c \
-	   fev_conn.c
+	   fev_conn.c \
+	   fev_listen.c
 DEPS = $(patsubst %.c,%.d,$(SRCS))
 OBJS = $(patsubst %.c,%.o,$(SRCS))
 

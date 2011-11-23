@@ -23,12 +23,12 @@ typedef struct state {
     struct epoll_event events[FEV_MAX_EVENT_NUM];
 }state;
 
-static int fev_state_create(fev_state* fev)
+static int fev_state_create(fev_state* fev, int max_ev_size)
 {
     state* st = (state*)malloc(sizeof(state));
     if( !st ) return 1;
 
-    st->epfd = epoll_create(1024);
+    st->epfd = epoll_create(max_ev_size);
     if( st->epfd == -1 ) return 2; 
 
     fev->state = st;

@@ -60,7 +60,7 @@ fev_state*    fev_create(int max_ev_size)
         return NULL;
     }
 
-    if( fev_state_create(fev) ) {
+    if( fev_state_create(fev, max_ev_size) ) {
         perror("fev create state");
         free(fev);
         return NULL;
