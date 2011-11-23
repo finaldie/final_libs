@@ -26,7 +26,7 @@ extern "C" {
 #include "fev.h"
 
 typedef struct fev_timer fev_timer;
-typedef void (*fev_timer_cb)(void* arg);
+typedef void (*fev_timer_cb)(fev_state*, void* arg);
 
 fev_timer* fev_add_timer_event(
         fev_state* fev, 

@@ -45,7 +45,7 @@ static void fev_on_timer(fev_state* fev, int fd, int mask, void* arg)
 		else
 		{
 			if( evt->callback ){
-				evt->callback(evt->arg);
+				evt->callback(fev, evt->arg);
 			}
 
             if( evt->once ){

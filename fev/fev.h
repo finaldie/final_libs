@@ -29,6 +29,7 @@ typedef struct fev_state fev_state;
 #define FEV_NIL     0x0
 #define FEV_READ    0x1
 #define FEV_WRITE   0x2
+#define FEV_ERROR   0x4
 
 typedef void (*pfev_read)(fev_state*, int fd, int mask, void* arg);
 typedef void (*pfev_write)(fev_state*, int fd, int mask, void* arg);
