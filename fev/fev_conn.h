@@ -33,7 +33,7 @@ typedef union conn_arg_t{
 
 // fd > 0 : sucess
 // fd == -1 : error or timeout
-typedef void (*pfev_conn)(int fd, int ev, conn_arg_t arg);
+typedef void (*pfev_conn)(int fd, conn_arg_t arg);
 
 // asynchronous connect method used fev
 // unit of timeout : ms

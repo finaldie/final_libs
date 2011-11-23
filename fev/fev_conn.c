@@ -16,6 +16,8 @@
  * =====================================================================================
  */
 
+#include <stdlib.h>
+#include <unistd.h>
 #include "fev_conn.h"
 #include "net_core.h"
 #include "fev_timer.h"
@@ -97,7 +99,7 @@ int		fev_conn(fev_state* fev,
         conn_info->conn_cb = pfunc;
         conn_info->arg = arg;
 
-        fev_reg_event(fev, sockfd, FEV_WRITE, on_connect, conn_info);
+        fev_reg_event(fev, sockfd, FEV_WRITE, NULL, on_connect, conn_info);
         return 0;
     }
 }

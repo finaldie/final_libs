@@ -25,8 +25,6 @@
 #include "mbuf.h"
 
 #define FEV_BUFF_DEFAULT_SIZE   (1024 * 4)
-#define FEV_ERROR   -1
-#define FEV_AGAIN   -2
 
 struct fev_buff {
     int             fd;
