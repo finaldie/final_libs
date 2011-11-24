@@ -13,7 +13,8 @@ LIBS = -lfhash \
 	   -lfmempool \
 	   -lpthread \
 	   -lflock \
-	   -lflog
+	   -lflog \
+	   -lfmbuf
 
 SRCS = tu_inc.c \
 	   main.c \
