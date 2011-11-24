@@ -38,7 +38,7 @@ all:
 	-( test -d $(TEST) && cd $(TEST) && make && make install )
 
 run_test:
-	-( test -d $(TEST) && cd $(TEST) && make test )
+	-( test -d $(TEST) && cd $(TEST) && make run_test )
 
 .PHONY:clean
 clean:

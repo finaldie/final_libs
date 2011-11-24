@@ -41,7 +41,7 @@ install:
 	-(test -d $(INSTALL_PATH) || mkdir -p $(INSTALL_PATH) )
 	cp $(TARGET) $(COPY_FILES) $(INSTALL_PATH)
 
-test:
+run_test:
 	-(cd $(INSTALL_PATH) && ./$(TARGET) )
 
 .PHONY:clean
