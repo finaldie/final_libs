@@ -9,7 +9,9 @@ CC = gcc
 INC = -I$(FLIB_PATH)/$(INCLUDE_PATH)
 LL = -L$(FLIB_PATH)/libs
 LIBS = -lfhash \
-	   -lfmempool
+	   -lfmempool \
+	   -lpthread \
+	   -lflock
 
 SRCS = tu_inc.c \
 	   main.c \
@@ -19,7 +21,7 @@ SRCS = tu_inc.c \
 DEPS = $(patsubst %.c,%.d,$(SRCS))
 OBJS = $(patsubst %.c,%.o,$(SRCS))
 
-CFLAGS = -Wall -Werror -g -O2
+CFLAGS = -Wall -Werror -g
 
 all:$(TARGET)
 $(TARGET):$(OBJS) $(DEPS)
