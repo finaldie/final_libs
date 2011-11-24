@@ -15,6 +15,7 @@ void	_test_log(){
 	char info[40];
 	sprintf(info, "log test final");
 	flog(LOG_LEVEL_DEBUG, "test_log.log", "%s\n", info);
+	sleep(2);   // wait for log system 
 
     FILE* f = fopen("test_log.log", "r");
     //FTU_ASSERT_GREATER_THAN_INT(0, fd);
