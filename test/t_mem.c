@@ -3,7 +3,8 @@
 #include <assert.h>
 
 #include "tu_inc.h"
-#include "../base/lmempool.h"
+#include "lmempool.h"
+#include "inc.h"
 
 #define malloc 	f_alloc
 #define free 	f_free
@@ -53,7 +54,6 @@ void	_test_mem(void* arg){
 	my_time t1;
 	my_time t2;
 
-LOOP:
 	get_cur_time(&t1);
 	alloc_test(4);
 	alloc_test(12);
@@ -80,7 +80,6 @@ LOOP:
 	*(int*)arg = di/1000;
 
 	sleep(8);
-	goto LOOP;
 }
 
 void	test_mem(int argc, char** argv){
@@ -95,10 +94,6 @@ void	test_mem(int argc, char** argv){
 	
 	for(i=0; i<THREAD_NUM; ++i)
 		pthread_join(tid[i], NULL);
-
-	while(1){
-		sleep(10);
-	}
 }
 
 void*	realloc_test(void* arg){

@@ -8,11 +8,13 @@ LIBS_PATH = libs
 CC = gcc
 INC = -I$(FLIB_PATH)/$(INCLUDE_PATH)
 LL = -L$(FLIB_PATH)/libs
-LIBS = -lfhash
+LIBS = -lfhash \
+	   -lfmempool
 
 SRCS = tu_inc.c \
 	   main.c \
-	   t_hash.c
+	   t_hash.c \
+	   t_mem.c
 	   
 DEPS = $(patsubst %.c,%.d,$(SRCS))
 OBJS = $(patsubst %.c,%.o,$(SRCS))

@@ -23,8 +23,9 @@
 void	test_hash();
 void	test_hash_del();
 
-//void	test_mem();
-//void	test_realloc();
+void	test_mem();
+void	test_realloc();
+
 //void	test_log();
 //void	t_pto();
 ////void	test_mbuf();
