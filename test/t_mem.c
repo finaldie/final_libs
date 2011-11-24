@@ -9,12 +9,12 @@
 #define malloc 	f_alloc
 #define free 	f_free
 
+#pragma pack(4)
 typedef struct{
 	int idx:8;
 	unsigned int alloc_len:24;		// for optimization realloc
 }fb_head;
 
-#pragma pack(4)
 typedef struct _fb{
 	fb_head		b_head;
 
@@ -37,6 +37,9 @@ void	alloc_test(int size){
 	int i;
 	for( i=0; i<LOOP_NUM; ++i ){
 		int* a_ptr = (int*)malloc(size);
+        free_block* fb = (free_block*)((fb_head*)a_ptr - 1);
+        FTU_ASSERT_EQUAL_INT(0, fb->b_head.idx);
+        FTU_ASSERT_EQUAL_INT(size, fb->b_head.alloc_len);
 		*(int*)a_ptr = 10;
 		free(a_ptr);
 	}
