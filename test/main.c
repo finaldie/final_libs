@@ -14,7 +14,7 @@ void	register_module(){
 
 	tu_register_module("test_alloc", test_mem);
 	tu_register_module("test_realloc", test_realloc);
-	//register_module("test_log", test_log);
+	tu_register_module("test_log", test_log);
 	//register_module("test_pto", t_pto);
 	////register_module("test_mbuf", test_mbuf);
 	//register_module("test_ploop", t_pto_loop);
