@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <unistd.h>
 
 #include "tu_inc.h"
@@ -9,9 +12,8 @@
 void	_test_log(){
     system("rm -f ./test_log.log");
 
-	int i;
 	char info[40];
-	sprintf(info, "log test final", i);
+	sprintf(info, "log test final");
 	flog(LOG_LEVEL_DEBUG, "test_log.log", "%s\n", info);
 
     int fd = open("test_log.log", O_CREAT | O_WRONLY | O_APPEND, 0755);
@@ -21,6 +23,7 @@ void	_test_log(){
     memset(assert_info, 0, 40);
     fscanf(fd, "%s", assert_info);
     FTU_ASSERT_EQUAL_CHAR("log test final", assert_info);
+    close(fd);
 }
 
 void	test_log(){

@@ -1,9 +1,10 @@
 TARGET = test
-BIN_PATH = ./bin/
+BIN_PATH = bin
 
 FLIB_PATH = ../final_libraries
 INCLUDE_PATH = include
 LIBS_PATH = libs
+INSTALL_PATH = $(FLIB_PATH)/$(BIN_PATH)
 
 CC = gcc
 INC = -I$(FLIB_PATH)/$(INCLUDE_PATH)
@@ -19,6 +20,8 @@ SRCS = tu_inc.c \
 	   t_hash.c \
 	   t_mem.c \
 	   t_log.c
+
+COPY_FILES = 
 	   
 DEPS = $(patsubst %.c,%.d,$(SRCS))
 OBJS = $(patsubst %.c,%.o,$(SRCS))
@@ -35,13 +38,16 @@ $(TARGET):$(OBJS) $(DEPS)
 	$(CC) $(CFLAGS) $(INC) -c $< 
 
 install:
-	-(test -d $(BIN_PATH) || mkdir $(BIN_PATH) )
-	cp $(TARGET) $(BIN_PATH)
+	-(test -d $(INSTALL_PATH) || mkdir -p $(INSTALL_PATH) )
+	cp $(TARGET) $(COPY_FILES) $(INSTALL_PATH)
+
+test:
+	-(cd $(INSTALL_PATH) && ./$(TARGET) )
 
 .PHONY:clean
 clean:
 	rm -f $(DEPS) $(OBJS) $(TARGET)
-	rm -rf $(BIN_PATH)
+	rm -rf $(FLIB_PATH)
 
 help:
 	@echo "The information represents in the program:"

@@ -35,7 +35,10 @@ all:
 	-( test -d $(NETWORK) && cd $(NETWORK) && make install )
 	-( test -d $(EVENT) && cd $(EVENT) && make )
 	-( test -d $(EVENT) && cd $(EVENT) && make install )
-	-( test -d $(TEST) && cd $(TEST) && make && ./test)
+	-( test -d $(TEST) && cd $(TEST) && make && make install )
+
+test:
+	-( test -d $(TEST) && cd $(TEST) && make test )
 
 .PHONY:clean
 clean:
