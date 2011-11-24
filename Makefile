@@ -10,6 +10,7 @@ MEMPOOL = fmempool
 THREAD_POOL = fthread_pool
 NETWORK = fnet
 EVENT = fev
+TEST = test
 
 all:
 	-( test -d $(LIST) && cd $(LIST) && make )
@@ -34,6 +35,7 @@ all:
 	-( test -d $(NETWORK) && cd $(NETWORK) && make install )
 	-( test -d $(EVENT) && cd $(EVENT) && make )
 	-( test -d $(EVENT) && cd $(EVENT) && make install )
+	-( test -d $(TEST) && cd $(TEST) && make && ./test)
 
 .PHONY:clean
 clean:
