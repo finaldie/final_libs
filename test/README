@@ -1,0 +1,5 @@
+This a simple test framework
+1. tu_inc.h tu_inc.c : The two fils is the test framework files , you can include them to test your programe :)
+2. tu_main.c and all other files is the test programe files which test the libs
+
+have fun :)
