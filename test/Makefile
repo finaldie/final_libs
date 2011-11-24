@@ -11,12 +11,14 @@ LL = -L$(FLIB_PATH)/libs
 LIBS = -lfhash \
 	   -lfmempool \
 	   -lpthread \
-	   -lflock
+	   -lflock \
+	   -lfog
 
 SRCS = tu_inc.c \
 	   main.c \
 	   t_hash.c \
-	   t_mem.c
+	   t_mem.c \
+	   t_log.c
 	   
 DEPS = $(patsubst %.c,%.d,$(SRCS))
 OBJS = $(patsubst %.c,%.o,$(SRCS))
