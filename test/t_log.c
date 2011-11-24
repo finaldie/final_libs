@@ -16,14 +16,14 @@ void	_test_log(){
 	sprintf(info, "log test final");
 	flog(LOG_LEVEL_DEBUG, "test_log.log", "%s\n", info);
 
-    int fd = open("test_log.log", O_CREAT | O_WRONLY | O_APPEND, 0755);
-    FTU_ASSERT_GREATER_THAN_INT(0, fd);
+    FILE* f = fopen("test_log.log", "r");
+    //FTU_ASSERT_GREATER_THAN_INT(0, fd);
 
     char assert_info[40];
     memset(assert_info, 0, 40);
-    fscanf(fd, "%s", assert_info);
+    fscanf(f, "%s", assert_info);
     FTU_ASSERT_EQUAL_CHAR("log test final", assert_info);
-    close(fd);
+    fclose(f);
 }
 
 void	test_log(){

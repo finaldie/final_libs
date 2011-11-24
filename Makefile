@@ -37,7 +37,7 @@ all:
 	-( test -d $(EVENT) && cd $(EVENT) && make install )
 	-( test -d $(TEST) && cd $(TEST) && make && make install )
 
-test:
+run_test:
 	-( test -d $(TEST) && cd $(TEST) && make test )
 
 .PHONY:clean
