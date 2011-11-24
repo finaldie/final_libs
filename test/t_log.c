@@ -23,7 +23,9 @@ void	_test_log(){
     char assert_info[40];
     memset(assert_info, 0, 40);
     fscanf(f, "%s", assert_info);
-    FTU_ASSERT_EQUAL_CHAR("log test final", assert_info);
+    char* ptr = strstr(assert_info, "log test final");
+    //FTU_ASSERT_EQUAL_CHAR(0, (int)ptr);
+    FTU_ASSERT_EXPRESS((ptr!=NULL));
     fclose(f);
 }
 
