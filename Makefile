@@ -50,3 +50,4 @@ clean:
 	-( test -d $(THREAD_POOL) && cd $(THREAD_POOL) && make clean)
 	-( test -d $(NETWORK) && cd $(NETWORK) && make clean)
 	-( test -d $(EVENT) && cd $(EVENT) && make clean)
+	-( test -d $(TEST) && cd $(TEST) && make clean)

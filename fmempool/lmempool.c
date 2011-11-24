@@ -118,7 +118,7 @@ typedef struct{
 
 // global memory pool
 fmem_pool* volatile	pmem = NULL;
-static pthread_once_t init_create;
+static pthread_once_t init_create = PTHREAD_ONCE_INIT;
 
 static inline
 free_block* _f_pop(free_list* fl);
