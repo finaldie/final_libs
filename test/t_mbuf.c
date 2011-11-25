@@ -36,7 +36,7 @@ void test_mbuf()
         FTU_ASSERT_EQUAL_INT(0, head_free);
 
         int tail_free = mbuf_tail_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(0, tail_free);
+        FTU_ASSERT_EQUAL_INT(100, tail_free);
 
         int size = mbuf_size(pbuf);
         FTU_ASSERT_EQUAL_INT(100, size);
@@ -56,7 +56,7 @@ void test_mbuf()
         FTU_ASSERT_EQUAL_INT(10, head_free);
 
         int tail_free = mbuf_tail_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(70, tail_free);
+        FTU_ASSERT_EQUAL_INT(80, tail_free);
 
         int size = mbuf_size(pbuf);
         FTU_ASSERT_EQUAL_INT(100, size);
@@ -75,7 +75,7 @@ void test_mbuf()
         FTU_ASSERT_EQUAL_INT(0, head_free);
 
         int tail_free = mbuf_tail_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(80, tail_free);
+        FTU_ASSERT_EQUAL_INT(90, tail_free);
 
         int size = mbuf_size(pbuf);
         FTU_ASSERT_EQUAL_INT(100, size);
@@ -144,4 +144,6 @@ void test_mbuf()
         int size = mbuf_size(pbuf);
         FTU_ASSERT_EQUAL_INT(15, size);
     }
+
+    delete_mbuf(pbuf);
 }

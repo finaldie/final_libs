@@ -8,7 +8,7 @@
 #define	MBUF_TAIL(pbuf) 			( pbuf->tail )
 #define MBUF_SIZE(pbuf)				( pbuf->size )
 #define MBUF_USED(pbuf)				( MBUF_HEAD(pbuf) <= MBUF_TAIL(pbuf) ? MBUF_TAIL(pbuf) - MBUF_HEAD(pbuf) : MBUF_SIZE(pbuf) + MBUF_TAIL(pbuf) - MBUF_HEAD(pbuf) )
-#define MBUF_FREE(pbuf)				( MBUF_HEAD(pbuf) <= MBUF_TAIL(pbuf) ? MBUF_SIZE(pbuf) + MBUF_HEAD(pbuf) - MBUF_TAIL(pbuf) - 1 : MBUF_HEAD(pbuf) - MBUF_TAIL(pbuf) - 1 )
+#define MBUF_FREE(pbuf)				( MBUF_HEAD(pbuf) <= MBUF_TAIL(pbuf) ? MBUF_SIZE(pbuf) + MBUF_HEAD(pbuf) - MBUF_TAIL(pbuf) : MBUF_HEAD(pbuf) - MBUF_TAIL(pbuf) )
 #define	MBUF_FIX_ADDR(size)			( size + ((size & 3) > 0)*(4 - (size & 3))  )		//fix the addr 
 
 typedef unsigned int 	uint;
@@ -223,7 +223,7 @@ void*	mbuf_alloc(mbuf* pbuf, size_t size)
 
 void	mbuf_rewind(mbuf* pbuf)
 {
-	uint head_free = mbuf_head_free(pbuf);
+	int head_free = mbuf_head_free(pbuf);
 
 	if (head_free == 0)
 		return;
