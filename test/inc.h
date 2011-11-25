@@ -27,8 +27,9 @@ void	test_mem();
 void	test_realloc();
 
 void	test_log();
+void	test_mbuf();
+
 //void	t_pto();
-////void	test_mbuf();
 //void	t_pto_loop();
 //void	test_pressure(int argc, char** argv);
 //void	test_th_key();
