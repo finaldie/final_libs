@@ -7,14 +7,20 @@
 #include <string.h>
 
 #include "tu_inc.h"
-#include "lhash.h"
+#include "flist.h"
 
 //TODO...
 
-static f_hash* phash = NULL;
+static pl_mgr plist = NULL;
 static int failed_cases = 0;
 static int tu_case_num = 0;
 int curr_failed_assert = 0;
+
+typedef struct {
+    pfunc_init  pfunc;
+    char*       case_name;
+    char*       describe;
+}ftest_case;
 
 void	get_cur_time(my_time* time){
 	gettimeofday(&time->tv, &time->tz);
@@ -30,29 +36,29 @@ int		get_diff_time(my_time* time1, my_time* time2){
 }
 
 void	tu_register_init(){
-	if( phash ) return;
-	phash = hash_create(0);
+	if( plist ) return;
+    plist = flist_create();
 
     tu_case_num = 0;
     failed_cases = 0;
     curr_failed_assert = 0;
 }
 
-void	tu_register_module(char* module_name, pfunc_init pfunc){
+void	_tu_register_module(pfunc_init pfunc, char* case_name, char* describe){
     tu_case_num++;
-	hash_set_str(phash, module_name, pfunc);
+
+    ftest_case* ftc = (ftest_case*)malloc(sizeof(ftest_case));
+    ftc->pfunc = pfunc;
+    ftc->case_name = case_name;
+    ftc->describe = describe;
+
+    flist_push(plist, ftc);
 }
 
-pfunc_init	tu_get_module(char* module_name){
-	pfunc_init pfunc = hash_get_str(phash, module_name);
-	
-	return pfunc;
-}
-
-static int tu_each_case(void* value)
+static int tu_each_case(pfunc_init pfunc)
 {
     curr_failed_assert = 0;
-    ((pfunc_init)value)();
+    pfunc();
 
     if( curr_failed_assert ) {
         failed_cases++;
@@ -63,10 +69,16 @@ static int tu_each_case(void* value)
 
 void tu_run_cases()
 {
-    printf("test unit start...\n");
-    hash_foreach(phash, tu_each_case);
+    printf("FINAL TEST UNIT START...\n");
 
-    printf("\n--------------------------------------\nTotal case %d, Pass %d, Failed %d\n", 
+    ftest_case* ftc = NULL;
+    while( ( ftc = (ftest_case*)flist_pop(plist) ) ){
+        printf("\nCASE NAME:%s DESCRIBE:%s*****************\n", ftc->case_name, ftc->describe ? ftc->describe : "");
+        tu_each_case(ftc->pfunc);
+        free(ftc);
+    }
+
+    printf("\n--------------------------------------\nTOTAL CASE %d, PASS %d, FAILED %d\n", 
             tu_case_num,
             tu_case_num - failed_cases,
             failed_cases);

@@ -44,9 +44,11 @@ extern int curr_failed_assert;
 
 typedef void (*pfunc_init)();
 void	tu_register_init();
-void	tu_register_module(char* module_name, pfunc_init pfunc);
+void	_tu_register_module(pfunc_init pfunc, char* case_name, char* describe);
+#define tu_register_module(pfunc, describe) \
+    _tu_register_module(pfunc, #pfunc, describe);
+    
 void    tu_run_cases();
-pfunc_init	tu_get_module(char* module_name);
 
 typedef struct{
 	struct timeval tv;
