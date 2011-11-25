@@ -33,7 +33,7 @@ int test_list_foreach(void* data)
 
 void test_list()
 {
-    pl_mgr* plist = flist_create();
+    pl_mgr plist = flist_create();
     FTU_ASSERT_EXPRESS(plist!=NULL);
     int is_empty = flist_isempty(plist);
     FTU_ASSERT_EQUAL_INT(1, is_empty);
