@@ -25,7 +25,7 @@ void	test_timer()
 
 	uint64_t exp;
 	int s = read(fd, (char*)&exp, sizeof(exp));
-    FTU_ASSERT_EQUAL_INT(sizeof(exp), s);
+    FTU_ASSERT_EQUAL_INT((int)sizeof(exp), s);
 
     ret = ftimerfd_stop(fd);
     FTU_ASSERT_EQUAL_INT(0, ret);
