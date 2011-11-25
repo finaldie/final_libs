@@ -1,11 +1,10 @@
 //base info: create by hyz
 //effect: fifo list
 
-
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "list.h"
+#include "flist.h"
 
 #define	LIST_HEAD(pmgr) 	(pmgr->head)
 #define	LIST_TAIL(pmgr)		(pmgr->tail)
@@ -26,7 +25,7 @@ struct list_mgr
 	struct list_node*	tail;
 };
 
-pl_mgr	create_list()
+pl_mgr	flist_create()
 {
 	pl_mgr pmgr = (pl_mgr)malloc(sizeof(lmgr));
 	pnode  node = (pnode)malloc(sizeof(lnode));
@@ -36,14 +35,14 @@ pl_mgr	create_list()
 	return pmgr;
 }
 
-void	delete_list(pl_mgr pmgr)
+void	flist_delete(pl_mgr pmgr)
 {
 	while( pop_node(pmgr) );
 	free(pmgr->head);
 	free(pmgr);
 }
 
-int		push_node(pl_mgr pmgr, void* data)
+int		flist_push(pl_mgr pmgr, void* data)
 {
 	if( !data )
 		return 1;
@@ -58,9 +57,9 @@ int		push_node(pl_mgr pmgr, void* data)
 	return 0;
 }
 
-void*	pop_node(pl_mgr pmgr)
+void*	flist_pop(pl_mgr pmgr)
 {
-	if( !pmgr || is_empty(pmgr) )
+	if( !pmgr || flist_isempty(pmgr) )
 		return NULL;
 
 	pmgr->head = pmgr->head->next;
@@ -68,17 +67,17 @@ void*	pop_node(pl_mgr pmgr)
 	return pmgr->head->data;
 }
 
-int		is_empty(pl_mgr pmgr)
+int		flist_isempty(pl_mgr pmgr)
 {
 	if(pmgr->head == pmgr->tail)
 		return 1;
 	return 0;
 }
 
-void*	list_foreach(pl_mgr pmgr, plist_call_back pfunc)
+void*	flist_foreach(pl_mgr pmgr, plist_call_back pfunc)
 {
 	if( !pfunc ) return NULL;
-	if( is_empty(pmgr) ) return NULL;
+	if( flist_isempty(pmgr) ) return NULL;
 
 	pnode node = LIST_HEAD(pmgr)->next;
 	while( node )
@@ -93,7 +92,7 @@ void*	list_foreach(pl_mgr pmgr, plist_call_back pfunc)
 }
 
 inline
-liter	list_iter(pl_mgr pmgr)
+liter	flist_iter(pl_mgr pmgr)
 {
 	liter iter;
 
@@ -103,10 +102,10 @@ liter	list_iter(pl_mgr pmgr)
 	return iter;
 }
 
-void*	list_each(liter* iter)
+void*	flist_each(liter* iter)
 {
 	pl_mgr pmgr = (pl_mgr)iter;
-	if( is_empty(pmgr) ) return NULL;
+	if( flist_isempty(pmgr) ) return NULL;
 	
 	pnode node = LIST_HEAD(pmgr)->next;
 
@@ -122,18 +121,18 @@ void*	list_each(liter* iter)
 // it's not thread safe 
 // and break lockfree fifo rules
 // so if you want run as safe
-// please make sure the push thread and pop thread are same thread
-void	list_del(liter* iter)
+// please ensure the push thread and pop thread are in the same thread
+void	flist_del(liter* iter)
 {
 	pl_mgr pmgr = (pl_mgr)iter;
-	if( is_empty(pmgr) ) return;
+	if( flist_isempty(pmgr) ) return;
 
 	//pnode curr_node = LIST_HEAD(pmgr);
 	//if ( curr_node == LIST_TAIL(pmgr) )
 }
 
-void*	list_head(pl_mgr pmgr){
-	if( is_empty(pmgr) ) return NULL;
+void*	flist_head(pl_mgr pmgr){
+	if( flist_isempty(pmgr) ) return NULL;
 
 	return LIST_HEAD(pmgr)->next->data;
 }

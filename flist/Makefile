@@ -1,6 +1,6 @@
 TARGET = libflist.a
 
-INCLUDE_FILES = list.h
+INCLUDE_FILES = flist.h
 INSTALL_PATH = ../final_libraries
 INCLUDE_PATH = include
 LIBS_PATH = libs
@@ -11,7 +11,7 @@ INC =
 LL = 
 LIBS = 
 
-SRCS = list.c
+SRCS = flist.c
 DEPS = $(patsubst %.c,%.d,$(SRCS))
 OBJS = $(patsubst %.c,%.o,$(SRCS))
 
