@@ -29,5 +29,6 @@ void	test_realloc();
 void	test_log();
 void	test_mbuf();
 void	test_timer();
+void    test_list();
 
 #endif

@@ -16,6 +16,7 @@ void	register_module(){
 	tu_register_module("test_log", test_log);
 	tu_register_module("test_mbuf", test_mbuf);
 	tu_register_module("test_timer", test_timer);
+	tu_register_module("test_list", test_list);
 }
 
 int main(int argc, char** argv){

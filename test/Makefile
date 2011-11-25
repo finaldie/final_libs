@@ -16,7 +16,8 @@ LIBS = -lfhash \
 	   -lflog \
 	   -lfmbuf \
 	   -lftimer \
-	   -lrt
+	   -lrt \
+	   -lflist
 
 SRCS = tu_inc.c \
 	   main.c \
@@ -24,7 +25,8 @@ SRCS = tu_inc.c \
 	   t_mem.c \
 	   t_log.c \
 	   t_mbuf.c \
-	   t_timer.c
+	   t_timer.c \
+	   t_list.c
 
 COPY_FILES = 
 	   
