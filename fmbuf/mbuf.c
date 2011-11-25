@@ -29,7 +29,7 @@ mbuf*	create_mbuf(size_t size)
 
 		if( !pmbuf ) return NULL;
 		pmbuf->size = size;
-		pmbuf->head = pmbuf->tail = 0;
+		pmbuf->head = pmbuf->tail = pmbuf->buf;
 
 		return pmbuf;
 	}
