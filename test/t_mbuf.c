@@ -99,7 +99,7 @@ void test_mbuf()
         FTU_ASSERT_EQUAL_INT(0, head_free);
 
         int tail_free = mbuf_tail_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(180, tail_free);
+        FTU_ASSERT_EQUAL_INT(190, tail_free);
 
         int size = mbuf_size(pbuf);
         FTU_ASSERT_EQUAL_INT(200, size);
@@ -125,7 +125,7 @@ void test_mbuf()
 
     pbuf = mbuf_realloc(pbuf, 100);
     mbuf_head_seek(pbuf, 10);
-    mbuf_tail_seek(pbuf, 20);
+    mbuf_tail_seek(pbuf, 10);
     pbuf = mbuf_realloc(pbuf, 15);
 
     {
