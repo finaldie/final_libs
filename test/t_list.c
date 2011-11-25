@@ -10,7 +10,7 @@
  *       Revision:  none
  *       Compiler:  gcc
  *
- *         Author:  YOUR NAME (), 
+ *         Author:  finaldie
  *        Company:  
  *
  * =====================================================================================
@@ -66,7 +66,7 @@ void test_list()
         FTU_ASSERT_EQUAL_INT(200, tp1->i);
 
         is_empty = flist_isempty(plist);
-        FTU_ASSERT_EQUAL_INT(0, is_empty);
+        FTU_ASSERT_EQUAL_INT(1, is_empty);
     }
     
     {
