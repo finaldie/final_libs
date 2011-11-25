@@ -78,10 +78,10 @@ void tu_run_cases()
         free(ftc);
 
         if ( curr_failed_assert ) {
-            printf("%d ASSERT FAILED\n", curr_failed_assert);
+            printf("[%d ASSERT FAILED]\n", curr_failed_assert);
         }
         else {
-            printf("ALL ASSERT PASSED\n");
+            printf("[ALL ASSERT PASSED]\n");
         }
     }
 
