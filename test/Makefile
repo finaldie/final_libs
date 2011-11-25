@@ -14,14 +14,16 @@ LIBS = -lfhash \
 	   -lpthread \
 	   -lflock \
 	   -lflog \
-	   -lfmbuf
+	   -lfmbuf \
+	   -lftimer
 
 SRCS = tu_inc.c \
 	   main.c \
 	   t_hash.c \
 	   t_mem.c \
 	   t_log.c \
-	   t_mbuf.c
+	   t_mbuf.c \
+	   t_timer.c
 
 COPY_FILES = 
 	   

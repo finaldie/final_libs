@@ -14,7 +14,8 @@
 
 //TODO...
 
-void	test_timer(){
+void	test_timer()
+{
 	int fd = ftimerfd_create();
     FTU_ASSERT_GREATER_THAN_INT(0, fd);
 	
