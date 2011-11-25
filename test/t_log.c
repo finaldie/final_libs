@@ -23,13 +23,14 @@ void	_test_log(){
     char assert_info[40];
     memset(assert_info, 0, 40);
 	int bytes_read = read(fd, assert_info, 40);  
+    FTU_ASSERT_GREATER_THAN_INT(0, bytes_read);
 
     printf("read log info:%s\n", assert_info);
     char* ptr = strstr(assert_info, "log test final");
     printf("find ptr=%p\n", ptr);
     FTU_ASSERT_EXPRESS(ptr!=NULL);
 
-    close(f);
+    close(fd);
 }
 
 void	test_log(){
