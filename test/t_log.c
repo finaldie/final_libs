@@ -17,18 +17,19 @@ void	_test_log(){
 	flog(LOG_LEVEL_DEBUG, "test_log.log", "%s\n", info);
 	sleep(2);   // wait for log system 
 
-    FILE* f = fopen("test_log.log", "r");
-    //FTU_ASSERT_GREATER_THAN_INT(0, fd);
-
+    int fd = open("test_log.log", O_RDONLY);
+    FTU_ASSERT_GREATER_THAN_INT(0, fd);
+    
     char assert_info[40];
     memset(assert_info, 0, 40);
-    fscanf(f, "%s", assert_info);
+	int bytes_read = read(fd, assert_info, 40);  
+
     printf("read log info:%s\n", assert_info);
     char* ptr = strstr(assert_info, "log test final");
     printf("find ptr=%p\n", ptr);
-    //FTU_ASSERT_EQUAL_CHAR(0, (int)ptr);
     FTU_ASSERT_EXPRESS(ptr!=NULL);
-    fclose(f);
+
+    close(f);
 }
 
 void	test_log(){
