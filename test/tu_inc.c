@@ -73,9 +73,16 @@ void tu_run_cases()
 
     ftest_case* ftc = NULL;
     while( ( ftc = (ftest_case*)flist_pop(plist) ) ){
-        printf("\nCASE NAME:%s DESCRIBE:%s*****************\n", ftc->case_name, ftc->describe ? ftc->describe : "");
+        printf("\n>>>>>>> CASE NAME:%s DESCRIBE:%s >>>>>>>\n", ftc->case_name, ftc->describe ? ftc->describe : "");
         tu_each_case(ftc->pfunc);
         free(ftc);
+
+        if ( curr_failed_assert ) {
+            printf("%d ASSERT FAILED\n", curr_failed_assert);
+        }
+        else {
+            printf("ALL ASSERT PASSED\n");
+        }
     }
 
     printf("\n--------------------------------------\nTOTAL CASE %d, PASS %d, FAILED %d\n", 
