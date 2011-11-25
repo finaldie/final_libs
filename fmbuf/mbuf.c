@@ -286,6 +286,7 @@ mbuf*	mbuf_realloc(mbuf* pbuf, size_t size)
 	uint head_pos = MBUF_HEAD(pbuf) - MBUF_START(pbuf);
 	mbuf* new_buf = (mbuf*)realloc(pbuf, sizeof(mbuf) + size);
 
+    MBUF_SIZE(new_buf) = size;
 	MBUF_HEAD(new_buf) += head_pos;
 	MBUF_TAIL(new_buf) += tail_pos;
 
