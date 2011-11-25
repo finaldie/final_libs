@@ -28,25 +28,6 @@ void	test_realloc();
 
 void	test_log();
 void	test_mbuf();
-
-//void	t_pto();
-//void	t_pto_loop();
-//void	test_pressure(int argc, char** argv);
-//void	test_th_key();
-//void	test_timer();
-//void	test_uuid();
-//void	test_auth();
-//void	test_insert();
-//void	test_bit();
-//void	test_http();
-//void	test_host();
-//void	test_host1();
-//void	test_host2();
-//void	test_strtok();
-//void	test_host3();
-//void	test_http_end();
-//void	test_getaddr();
-//void	test_dns();
-//void	test_local();
+void	test_timer();
 
 #endif

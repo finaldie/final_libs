@@ -8,30 +8,25 @@
 #include <unistd.h>
 #include <stdint.h>
 
-#include "../base/ltimer.h"
+#include "ltimer.h"
 #include "tu_inc.h"
 
 //TODO...
 
-static
-void	on_call(void* arg){
-	printf("timer run...\n");
-}
-
 void	test_timer(){
 	int fd = ftimerfd_create();
+    FTU_ASSERT_GREATER_THAN_INT(0, fd);
 	
-	ftimerfd_start(fd, 1000000000l, 1000000000l);
+	int ret = ftimerfd_start(fd, 1000000000l, 1000000000l);
+    FTU_ASSERT_EQUAL_INT(0, ret);
 
 	uint64_t exp;
-	while(1){
-		int s = read(fd, (char*)&exp, sizeof(exp));
+	int s = read(fd, (char*)&exp, sizeof(exp));
+    FTU_ASSERT_GREATER_THAN_INT(sizeof(exp), s);
 
-		if( s == sizeof(exp) )
-			on_call(NULL);
-	}
+    ret = ftimerfd_stop(fd);
+    FTU_ASSERT_EQUAL_INT(0, ret);
 }
-
 
 /*
 int	main(int argc, char** argv)
