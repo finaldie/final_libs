@@ -9,14 +9,14 @@
 #include "inc.h"
 
 void	register_module(){
-	tu_register_module("test_hash", test_hash);
-	tu_register_module("test_hash_del", test_hash_del);
-	tu_register_module("test_alloc", test_mem);
-	tu_register_module("test_realloc", test_realloc);
-	tu_register_module("test_log", test_log);
-	tu_register_module("test_mbuf", test_mbuf);
-	tu_register_module("test_timer", test_timer);
-	tu_register_module("test_list", test_list);
+	tu_register_module(test_list, "for test flist");
+	tu_register_module(test_hash, "for test fhash set and get");
+	tu_register_module(test_hash_del, "for test hash_del method");
+	tu_register_module(test_mem, "for test mempool alloc and free");
+	tu_register_module(test_realloc, "for test mempool realloc");
+	tu_register_module(test_log, "for test log system");
+	tu_register_module(test_mbuf, "for test mbuf");
+	tu_register_module(test_timer, "for test ftimerfd");
 }
 
 int main(int argc, char** argv){
