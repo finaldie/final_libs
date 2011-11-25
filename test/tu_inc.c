@@ -73,7 +73,7 @@ void tu_run_cases()
 
     ftest_case* ftc = NULL;
     while( ( ftc = (ftest_case*)flist_pop(plist) ) ){
-        printf("\n>>>>>>> CASE NAME:%s DESCRIBE:%s >>>>>>>\n", ftc->case_name, ftc->describe ? ftc->describe : "");
+        printf("\n <<<<<<< CASE NAME:%s DESCRIBE:%s >>>>>>>\n", ftc->case_name, ftc->describe ? ftc->describe : "");
         tu_each_case(ftc->pfunc);
         free(ftc);
 
