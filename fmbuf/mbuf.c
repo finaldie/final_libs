@@ -4,8 +4,8 @@
 
 #define MBUF_START(pbuf)			( (char*)(pbuf->buf) )
 #define MBUF_END(pbuf)				( pbuf->buf + pbuf->size - 1 )
-#define	MBUF_HEAD(pbuf) 			( MBUF_START(pbuf) + pbuf->head )
-#define	MBUF_TAIL(pbuf) 			( MBUF_START(pbuf) + pbuf->tail )
+#define	MBUF_HEAD(pbuf) 			( pbuf->head )
+#define	MBUF_TAIL(pbuf) 			( pbuf->tail )
 #define MBUF_SIZE(pbuf)				( pbuf->size )
 #define MBUF_USED(pbuf)				( MBUF_HEAD(pbuf) <= MBUF_TAIL(pbuf) ? MBUF_TAIL(pbuf) - MBUF_HEAD(pbuf) : MBUF_SIZE(pbuf) + MBUF_TAIL(pbuf) - MBUF_HEAD(pbuf) )
 #define MBUF_FREE(pbuf)				( MBUF_HEAD(pbuf) <= MBUF_TAIL(pbuf) ? MBUF_SIZE(pbuf) + MBUF_HEAD(pbuf) - MBUF_TAIL(pbuf) : MBUF_HEAD(pbuf) - MBUF_TAIL(pbuf) )
@@ -16,8 +16,8 @@ typedef unsigned int uint;
 struct _mbuf
 {
 	uint	size;
-	uint	head;
-	uint	tail;
+	char*	head;
+	char*	tail;
 	char	buf[1];
 };
 
@@ -287,8 +287,8 @@ mbuf*	mbuf_realloc(mbuf* pbuf, size_t size)
 	mbuf* new_buf = (mbuf*)realloc(pbuf, sizeof(mbuf) + size);
 
     MBUF_SIZE(new_buf) = size;
-	MBUF_HEAD(new_buf) += head_pos;
-	MBUF_TAIL(new_buf) += tail_pos;
+	MBUF_HEAD(new_buf) += MBUF_START(pbuf) + head_pos;
+	MBUF_TAIL(new_buf) += MBUF_START(pbuf) + tail_pos;
 
 	return new_buf;
 }
