@@ -111,6 +111,7 @@ static int fev_state_poll(fev_state* fev, int timeout)
         return -1;
     }
 
+    int process = 0;
     for(i=0; i< nums; i++){
         struct epoll_event* ee = &(st->events[i]);
 		int fd = ee->data.fd;
@@ -129,7 +130,9 @@ static int fev_state_poll(fev_state* fev, int timeout)
 
         if( fev->fevents[fd].pwrite && (fev->fevents[fd].mask & mask & FEV_WRITE) ) 
             fev->fevents[fd].pwrite(fev, fd, mask, fev->fevents[fd].arg);
+
+        process++;
     }
 
-    return nums;
+    return process;
 }

@@ -130,7 +130,8 @@ void* test_listener(void* arg)
 
     printf("wait for poll\n");
     start = 1;
-    fev_poll(g_fev, -1);
+    int process = fev_poll(g_fev, -1);
+    FTU_ASSERT_EQUAL_INT(1, process);
 
     fev_del_listener(g_fev, fli);
     fev_destroy(g_fev);
