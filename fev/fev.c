@@ -78,6 +78,13 @@ fev_state*    fev_create(int max_ev_size)
     }
 
     fev->max_ev_size = max_ev_size;
+    int i;
+    for(i=0; i<max_ev_size; i++) {
+        fev->fevents[fd].arg = NULL;
+        fev->fevents[fd].mask = FEV_NIL;
+        fev->fevents[fd].pread = NULL;
+        fev->fevents[fd].pwrite = NULL;
+    }
 
     return fev;
 }
@@ -87,6 +94,8 @@ void    fev_destroy(fev_state* fev)
     if( !fev ) return;
 
     fev_state_destroy(fev);
+    free(fev->fevents);
+    free(fev->firelist);
     free(fev);
 }
 
