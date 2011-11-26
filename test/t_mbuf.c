@@ -23,7 +23,7 @@
 
 void test_mbuf()
 {
-    mbuf* pbuf = create_mbuf(100);
+    mbuf* pbuf = mbuf_create(100);
 
     {
         int used = mbuf_used(pbuf);
@@ -145,5 +145,15 @@ void test_mbuf()
         FTU_ASSERT_EQUAL_INT(15, size);
     }
 
-    delete_mbuf(pbuf);
+    mbuf_delete(pbuf);
+}
+
+void test_mbuf1()
+{
+    mbuf* pbuf = mbuf_create(100);
+    FTU_ASSERT_EXPRESS(pbuf!=NULL);
+
+    
+
+    mbuf_delete(pbuf);
 }

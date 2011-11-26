@@ -7,8 +7,8 @@ extern "C" {
 
 typedef struct _mbuf mbuf;
 
-mbuf*	create_mbuf(size_t size);
-void	delete_mbuf(mbuf* pbuf);
+mbuf*	mbuf_create(size_t size);
+void	mbuf_delete(mbuf* pbuf);
 
 int		mbuf_used(mbuf* pbuf);
 void	mbuf_clear(mbuf* pbuf);

@@ -21,7 +21,7 @@ struct _mbuf
 	char	buf[1];
 };
 
-mbuf*	create_mbuf(size_t size)
+mbuf*	mbuf_create(size_t size)
 {
 	if( size > 0 )
 	{
@@ -36,7 +36,7 @@ mbuf*	create_mbuf(size_t size)
 	return NULL;
 }
 
-void	delete_mbuf(mbuf* pbuf)
+void	mbuf_delete(mbuf* pbuf)
 {
 	free(pbuf);
 }

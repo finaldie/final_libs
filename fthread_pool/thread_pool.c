@@ -81,7 +81,7 @@ int		thpool_add_thread(void* pri_arg)
 {
 	thread_data* th_data = (thread_data*)malloc(sizeof(thread_data));
 	th_data->tid = th_id++;
-	th_data->pbuf = create_mbuf(TH_QUEUE_BUF_SIZE);
+	th_data->pbuf = mbuf_create(TH_QUEUE_BUF_SIZE);
 	th_data->parg = pri_arg;
 	cond_init(&th_data->cond);
 
@@ -90,6 +90,7 @@ int		thpool_add_thread(void* pri_arg)
 	if( 0 != rc )
 	{
 		fprintf(stderr, "thpool: create thread error\n");
+        mbuf_delete(th_data->pbuf);
 		free(th_data);
 		return -1;
 	}

@@ -56,7 +56,7 @@ int		log_open(char* file_name){
 static
 log_file*	log_create_file(){
 	log_file* pfile = (log_file*)malloc(sizeof(log_file));
-	pfile->pbuf = create_mbuf(LOG_MAX_BUFF_SIZE);
+	pfile->pbuf = mbuf_create(LOG_MAX_BUFF_SIZE);
 
 	return pfile;
 }
@@ -169,7 +169,7 @@ int		log_create(){
 	if( !g_log ){
 		g_log = (f_log*)malloc(sizeof(f_log));	
 		g_log->phash = hash_create(0);
-		g_log->pqueue = create_mbuf(LOG_MAX_BUFF_SIZE);
+		g_log->pqueue = mbuf_create(LOG_MAX_BUFF_SIZE);
 		spin_init(&g_log->log_lock);
 		cond_init(&g_log->log_cond);
 		g_buff = (char*)malloc(LOG_MAX_BUFF_SIZE);
