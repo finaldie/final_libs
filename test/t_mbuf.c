@@ -153,9 +153,12 @@ void test_mbuf1()
     mbuf* pbuf = mbuf_create(10);
     FTU_ASSERT_EXPRESS(pbuf!=NULL);
 
+    char* push_buf[20];
+    char* pop_buf[20];
+
     // push 1 byte data
     {
-        int ret = mbuf_push(pbuf, 1);
+        int ret = mbuf_push(pbuf, push_buf, 1);
         FTU_ASSERT_EQUAL_INT(0, ret);
 
         int size = mbuf_size(pbuf);
@@ -176,7 +179,7 @@ void test_mbuf1()
 
     // push 9 byte data
     {
-        int ret = mbuf_push(pbuf, 9);
+        int ret = mbuf_push(pbuf, push_buf, 9);
         FTU_ASSERT_EQUAL_INT(0, ret);
 
         int size = mbuf_size(pbuf);
@@ -197,7 +200,7 @@ void test_mbuf1()
 
     // continue push 1 byte data when mbuf is full
     {
-        int ret = mbuf_push(pbuf, 9);
+        int ret = mbuf_push(pbuf, push_buf, 9);
         FTU_ASSERT_EQUAL_INT(1, ret);
 
         int size = mbuf_size(pbuf);
@@ -224,7 +227,7 @@ void test_mbuf1()
         mbuf_head_seek(pbuf, 4);
         mbuf_tail_seek(pbuf, 6);
 
-        int ret = mbuf_push(pbuf, 5);
+        int ret = mbuf_push(pbuf, push_buf, 5);
         FTU_ASSERT_EQUAL_INT(0, ret);
 
         int size = mbuf_size(pbuf);
@@ -238,7 +241,7 @@ void test_mbuf1()
     }
 
     {
-        int ret = mbuf_push(pbuf, 4);
+        int ret = mbuf_push(pbuf, push_buf, 4);
         FTU_ASSERT_EQUAL_INT(1, ret);
 
         int size = mbuf_size(pbuf);
@@ -252,7 +255,7 @@ void test_mbuf1()
     }
 
     {
-        int ret = mbuf_push(pbuf, 3);
+        int ret = mbuf_push(pbuf, push_buf, 3);
         FTU_ASSERT_EQUAL_INT(0, ret);
 
         int size = mbuf_size(pbuf);
@@ -264,7 +267,7 @@ void test_mbuf1()
         int total_free = mbuf_total_free(pbuf);
         FTU_ASSERT_EQUAL_INT(0, total_free);
 
-        ret = mbuf_push(pbuf, 1);
+        ret = mbuf_push(pbuf, push_buf, 1);
         FTU_ASSERT_EQUAL_INT(1, ret);
     }
 
