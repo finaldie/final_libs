@@ -145,7 +145,7 @@ void test_fev_listener()
 {
     pthread_t tid;
     pthread_create(&tid, NULL, test_listener, NULL);
-    sleep(2);   // wait for fev create completed
+    sleep(3);   // wait for fev create completed
 
     int conn_fd = net_conn("127.0.0.1", 17759, 1);
     FTU_ASSERT_GREATER_THAN_INT(0, conn_fd);
