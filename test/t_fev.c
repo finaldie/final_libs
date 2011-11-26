@@ -29,8 +29,6 @@ typedef struct {
     int fd;
 }test_arg;
 
-static test_arg t_arg;
-
 void test_fev_read(fev_state* fev, int fd, int mask, void* arg)
 {
     test_arg* _arg = (test_arg*)arg;
