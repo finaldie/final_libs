@@ -154,7 +154,7 @@ void test_mbuf1()
     FTU_ASSERT_EXPRESS(pbuf!=NULL);
 
     char* push_buf[20];
-    char* pop_buf[20];
+    //char* pop_buf[20];
 
     // push 1 byte data
     {
