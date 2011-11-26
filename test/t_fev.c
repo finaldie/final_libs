@@ -131,6 +131,7 @@ void* test_listener(void* arg)
     FTU_ASSERT_EXPRESS(fli!=NULL);
 
     while(stop) {
+        printf("wait for poll\n");
         fev_poll(g_fev, 500);
     }
 
@@ -144,7 +145,7 @@ void test_fev_listener()
 {
     pthread_t tid;
     pthread_create(&tid, NULL, test_listener, NULL);
-    sleep(1);   // wait for fev create completed
+    sleep(2);   // wait for fev create completed
 
     int conn_fd = net_conn("127.0.0.1", 17759, 1);
     FTU_ASSERT_GREATER_THAN_INT(0, conn_fd);
