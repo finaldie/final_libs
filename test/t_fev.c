@@ -23,6 +23,7 @@
 #include "tu_inc.h"
 #include "inc.h"
 #include "fev.h"
+#include "net_core.h"
 
 typedef struct {
     fev_state* fev;
@@ -42,7 +43,7 @@ void test_fev()
     fev_state* fev = fev_create(1024);
     FTU_ASSERT_EXPRESS(fev!=NULL);
 
-    int fd = open("test_fev", O_CREAT | O_RDWR, 0777);
+    int fd = net_create_listen(NULL, 17758, 100, 0);
     FTU_ASSERT_GREATER_THAN_INT(0, fd);
 
     int ret = fev_reg_event(NULL, fd, 0, NULL, NULL, NULL);
