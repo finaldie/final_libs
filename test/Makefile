@@ -18,7 +18,8 @@ LIBS = -lfhash \
 	   -lftimer \
 	   -lrt \
 	   -lflist \
-	   -lfev
+	   -lfev \
+	   -lfnet
 
 SRCS = tu_inc.c \
 	   main.c \
