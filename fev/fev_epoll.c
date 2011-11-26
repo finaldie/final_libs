@@ -61,7 +61,7 @@ static int fev_state_addevent(fev_state* fev, int fd, int mask)
     if( mask & FEV_WRITE ) ee.events |= EPOLLOUT;
 
     if ( epoll_ctl(st->epfd, op, fd, &ee) == -1 ) {
-        perror("fev_epoll add event");
+        fprintf(stderr, "fev_epoll add event error:%s\n", strerror(errno));
         return -1;
     }
 
@@ -86,7 +86,7 @@ static int fev_state_delevent(fev_state* fev, int fd, int delmask)
     if( mask & FEV_WRITE ) ee.events |= EPOLLOUT;
 
     if ( epoll_ctl(st->epfd, op, fd, &ee) == -1 ) {
-        perror("fev_epoll del event");
+        fprintf(stderr, "fev_epoll del event error:%s\n", strerror(errno));
         return -1;
     }
 

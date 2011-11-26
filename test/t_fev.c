@@ -42,7 +42,7 @@ void test_fev()
     fev_state* fev = fev_create(1024);
     FTU_ASSERT_EXPRESS(fev!=NULL);
 
-    int fd = open("test_fev", O_CREAT | O_RDWR, 0755);
+    int fd = open("test_fev", O_CREAT | O_RDWR, 0777);
     FTU_ASSERT_GREATER_THAN_INT(0, fd);
 
     int ret = fev_reg_event(NULL, fd, 0, NULL, NULL, NULL);
