@@ -124,6 +124,7 @@ void test_accept(fev_state* fev, int fd)
 
 void* test_listener(void* arg)
 {
+    printf("test listener thread startup\n");
     g_fev = NULL;
     g_fev = fev_create(1024);
     fev_listen_info* fli = fev_add_listener(g_fev, 17759, test_accept);
