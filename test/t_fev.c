@@ -126,7 +126,7 @@ void test_fev_listener()
     fev_listen_info* fli = fev_add_listener(g_fev, 17759, test_accept);
     FTU_ASSERT_EXPRESS(fli!=NULL);
 
-    int conn_fd = net_conn("127.0.0.1", 17759, 0);
+    int conn_fd = net_conn("127.0.0.1", 17759, 1);
     FTU_ASSERT_GREATER_THAN_INT(0, conn_fd);
 
     fev_del_listener(g_fev, fli);
