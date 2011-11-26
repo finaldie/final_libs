@@ -10,14 +10,12 @@ typedef struct _mbuf mbuf;
 mbuf*	mbuf_create(size_t size);
 void	mbuf_delete(mbuf* pbuf);
 
+int     mbuf_size(mbuf* pbuf);
 int		mbuf_used(mbuf* pbuf);
 void	mbuf_clear(mbuf* pbuf);
 int		mbuf_total_free(mbuf* pbuf);
-int		mbuf_tail_free(mbuf* pbuf);
-int		mbuf_head_free(mbuf* pbuf);
 void*	mbuf_get_head(mbuf* pbuf);
 void*	mbuf_get_tail(mbuf* pbuf);
-int     mbuf_size(mbuf* pbuf);
 
 //push data into mbuf : if tail free space not enough that continue write from start
 //return 0/1 : 0-> sucess 1->fail
@@ -30,6 +28,9 @@ void	mbuf_tail_move(mbuf* pbuf, size_t size);
 //------------------------------------------------------------------
 //alloc a buf from mbuf
 //return NULL : alloc failed
+int		mbuf_head_free(mbuf* pbuf);
+int		mbuf_tail_free(mbuf* pbuf);
+
 void*	mbuf_alloc(mbuf* pbuf, size_t size);
 void	mbuf_head_seek(mbuf* pbuf, int offset);
 void	mbuf_tail_seek(mbuf* pbuf, int offset);

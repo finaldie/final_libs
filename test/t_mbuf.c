@@ -150,10 +150,125 @@ void test_mbuf()
 
 void test_mbuf1()
 {
-    mbuf* pbuf = mbuf_create(100);
+    mbuf* pbuf = mbuf_create(10);
     FTU_ASSERT_EXPRESS(pbuf!=NULL);
 
-    
+    // push 1 byte data
+    {
+        int ret = mbuf_push(pbuf, 1);
+        FTU_ASSERT_EQUAL_INT(0, ret);
+
+        int size = mbuf_size(pbuf);
+        FTU_ASSERT_EQUAL_INT(10, size);
+
+        int used = mbuf_used(pbuf);
+        FTU_ASSERT_EQUAL_INT(1, used);
+
+        int head_free = mbuf_head_free(pbuf);
+        FTU_ASSERT_EQUAL_INT(0, head_free);
+
+        int tail_free = mbuf_tail_free(pbuf);
+        FTU_ASSERT_EQUAL_INT(9, tail_free);
+
+        int total_free = mbuf_total_free(pbuf);
+        FTU_ASSERT_EQUAL_INT(9, total_free);
+    }
+
+    // push 9 byte data
+    {
+        int ret = mbuf_push(pbuf, 9);
+        FTU_ASSERT_EQUAL_INT(0, ret);
+
+        int size = mbuf_size(pbuf);
+        FTU_ASSERT_EQUAL_INT(10, size);
+
+        int used = mbuf_used(pbuf);
+        FTU_ASSERT_EQUAL_INT(10, used);
+
+        int head_free = mbuf_head_free(pbuf);
+        FTU_ASSERT_EQUAL_INT(0, head_free);
+
+        int tail_free = mbuf_tail_free(pbuf);
+        FTU_ASSERT_EQUAL_INT(0, tail_free);
+
+        int total_free = mbuf_total_free(pbuf);
+        FTU_ASSERT_EQUAL_INT(0, total_free);
+    }
+
+    // continue push 1 byte data when mbuf is full
+    {
+        int ret = mbuf_push(pbuf, 9);
+        FTU_ASSERT_EQUAL_INT(1, ret);
+
+        int size = mbuf_size(pbuf);
+        FTU_ASSERT_EQUAL_INT(10, size);
+
+        int used = mbuf_used(pbuf);
+        FTU_ASSERT_EQUAL_INT(10, used);
+
+        int head_free = mbuf_head_free(pbuf);
+        FTU_ASSERT_EQUAL_INT(0, head_free);
+
+        int tail_free = mbuf_tail_free(pbuf);
+        FTU_ASSERT_EQUAL_INT(0, tail_free);
+
+        int total_free = mbuf_total_free(pbuf);
+        FTU_ASSERT_EQUAL_INT(0, total_free);
+    }
+
+    {
+        mbuf_clear(pbuf);
+        int total_free = mbuf_total_free(pbuf);
+        FTU_ASSERT_EQUAL_INT(10, total_free);
+
+        mbuf_head_seek(pbuf, 4);
+        mbuf_tail_seek(pbuf, 6);
+
+        int ret = mbuf_push(pbuf, 5);
+        FTU_ASSERT_EQUAL_INT(0, ret);
+
+        int size = mbuf_size(pbuf);
+        FTU_ASSERT_EQUAL_INT(10, size);
+
+        int used = mbuf_used(pbuf);
+        FTU_ASSERT_EQUAL_INT(7, used);
+
+        total_free = mbuf_total_free(pbuf);
+        FTU_ASSERT_EQUAL_INT(3, total_free);
+    }
+
+    {
+        int ret = mbuf_push(pbuf, 4);
+        FTU_ASSERT_EQUAL_INT(1, ret);
+
+        int size = mbuf_size(pbuf);
+        FTU_ASSERT_EQUAL_INT(10, size);
+
+        int used = mbuf_used(pbuf);
+        FTU_ASSERT_EQUAL_INT(7, used);
+
+        int total_free = mbuf_total_free(pbuf);
+        FTU_ASSERT_EQUAL_INT(3, total_free);
+    }
+
+    {
+        int ret = mbuf_push(pbuf, 3);
+        FTU_ASSERT_EQUAL_INT(0, ret);
+
+        int size = mbuf_size(pbuf);
+        FTU_ASSERT_EQUAL_INT(10, size);
+
+        int used = mbuf_used(pbuf);
+        FTU_ASSERT_EQUAL_INT(10, used);
+
+        int total_free = mbuf_total_free(pbuf);
+        FTU_ASSERT_EQUAL_INT(0, total_free);
+
+        ret = mbuf_push(pbuf, 1);
+        FTU_ASSERT_EQUAL_INT(1, ret);
+    }
+
+    //---------------mbuf push-------------------
 
     mbuf_delete(pbuf);
 }
