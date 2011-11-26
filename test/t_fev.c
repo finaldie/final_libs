@@ -111,7 +111,7 @@ typedef struct {
 }test_accept_arg;
 
 static fev_state* g_fev = NULL;
-static int stop = 0;
+static int start = 0;
 
 void test_accept(fev_state* fev, int fd)
 {
@@ -130,10 +130,9 @@ void* test_listener(void* arg)
     fev_listen_info* fli = fev_add_listener(g_fev, 17759, test_accept);
     FTU_ASSERT_EXPRESS(fli!=NULL);
 
-    //while(stop) {
-        printf("wait for poll\n");
-        fev_poll(g_fev, 500);
-    //}
+    printf("wait for poll\n");
+    start = 1;
+    fev_poll(g_fev, -1);
 
     fev_del_listener(g_fev, fli);
     fev_destroy(g_fev);
@@ -144,11 +143,15 @@ void* test_listener(void* arg)
 void test_fev_listener()
 {
     pthread_t tid;
-    pthread_create(&tid, NULL, test_listener, NULL);
-    //sleep(3);   // wait for fev create completed
+    pthread_create(&tid, 0, test_listener, NULL);
 
-    //int conn_fd = net_conn("127.0.0.1", 17759, 1);
-    //FTU_ASSERT_GREATER_THAN_INT(0, conn_fd);
+    while(1) {
+        sleep(1);   // wait for fev create completed
+        if( start ) break;
+    }
+
+    int conn_fd = net_conn("127.0.0.1", 17759, 1);
+    FTU_ASSERT_GREATER_THAN_INT(0, conn_fd);
 
     pthread_join(tid, NULL);
 }
