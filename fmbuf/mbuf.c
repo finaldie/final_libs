@@ -259,6 +259,11 @@ int		mbuf_total_free(mbuf* pbuf)
 	return MBUF_FREE(pbuf);
 }
 
+int     mbuf_free(mbuf* pbuf)
+{
+    return mbuf_total_free(pbuf) - 1;
+}
+
 int		mbuf_tail_free(mbuf* pbuf)
 {
 	return MBUF_END(pbuf) - MBUF_TAIL(pbuf) + 1;

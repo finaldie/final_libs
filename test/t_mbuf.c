@@ -173,13 +173,13 @@ void test_mbuf1()
         int tail_free = mbuf_tail_free(pbuf);
         FTU_ASSERT_EQUAL_INT(9, tail_free);
 
-        int total_free = mbuf_total_free(pbuf);
+        int total_free = mbuf_free(pbuf);
         FTU_ASSERT_EQUAL_INT(9, total_free);
     }
 
-    // push 9 byte data
+    // push 8 byte data
     {
-        int ret = mbuf_push(pbuf, push_buf, 9);
+        int ret = mbuf_push(pbuf, push_buf, 8);
         FTU_ASSERT_EQUAL_INT(0, ret);
 
         int size = mbuf_size(pbuf);
@@ -194,7 +194,7 @@ void test_mbuf1()
         int tail_free = mbuf_tail_free(pbuf);
         FTU_ASSERT_EQUAL_INT(0, tail_free);
 
-        int total_free = mbuf_total_free(pbuf);
+        int total_free = mbuf_free(pbuf);
         FTU_ASSERT_EQUAL_INT(0, total_free);
     }
 
@@ -215,13 +215,13 @@ void test_mbuf1()
         int tail_free = mbuf_tail_free(pbuf);
         FTU_ASSERT_EQUAL_INT(0, tail_free);
 
-        int total_free = mbuf_total_free(pbuf);
+        int total_free = mbuf_free(pbuf);
         FTU_ASSERT_EQUAL_INT(0, total_free);
     }
 
     {
         mbuf_clear(pbuf);
-        int total_free = mbuf_total_free(pbuf);
+        int total_free = mbuf_free(pbuf);
         FTU_ASSERT_EQUAL_INT(10, total_free);
 
         mbuf_head_seek(pbuf, 4);
@@ -236,7 +236,7 @@ void test_mbuf1()
         int used = mbuf_used(pbuf);
         FTU_ASSERT_EQUAL_INT(7, used);
 
-        total_free = mbuf_total_free(pbuf);
+        total_free = mbuf_free(pbuf);
         FTU_ASSERT_EQUAL_INT(3, total_free);
     }
 
@@ -250,7 +250,7 @@ void test_mbuf1()
         int used = mbuf_used(pbuf);
         FTU_ASSERT_EQUAL_INT(7, used);
 
-        int total_free = mbuf_total_free(pbuf);
+        int total_free = mbuf_free(pbuf);
         FTU_ASSERT_EQUAL_INT(3, total_free);
     }
 
@@ -264,7 +264,7 @@ void test_mbuf1()
         int used = mbuf_used(pbuf);
         FTU_ASSERT_EQUAL_INT(10, used);
 
-        int total_free = mbuf_total_free(pbuf);
+        int total_free = mbuf_free(pbuf);
         FTU_ASSERT_EQUAL_INT(0, total_free);
 
         ret = mbuf_push(pbuf, push_buf, 1);
