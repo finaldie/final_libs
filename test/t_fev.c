@@ -118,8 +118,6 @@ void test_accept(fev_state* fev, int fd)
     FTU_ASSERT_EXPRESS(g_fev==fev);
     FTU_ASSERT_GREATER_THAN_INT(0, fd);
     close(fd);
-
-    stop = 1;
 }
 
 void* test_listener(void* arg)
