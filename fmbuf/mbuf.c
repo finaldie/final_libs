@@ -43,7 +43,7 @@ void	mbuf_delete(mbuf* pbuf)
 
 int		mbuf_push( mbuf* pbuf, const void* data, size_t size)
 {
-	if( pbuf && data && size > 0 && (uint)MBUF_FREE(pbuf) >= size )
+	if( pbuf && data && size > 0 && ((uint)MBUF_FREE(pbuf) -1) >= size )
 	{
 		uint tail_free = MBUF_END(pbuf) - MBUF_TAIL(pbuf) + 1;
 				
