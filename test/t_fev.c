@@ -133,6 +133,9 @@ void* test_listener(void* arg)
         fev_poll(g_fev, 500);
     }
 
+    fev_del_listener(g_fev, fli);
+    fev_destroy(g_fev);
+
     return NULL;
 }
 
@@ -145,7 +148,4 @@ void test_fev_listener()
     FTU_ASSERT_GREATER_THAN_INT(0, conn_fd);
 
     pthread_join(tid, NULL);
-
-    fev_del_listener(g_fev, fli);
-    fev_destroy(g_fev);
 }
