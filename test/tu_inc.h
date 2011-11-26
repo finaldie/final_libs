@@ -63,22 +63,22 @@ extern int curr_total_assert;
 
 // ASSERT MACROS
 #define FTU_ASSERT_EQUAL_CHAR(expect, real) \
-    do{ if( strcmp(expect, real) ) { printf("(%s %s) %d: ASSERT FAILED, expect=%s but real=%s \n", __FILE__, __func__, __LINE__, expect, real); curr_failed_assert++; curr_total_assert++; } }while(0)
+    do{ curr_total_assert++; if( strcmp(expect, real) ) { printf("(%s %s) %d: ASSERT FAILED, expect=%s but real=%s \n", __FILE__, __func__, __LINE__, expect, real); curr_failed_assert++; } }while(0)
 
 #define FTU_ASSERT_EQUAL_INT(expect, real) \
-    do{ if( expect != real ) { printf("(%s %s) %d: ASSERT FAILED, expect=%d but real=%d \n", __FILE__, __func__, __LINE__, expect, real); curr_failed_assert++; curr_total_assert++; } }while(0)
+    do{ curr_total_assert++; if( expect != real ) { printf("(%s %s) %d: ASSERT FAILED, expect=%d but real=%d \n", __FILE__, __func__, __LINE__, expect, real); curr_failed_assert++; } }while(0)
 
 #define FTU_ASSERT_EQUAL_DOUBLE(expect, real) \
-    do{ if( expect != real ) { printf("(%s %s) %d: ASSERT FAILED, expect=%f but real=%f \n", __FILE__, __func__, __LINE__, expect, real); curr_failed_assert++; curr_total_assert++; } }while(0)
+    do{ curr_total_assert++; if( expect != real ) { printf("(%s %s) %d: ASSERT FAILED, expect=%f but real=%f \n", __FILE__, __func__, __LINE__, expect, real); curr_failed_assert++; } }while(0)
 
 #define FTU_ASSERT_GREATER_THAN_INT(expect, real) \
-    do{ if( real < expect ) { printf("(%s %s) %d: ASSERT FAILED, expect > %d but real=%d \n", __FILE__, __func__, __LINE__, expect, real); curr_failed_assert++; curr_total_assert++; } }while(0)
+    do{ curr_total_assert++; if( real < expect ) { printf("(%s %s) %d: ASSERT FAILED, expect > %d but real=%d \n", __FILE__, __func__, __LINE__, expect, real); curr_failed_assert++; } }while(0)
 
 #define FTU_ASSERT_LESS_THAN_INT(expect, real) \
-    do{ if( real > expect ) { printf("(%s %s) %d: ASSERT FAILED, expect < %d but real=%d \n", __FILE__, __func__, __LINE__, expect, real); curr_failed_assert++; curr_total_assert++; } }while(0)
+    do{ curr_total_assert++; if( real > expect ) { printf("(%s %s) %d: ASSERT FAILED, expect < %d but real=%d \n", __FILE__, __func__, __LINE__, expect, real); curr_failed_assert++; } }while(0)
 
 #define FTU_ASSERT_EXPRESS(express) \
-    do{ if( !(express) ) { printf("(%s %s) %d: ASSERT FAILED, expect=%s but failed \n", __FILE__, __func__, __LINE__, #express); curr_failed_assert++; curr_total_assert++; } }while(0)
+    do{ curr_total_assert++; if( !(express) ) { printf("(%s %s) %d: ASSERT FAILED, expect=%s but failed \n", __FILE__, __func__, __LINE__, #express); curr_failed_assert++; } }while(0)
 
 #endif
 
