@@ -111,23 +111,40 @@ typedef struct {
 }test_accept_arg;
 
 static fev_state* g_fev = NULL;
+static int stop = 0;
 
 void test_accept(fev_state* fev, int fd)
 {
     FTU_ASSERT_EXPRESS(g_fev==fev);
     FTU_ASSERT_GREATER_THAN_INT(0, fd);
     close(fd);
+
+    stop = 1;
 }
 
-void test_fev_listener()
+void* test_listener(void* arg)
 {
     g_fev = NULL;
     g_fev = fev_create(1024);
     fev_listen_info* fli = fev_add_listener(g_fev, 17759, test_accept);
     FTU_ASSERT_EXPRESS(fli!=NULL);
 
+    while(stop) {
+        fev_poll(g_fev, 500);
+    }
+
+    return NULL;
+}
+
+void test_fev_listener()
+{
+    pthread_t tid;
+    pthread_create(&tid, NULL, test_listener, NULL);
+
     int conn_fd = net_conn("127.0.0.1", 17759, 1);
     FTU_ASSERT_GREATER_THAN_INT(0, conn_fd);
+
+    pthread_join(tid, NULL);
 
     fev_del_listener(g_fev, fli);
     fev_destroy(g_fev);
