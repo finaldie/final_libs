@@ -24,6 +24,8 @@
 #include "inc.h"
 #include "fev.h"
 #include "net_core.h"
+#include "fev_buff.h"
+#include "fev_listener.h"
 
 typedef struct {
     fev_state* fev;
@@ -101,4 +103,54 @@ void test_fev()
 
     fev_destroy(fev);
     close(fd);
+}
+
+typedef struct {
+    int listen_fd;
+    fev_state* fev;
+}test_accept_arg;
+
+static fev_state* g_fev = NULL;
+static int start = 0;
+
+void test_accept(fev_state* fev, int fd)
+{
+    FTU_ASSERT_EXPRESS(g_fev==fev);
+    FTU_ASSERT_GREATER_THAN_INT(0, fd);
+    close(fd);
+}
+
+void* test_listener(void* arg)
+{
+    printf("test listener thread startup\n");
+    g_fev = NULL;
+    g_fev = fev_create(1024);
+    fev_listen_info* fli = fev_add_listener(g_fev, 17759, test_accept);
+    FTU_ASSERT_EXPRESS(fli!=NULL);
+
+    printf("wait for poll\n");
+    start = 1;
+    int process = fev_poll(g_fev, -1);
+    FTU_ASSERT_EQUAL_INT(1, process);
+
+    fev_del_listener(g_fev, fli);
+    fev_destroy(g_fev);
+
+    return NULL;
+}
+
+void test_fev_listener()
+{
+    pthread_t tid;
+    pthread_create(&tid, 0, test_listener, NULL);
+
+    while(1) {
+        sleep(1);   // wait for fev create completed
+        if( start ) break;
+    }
+
+    int conn_fd = net_conn("127.0.0.1", 17759, 1);
+    FTU_ASSERT_GREATER_THAN_INT(0, conn_fd);
+
+    pthread_join(tid, NULL);
 }

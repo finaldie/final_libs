@@ -244,6 +244,8 @@ int		net_accept(int listen_fd)
 	return sock_fd;
 }
 
+// Sync method for connect
+// note: Whether or not set block type after connect sucess 
 int		net_conn(const char* ip, int port, int isblock)
 {
 	int 	sockfd; 
@@ -255,9 +257,6 @@ int		net_conn(const char* ip, int port, int isblock)
 		return	-1; 
 	}
 
-	if( !isblock )
-  		net_set_nonblocking(sockfd);
-
 	memset(&server_addr, 0, sizeof(server_addr)); 
 	server_addr.sin_family = AF_INET; 
 	server_addr.sin_port = htons(port); 
@@ -268,6 +267,10 @@ int		net_conn(const char* ip, int port, int isblock)
 		printf("net_conn:Connect Error:%s\a\n", strerror(errno)); 
 		return	-1; 
 	}
+    
+    if( !isblock )
+  		net_set_nonblocking(sockfd);
+
 	printf("net_conn:connect sucess fd = %d\n", sockfd);
 	
 	return	sockfd;

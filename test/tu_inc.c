@@ -15,6 +15,7 @@ static pl_mgr plist = NULL;
 static int failed_cases = 0;
 static int tu_case_num = 0;
 int curr_failed_assert = 0;
+int curr_total_assert = 0;
 
 typedef struct {
     pfunc_init  pfunc;
@@ -42,6 +43,7 @@ void	tu_register_init(){
     tu_case_num = 0;
     failed_cases = 0;
     curr_failed_assert = 0;
+    curr_total_assert = 0;
 }
 
 void	_tu_register_module(pfunc_init pfunc, char* case_name, char* describe){
@@ -58,6 +60,9 @@ void	_tu_register_module(pfunc_init pfunc, char* case_name, char* describe){
 static int tu_each_case(pfunc_init pfunc)
 {
     curr_failed_assert = 0;
+    curr_total_assert = 0;
+
+    // run test case 
     pfunc();
 
     if( curr_failed_assert ) {
@@ -78,10 +83,15 @@ void tu_run_cases()
         free(ftc);
 
         if ( curr_failed_assert ) {
-            printf("[%d ASSERT FAILED]\n", curr_failed_assert);
+            printf("[%d ASSERT FAILED -- %d/%d]\n", 
+                    curr_failed_assert, 
+                    curr_total_assert, 
+                    curr_total_assert - curr_failed_assert);
         }
         else {
-            printf("[ALL ASSERT PASSED]\n");
+            printf("[ALL ASSERT PASSED -- %d/%d]\n",
+                    curr_total_assert,
+                    curr_total_assert);
         }
     }
 
