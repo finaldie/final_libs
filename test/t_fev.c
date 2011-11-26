@@ -99,4 +99,5 @@ void test_fev()
     FTU_ASSERT_EQUAL_INT(-2, ret);
 
     fev_destroy(fev);
+    close(fd);
 }
