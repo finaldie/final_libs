@@ -174,7 +174,7 @@ void test_mbuf1()
         FTU_ASSERT_EQUAL_INT(9, tail_free);
 
         int total_free = mbuf_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(9, total_free);
+        FTU_ASSERT_EQUAL_INT(8, total_free);
     }
 
     // push 8 byte data
