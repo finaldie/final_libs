@@ -59,6 +59,7 @@ static int fev_state_addevent(fev_state* fev, int fd, int mask)
     if( mask & FEV_WRITE ) ee.events |= EPOLLOUT;
 
     if ( epoll_ctl(st->epfd, op, fd, &ee) == -1 ) return -1;
+    fev->fevents[fd].mask = mask;
     return 0;
 }   
 
@@ -66,6 +67,7 @@ static int fev_state_delevent(fev_state* fev, int fd, int delmask)
 {
     state* st = fev->state; 
     int mask = fev->fevents[fd].mask & (~delmask);   //reserved state except delmask
+
     struct epoll_event ee;
     ee.data.u64 = 0;
     ee.data.fd = fd;
@@ -78,6 +80,7 @@ static int fev_state_delevent(fev_state* fev, int fd, int delmask)
     if( mask & FEV_WRITE ) ee.events |= EPOLLOUT;
 
     if ( epoll_ctl(st->epfd, op, fd, &ee) == -1 ) return -1;
+    fev->fevents[fd].mask = mask;
     return 0;
 }
 

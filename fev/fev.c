@@ -97,10 +97,16 @@ int     fev_reg_event(fev_state* fev, int fd, int mask, pfev_read pread, pfev_wr
 {
     if( !fev ) return -1; 
 
-    if( fev_state_addevent(fev, fd, mask) == -1 ) 
-        return -2;
+    // only reversed FEV_READ & FEV_WRITE state 
+    mask &= FEV_READ | FEV_WRITE;
+    if( mask == FEV_NIL ) return -2;
 
-    fev->fevents[fd].mask = mask;
+    if( fev->fevents[fd].mask != FEV_NIL ) 
+        return -3;
+
+    if( fev_state_addevent(fev, fd, mask) == -1 ) 
+        return -4;
+
     fev->fevents[fd].pread = pread;
     fev->fevents[fd].pwrite = pwrite;
     fev->fevents[fd].arg = arg;
@@ -112,10 +118,19 @@ int fev_add_event(fev_state* fev, int fd, int mask)
 {
     if( !fev ) return -1; 
 
-    if( fev_state_addevent(fev, fd, mask) == -1 ) 
+    // only reversed FEV_READ & FEV_WRITE state 
+    mask &= FEV_READ | FEV_WRITE;
+    if( mask == FEV_NIL ) return 0;
+
+    if( fev->fevents[fd].mask == FEV_NIL ) 
         return -2;
 
-    fev->fevents[fd].mask = mask;
+    if( fev->fevents[fd].mask == mask )
+        return 0;
+
+    if( fev_state_addevent(fev, fd, mask) == -1 ) 
+        return -3;
+
     return 0;
 }
 
@@ -126,10 +141,12 @@ int     fev_del_event(fev_state* fev, int fd, int mask)
 {
     if( !fev ) return -1;
 
+    // only reversed FEV_READ & FEV_WRITE state 
+    mask &= FEV_READ | FEV_WRITE;
+    if( mask == FEV_NIL ) return 0;
+
     if( fev_state_delevent(fev, fd, mask) == -1 )
         return -2;
-
-    fev->fevents[fd].mask = mask;
 
     //if the mask is FEV_READ | FEV_WRITE , then put the fd into firelist
     if( mask & (FEV_READ | FEV_WRITE) ) {
