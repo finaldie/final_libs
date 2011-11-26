@@ -30,5 +30,6 @@ void	test_log();
 void	test_mbuf();
 void	test_timer();
 void    test_list();
+void    test_fev();
 
 #endif
