@@ -17,6 +17,7 @@
  */
 
 #include <stdio.h>
+#include <errno.h>
 #include <sys/epoll.h>
 
 typedef struct state {
@@ -60,6 +61,7 @@ static int fev_state_addevent(fev_state* fev, int fd, int mask)
     if( mask & FEV_WRITE ) ee.events |= EPOLLOUT;
 
     if ( epoll_ctl(st->epfd, op, fd, &ee) == -1 ) {
+        printf("add event error:%s\n", strerror(errno));
         perror("add event");
         return -1;
     }
