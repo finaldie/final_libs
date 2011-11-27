@@ -197,7 +197,7 @@ int fevbuff_read(fev_buff* evbuff, void* pbuf, size_t len)
     int need_read_bytes = len - used_len;
 
     if( need_read_bytes <= 0 ) {
-        memcpy(mbuf_get_head(evbuff->rbuf), pbuf, len);
+        memcpy(pbuf, mbuf_get_head(evbuff->rbuf), len);
         return (int)len;
     }
     
@@ -215,7 +215,7 @@ int fevbuff_read(fev_buff* evbuff, void* pbuf, size_t len)
         mbuf_tail_seek(evbuff->rbuf, bytes);
         int used = mbuf_used(evbuff->rbuf);
         int copy_bytes = used > len ? len : used;
-        memcpy(mbuf_get_head(evbuff->rbuf), pbuf, copy_bytes);
+        memcpy(pbuf, mbuf_get_head(evbuff->rbuf), copy_bytes);
         return (int)copy_bytes;
     }
     else {
