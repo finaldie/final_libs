@@ -388,7 +388,7 @@ void test_mbuf1()
 
     {
         int ret = mbuf_pop(pbuf, pop_buf, 6);
-        FTU_ASSERT_EQUAL_INT(0 ret);
+        FTU_ASSERT_EQUAL_INT(0, ret);
 
         int size = mbuf_size(pbuf);
         FTU_ASSERT_EQUAL_INT(10, size);
