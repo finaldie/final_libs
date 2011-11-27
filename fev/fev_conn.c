@@ -35,7 +35,6 @@ typedef struct fev_conn_info {
 
 static void on_connect(fev_state* fev, int fd, int mask, void* arg)
 {
-    printf("on_connect\n");
     fev_conn_info* conn_info = (fev_conn_info*)arg;
     fev_del_event(fev, conn_info->fd, FEV_READ | FEV_WRITE);
     fev_del_timer_event(fev, conn_info->timer);
