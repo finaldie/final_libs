@@ -169,21 +169,27 @@ static void buff_read(fev_state* fev, fev_buff* evbuff, void* arg)
     char read_buf[20];
     memset(read_buf, 0, 20);
     int read_size = fevbuff_read(evbuff, read_buf, 20);
-    buff_read_used = fevbuff_get_usedlen(evbuff, FEVBUFF_TYPE_READ);
-    FTU_ASSERT_EQUAL_INT(buff_read_used, read_size);
-    printf("read size=%d, read_str=%s\n", read_size, read_buf);
+    if( read_size > 0 ) {
+        buff_read_used = fevbuff_get_usedlen(evbuff, FEVBUFF_TYPE_READ);
+        FTU_ASSERT_EQUAL_INT(buff_read_used, read_size);
+        printf("read size=%d, read_str=%s\n", read_size, read_buf);
 
-    char compare_str[20];
-    memset(compare_str, 0, 20);
-    snprintf(compare_str, read_size, "hello final");
-    FTU_ASSERT_EQUAL_CHAR(compare_str, read_buf);
-    
-    int pop_len = fevbuff_pop(evbuff, read_size);
-    FTU_ASSERT_EQUAL_INT(read_size, pop_len);
+        char compare_str[20];
+        memset(compare_str, 0, 20);
+        snprintf(compare_str, read_size, "hello final");
+        FTU_ASSERT_EQUAL_CHAR(compare_str, read_buf);
+        
+        int pop_len = fevbuff_pop(evbuff, read_size);
+        FTU_ASSERT_EQUAL_INT(read_size, pop_len);
 
-    char* write_str = "hi final";
-    int write_len = fevbuff_write(evbuff, write_str, 9);
-    FTU_ASSERT_EQUAL_INT(9, write_len);
+        char* write_str = "hi final";
+        int write_len = fevbuff_write(evbuff, write_str, 9);
+        FTU_ASSERT_EQUAL_INT(9, write_len);
+    }
+    else{
+        //error happened
+        printf("error happened haha\n");
+    }
 }
 
 static void buff_error(fev_state* fev, fev_buff* evbuff, void* arg)
