@@ -308,8 +308,8 @@ static void* fake_listener1(void* arg)
     printf("wait for poll\n");
     start = 1;
 
-    conn_arg_t arg;
-    fev_conn(g_fev, "127.0.0.1", 17759, 2000, test_for_conn, arg);
+    conn_arg_t carg;
+    fev_conn(g_fev, "127.0.0.1", 17759, 2000, test_for_conn, carg);
 
     while(start){
         fev_poll(g_fev, 500);
