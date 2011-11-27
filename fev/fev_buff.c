@@ -133,7 +133,7 @@ fev_buff*	fevbuff_new(
         return NULL;
     }
 
-    evbuff->rbuf = mbuf_create(FEV_BUFF_DEFAULT_SIZE);
+    evbuff->wbuf = mbuf_create(FEV_BUFF_DEFAULT_SIZE);
     if( !evbuff->wbuf ) {
         mbuf_delete(evbuff->rbuf);
         free(evbuff);
