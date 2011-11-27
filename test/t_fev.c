@@ -330,7 +330,8 @@ void test_fev_conn()
         if( start ) break;
     }
 
-    fev_conn(g_fev, "127.0.0.1", 17759, 2000, test_for_conn, NULL);
+    conn_arg_t arg;
+    fev_conn(g_fev, "127.0.0.1", 17759, 2000, test_for_conn, arg);
 
     while(1) {
         if( end ) break;
