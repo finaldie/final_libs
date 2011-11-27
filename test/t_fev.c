@@ -26,6 +26,7 @@
 #include "net_core.h"
 #include "fev_buff.h"
 #include "fev_listener.h"
+#include "fev_conn.h"
 
 typedef struct {
     fev_state* fev;
@@ -107,6 +108,7 @@ void test_fev()
 
 static fev_state* g_fev = NULL;
 static int start = 0;
+static int end = 0;
 static fev_listen_info* fli;
 
 static void test_accept(fev_state* fev, int fd)
@@ -198,6 +200,8 @@ static void buff_error(fev_state* fev, fev_buff* evbuff, void* arg)
     int fd = fevbuff_destroy(evbuff);
     FTU_ASSERT_GREATER_THAN_INT(0, fd);
     close(fd);
+
+    end = 1;
 }
 
 static void fake_accept(fev_state* fev, int fd)
@@ -244,6 +248,7 @@ void test_fev_buff()
     g_fev = NULL;
     fli = NULL;
     start = 0;
+    end = 0;
 
     pthread_t tid;
     pthread_create(&tid, 0, fake_listener, NULL);
@@ -268,9 +273,70 @@ void test_fev_buff()
     printf("main recv str=%s\n", recv_buf);
     close(conn_fd);
 
+    while(1) {
+        if( end ) break;
+        sleep(1);
+    }
+
     start = 0;  // let listener thread going down
     pthread_join(tid, NULL);
     
     fev_del_listener(g_fev, fli);
     fev_destroy(g_fev);
+}
+
+static void fake_accept1(fev_state* fev, int fd)
+{
+    printf("accept sucessful\n");
+    close(fd);
+}
+
+static void* fake_listener1(void* arg)
+{
+    g_fev = fev_create(1024);
+    fli = fev_add_listener(g_fev, 17759, fake_accept1);
+    FTU_ASSERT_EXPRESS(fli!=NULL);
+
+    printf("wait for poll\n");
+    start = 1;
+    while(start){
+        fev_poll(g_fev, 500);
+    }
+
+    fev_del_listener(g_fev, fli);
+    fev_destroy(g_fev);
+    return NULL;
+}
+
+static test_for_conn(int fd, conn_arg_t arg)
+{
+    FTU_ASSERT_GREATER_THAN_INT(0, fd);
+    close(fd);
+    end = 1;
+}
+
+void test_fev_conn()
+{
+    g_fev = NULL;
+    fli = NULL;
+    start = 0;
+    end = 0;
+
+    pthread_t tid;
+    pthread_create(&tid, 0, fake_listener1, NULL);
+
+    while(1) {
+        sleep(1);   // wait for fev create completed
+        if( start ) break;
+    }
+
+    fev_conn(g_fev, "127.0.0.1", 17759, 2000, test_for_conn, NULL);
+
+    while(1) {
+        if( end ) break;
+        sleep(1);
+    }
+
+    start = 0;
+    pthread_join(tid, NULL);
 }

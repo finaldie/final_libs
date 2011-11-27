@@ -21,6 +21,7 @@ void	register_module(){
 	tu_register_module(test_fev, "for test fev for create register add del methods");
 	tu_register_module(test_fev_listener, "for test fev listener");
 	tu_register_module(test_fev_buff, "for test fev buff");
+	tu_register_module(test_fev_conn, "for test fev asynchronous connect");
 }
 
 int main(int argc, char** argv){

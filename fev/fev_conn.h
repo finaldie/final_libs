@@ -37,7 +37,7 @@ typedef void (*pfev_conn)(int fd, conn_arg_t arg);
 
 // asynchronous connect method used fev
 // unit of timeout : ms
-int		fev_conn(fev_state*, 
+void    fev_conn(fev_state*, 
             const char* ip, 
             int port, 
             int timeout, 
