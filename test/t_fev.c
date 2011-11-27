@@ -221,7 +221,7 @@ static void fake_accept(fev_state* fev, int fd)
 static void* fake_listener(void* arg)
 {
     g_fev = fev_create(1024);
-    fli = fev_add_listener(g_fev, 17759, test_accept);
+    fli = fev_add_listener(g_fev, 17759, fake_accept);
     FTU_ASSERT_EXPRESS(fli!=NULL);
 
     printf("wait for poll\n");
