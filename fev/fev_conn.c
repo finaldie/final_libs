@@ -107,6 +107,7 @@ void    fev_conn(fev_state* fev,
             return;
         }
 
+        printf("conn sockfd=%d\n");
         conn_info->fd = sockfd;
         conn_info->timer = fev_add_timer_event(fev, (long)timeout * 1000000l, 0, on_timer, conn_info);
         conn_info->conn_cb = pfunc;
