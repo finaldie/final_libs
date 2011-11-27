@@ -364,5 +364,27 @@ void test_mbuf1()
         FTU_ASSERT_EQUAL_INT(8, total_free);
     }
 
+    // clear mbuf and seek tail < head
+    {
+        mbuf_clear(pbuf);
+        mbuf_head_seek(pbuf, 4);
+        mbuf_tail_seek(pbuf, 2);
+
+        int size = mbuf_size(pbuf);
+        FTU_ASSERT_EQUAL_INT(10, size);
+        
+        int used = mbuf_used(pbuf);
+        FTU_ASSERT_EQUAL_INT(8, used);
+        
+        int head_free = mbuf_head_free(pbuf);
+        FTU_ASSERT_EQUAL_INT(4, head_free);
+
+        int tail_free = mbuf_tail_free(pbuf);
+        FTU_ASSERT_EQUAL_INT(8, tail_free);
+
+        int total_free = mbuf_free(pbuf);
+        FTU_ASSERT_EQUAL_INT(1, total_free);
+    }
+
     mbuf_delete(pbuf);
 }
