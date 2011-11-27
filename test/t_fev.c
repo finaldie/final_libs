@@ -308,7 +308,7 @@ static void* fake_listener1(void* arg)
     return NULL;
 }
 
-static test_for_conn(int fd, conn_arg_t arg)
+static void test_for_conn(int fd, conn_arg_t arg)
 {
     FTU_ASSERT_GREATER_THAN_INT(0, fd);
     close(fd);
