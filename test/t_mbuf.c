@@ -219,6 +219,7 @@ void test_mbuf1()
         FTU_ASSERT_EQUAL_INT(0, total_free);
     }
 
+    // clear and seek mbuf and push 5 bytes
     {
         mbuf_clear(pbuf);
         int total_free = mbuf_free(pbuf);
@@ -240,6 +241,7 @@ void test_mbuf1()
         FTU_ASSERT_EQUAL_INT(2, total_free);
     }
 
+    // push 4 bytes but the mbuf only have 2 bytes left
     {
         int ret = mbuf_push(pbuf, push_buf, 4);
         FTU_ASSERT_EQUAL_INT(1, ret);
@@ -254,6 +256,7 @@ void test_mbuf1()
         FTU_ASSERT_EQUAL_INT(2, total_free);
     }
 
+    // push 2 bytes the mbuf is full
     {
         int ret = mbuf_push(pbuf, push_buf, 2);
         FTU_ASSERT_EQUAL_INT(0, ret);
@@ -271,7 +274,57 @@ void test_mbuf1()
         FTU_ASSERT_EQUAL_INT(1, ret);
     }
 
-    //---------------mbuf push-------------------
+    //---------------mbuf pop-------------------
+    //pop 1 bytes
+    {
+        mbuf_clear(pbuf);
+
+        int size = mbuf_size(pbuf);
+        FTU_ASSERT_EQUAL_INT(10, size);
+
+        int ret = mbuf_pop(pbuf, pop_buf, 1);
+        FTU_ASSERT_EQUAL_INT(1, ret);
+        
+        int used = mbuf_used(pbuf);
+        FTU_ASSERT_EQUAL_INT(0, used);
+        
+        int head_free = mbuf_head_free(pbuf);
+        FTU_ASSERT_EQUAL_INT(0, head_free);
+
+        int tail_free = mbuf_tail_free(pbuf);
+        FTU_ASSERT_EQUAL_INT(10, tail_free);
+
+        int total_free = mbuf_free(pbuf);
+        FTU_ASSERT_EQUAL_INT(9, total_free);
+    }
+
+    // push 5 bytes and pop 1 bytes
+    {
+        int ret = mbuf_push(pbuf, push_buf, 5);
+        FTU_ASSERT_EQUAL_INT(0, ret);
+
+        ret = mbuf_pop(pbuf, pop_buf, 1);
+        FTU_ASSERT_EQUAL_INT(0, ret);
+
+        int size = mbuf_size(pbuf);
+        FTU_ASSERT_EQUAL_INT(10, size);
+        
+        int used = mbuf_used(pbuf);
+        FTU_ASSERT_EQUAL_INT(4, used);
+        
+        int head_free = mbuf_head_free(pbuf);
+        FTU_ASSERT_EQUAL_INT(1, head_free);
+
+        int tail_free = mbuf_tail_free(pbuf);
+        FTU_ASSERT_EQUAL_INT(5, tail_free);
+
+        int total_free = mbuf_free(pbuf);
+        FTU_ASSERT_EQUAL_INT(5, total_free);
+    }
+
+    {
+
+    }
 
     mbuf_delete(pbuf);
 }
