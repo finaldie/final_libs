@@ -100,6 +100,7 @@ int		mbuf_pop( mbuf* pbuf, void* data, size_t size)
 	return	1;		//pop failed
 }
 
+// ensure you use the return value , that's safe
 void*	mbuf_vpop(mbuf* pbuf, void* data, size_t size)
 {
 	if( pbuf && data && size > 0 && size <= (uint)MBUF_USED(pbuf) )
