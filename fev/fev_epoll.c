@@ -119,7 +119,6 @@ static int fev_state_poll(fev_state* fev, int timeout)
         // check the fd whether or not in firelist , if in, we ignore it
         // because sometimes we modify another fd state to FEV_NIL, so that we process it unnecessary 
         if( fev->firelist[fd] ) {
-            printf("fd=%d event has been fired\n", fd);
             continue;
         }
 
@@ -127,7 +126,6 @@ static int fev_state_poll(fev_state* fev, int timeout)
         if( ee->events & EPOLLIN ) mask |= FEV_READ;
         if( ee->events & EPOLLOUT ) mask |= FEV_WRITE;
         if( ee->events & (EPOLLHUP | EPOLLERR) ) mask |= FEV_ERROR;     // FEV_ERROR only used by framework
-        printf("fev epoll: event mask=%d fd=%d\n", mask, fd);
 
         if( fev->fevents[fd].pread && (fev->fevents[fd].mask & mask & FEV_READ) ) 
             fev->fevents[fd].pread(fev, fd, mask, fev->fevents[fd].arg);

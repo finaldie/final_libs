@@ -33,11 +33,6 @@ typedef struct fev_conn_info {
     conn_arg_t  arg;
 }fev_conn_info;
 
-static void on_connect_read(fev_state* fev, int fd, int mask, void* arg)
-{
-    printf("on connect read mask = %d\n", mask);
-}
-
 static void on_connect(fev_state* fev, int fd, int mask, void* arg)
 {
     printf("on_connect\n");
@@ -46,7 +41,6 @@ static void on_connect(fev_state* fev, int fd, int mask, void* arg)
     fev_del_timer_event(fev, conn_info->timer);
 
     if( mask & FEV_ERROR ) {
-        printf("occurred FEV_ERROR\n");
         goto CONN_ERROR;
     }
     
@@ -62,7 +56,6 @@ static void on_connect(fev_state* fev, int fd, int mask, void* arg)
     }
     
 CONN_ERROR:
-    printf("socket status error:%s\n", strerror(errno));
     close(conn_info->fd);
 
     if( conn_info->conn_cb )
@@ -73,8 +66,6 @@ CONN_END:
 
 static void on_timer(fev_state* fev, void* arg)
 {
-    int now = time(NULL);
-    printf("connect timeout now=%d\n", now);
     fev_conn_info* conn_info = (fev_conn_info*)arg;
     fev_del_event(fev, conn_info->fd, FEV_READ | FEV_WRITE);
     close(conn_info->fd);
@@ -109,19 +100,13 @@ void    fev_conn(fev_state* fev,
             return;
         }
 
-        printf("conn sockfd=%d\n", sockfd);
         conn_info->fd = sockfd;
-        long long to = (long)timeout * 1000000l;
-        printf("connect set timeout = %lld\n", to);
-        conn_info->timer = fev_add_timer_event(fev, to, 0, on_timer, conn_info);
+        conn_info->timer = fev_add_timer_event(fev, (long)timeout * 1000000l, 0, on_timer, conn_info);
         conn_info->conn_cb = pfunc;
         conn_info->arg = arg;
-        int now = time(NULL);
-        printf("now = %d\n", now);
 
-        int ret = fev_reg_event(fev, sockfd, FEV_READ | FEV_WRITE, on_connect_read, on_connect, conn_info);
+        int ret = fev_reg_event(fev, sockfd, FEV_WRITE, on_connect_read, on_connect, conn_info);
         if ( ret != 0 ){
-            printf("fev reg event failed! return value != 0\n");
             fev_del_timer_event(fev, conn_info->timer);
             close(sockfd);
             free(conn_info);
