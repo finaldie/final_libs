@@ -453,5 +453,25 @@ void test_mbuf1()
         FTU_ASSERT_EQUAL_INT(7, total_free);
     }
 
+    // move 2 bytes
+    {
+        mbuf_head_move(pbuf, 2);
+
+        int size = mbuf_size(pbuf);
+        FTU_ASSERT_EQUAL_INT(10, size);
+        
+        int used = mbuf_used(pbuf);
+        FTU_ASSERT_EQUAL_INT(0, used);
+        
+        int head_free = mbuf_head_free(pbuf);
+        FTU_ASSERT_EQUAL_INT(6, head_free);
+
+        int tail_free = mbuf_tail_free(pbuf);
+        FTU_ASSERT_EQUAL_INT(4, tail_free);
+
+        int total_free = mbuf_free(pbuf);
+        FTU_ASSERT_EQUAL_INT(9, total_free);
+    }
+
     mbuf_delete(pbuf);
 }
