@@ -202,7 +202,7 @@ static void fake_accept(fev_state* fev, int fd)
     int test_fd = fevbuff_get_fd(evbuff);
     FTU_ASSERT_EQUAL_INT(fd, test_fd);
 
-    int test_arg = fevbuff_get_arg(evbuff);
+    void* test_arg = fevbuff_get_arg(evbuff);
     FTU_ASSERT_EXPRESS(test_arg==NULL);
 
     int buff_read_len = fevbuff_get_bufflen(evbuff, FEVBUFF_TYPE_READ);
