@@ -103,6 +103,7 @@ static void evbuff_write(fev_state* fev, int fd, int mask, void* arg)
         else {
             if ( evbuff->error_cb ) 
                 evbuff->error_cb(fev, evbuff, evbuff->arg);
+            return;
         }
 
     }while(1);

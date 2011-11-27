@@ -105,27 +105,22 @@ void test_fev()
     close(fd);
 }
 
-typedef struct {
-    int listen_fd;
-    fev_state* fev;
-}test_accept_arg;
-
 static fev_state* g_fev = NULL;
 static int start = 0;
+static fev_listen_info* fli;
 
-void test_accept(fev_state* fev, int fd)
+static void test_accept(fev_state* fev, int fd)
 {
     FTU_ASSERT_EXPRESS(g_fev==fev);
     FTU_ASSERT_GREATER_THAN_INT(0, fd);
     close(fd);
 }
 
-void* test_listener(void* arg)
+static void* test_listener(void* arg)
 {
     printf("test listener thread startup\n");
-    g_fev = NULL;
     g_fev = fev_create(1024);
-    fev_listen_info* fli = fev_add_listener(g_fev, 17759, test_accept);
+    fli = fev_add_listener(g_fev, 17759, test_accept);
     FTU_ASSERT_EXPRESS(fli!=NULL);
 
     printf("wait for poll\n");
@@ -141,6 +136,10 @@ void* test_listener(void* arg)
 
 void test_fev_listener()
 {
+    g_fev = NULL;
+    fli = NULL;
+    start = 0;
+
     pthread_t tid;
     pthread_create(&tid, 0, test_listener, NULL);
 
@@ -153,4 +152,119 @@ void test_fev_listener()
     FTU_ASSERT_GREATER_THAN_INT(0, conn_fd);
 
     pthread_join(tid, NULL);
+
+    close(conn_fd);
+}
+
+static void buff_read(fev_state* fev, fev_buff* evbuff, void* arg)
+{
+    FTU_ASSERT_EXPRESS(fev==g_fev);
+
+    int buff_read_len = fevbuff_get_bufflen(evbuff, FEVBUFF_TYPE_READ);
+    FTU_ASSERT_GREATER_THAN_INT(0, buff_read_len);
+
+    int buff_read_used = fevbuff_get_usedlen(evbuff, FEVBUFF_TYPE_READ);
+    FTU_ASSERT_EQUAL_INT(0, buff_read_used);   
+
+    char read_buf[20];
+    memset(read_buf, 0, 20);
+    int read_size = fevbuff_read(evbuff, read_buf, 20);
+    buff_read_used = fevbuff_get_usedlen(evbuff, FEVBUFF_TYPE_READ);
+    FTU_ASSERT_EQUAL_INT(buff_read_used, read_size);
+    printf("read size=%d, read_str=%s\n", read_size, read_buf);
+
+    char compare_str[20];
+    memset(compare_str, 0, 20);
+    snprintf(compare_str, read_size, "hello final");
+    FTU_ASSERT_EQUAL_CHAR(compare_str, read_buf);
+    
+    int pop_len = fevbuff_pop(evbuff, read_size);
+    FTU_ASSERT_EQUAL_INT(read_size, pop_len);
+
+    char* write_str = "hi final";
+    int write_len = fevbuff_write(evbuff, write_str, 9);
+    FTU_ASSERT_EQUAL_INT(9, write_len);
+}
+
+static void buff_error(fev_state* fev, fev_buff* evbuff, void* arg)
+{
+    printf("evbuff error\n");
+    int fd = fevbuff_destroy(evbuff);
+    FTU_ASSERT_GREATER_THAN_INT(0, fd);
+    close(fd);
+}
+
+static void fake_accept(fev_state* fev, int fd)
+{
+    fev_buff* evbuff = fevbuff_new(fev, fd, buff_read, buff_error, NULL);
+    FTU_ASSERT_EXPRESS(evbuff!=NULL);
+
+    int test_fd = fevbuff_get_fd(evbuff);
+    FTU_ASSERT_EQUAL_INT(fd, test_fd);
+
+    int test_arg = fevbuff_get_arg(evbuff);
+    FTU_ASSERT_EXPRESS(test_arg==NULL);
+
+    int buff_read_len = fevbuff_get_bufflen(evbuff, FEVBUFF_TYPE_READ);
+    FTU_ASSERT_EQUAL_INT((1024*4), buff_read_len);
+
+    int buff_write_len = fevbuff_get_bufflen(evbuff, FEVBUFF_TYPE_WRITE);
+    FTU_ASSERT_EQUAL_INT((1024*4), buff_write_len);
+
+    int buff_read_used = fevbuff_get_usedlen(evbuff, FEVBUFF_TYPE_READ);
+    FTU_ASSERT_EQUAL_INT(0, buff_read_used);
+
+    int buff_write_used = fevbuff_get_usedlen(evbuff, FEVBUFF_TYPE_WRITE);
+    FTU_ASSERT_EQUAL_INT(0, buff_write_used);
+}
+
+static void* fake_listener(void* arg)
+{
+    g_fev = fev_create(1024);
+    fli = fev_add_listener(g_fev, 17759, test_accept);
+    FTU_ASSERT_EXPRESS(fli!=NULL);
+
+    printf("wait for poll\n");
+    start = 1;
+    while(start){
+        fev_poll(g_fev, 500);
+    }
+
+    return NULL;
+}
+
+void test_fev_buff()
+{
+    g_fev = NULL;
+    fli = NULL;
+    start = 0;
+
+    pthread_t tid;
+    pthread_create(&tid, 0, fake_listener, NULL);
+
+    while(1) {
+        sleep(1);   // wait for fev create completed
+        if( start ) break;
+    }
+
+    int conn_fd = net_conn("127.0.0.1", 17759, 1);
+    FTU_ASSERT_GREATER_THAN_INT(0, conn_fd);
+
+    char* send_str = "hello final";
+    int send_num = net_send_safe(conn_fd, send_str, strlen(send_str)+1);
+    FTU_ASSERT_EQUAL_INT(12, send_num);
+
+    // recv a string
+    char recv_buf[20];
+    memset(recv_buf, 0, 20);
+    int recv_size = net_recv(conn_fd, recv_buf, 20);
+    FTU_ASSERT_EQUAL_INT(9, recv_size);
+    printf("main recv str=%s\n", recv_buf);
+    close(conn_fd);
+
+    start = 0;  // let listener thread going down
+    pthread_join(tid, NULL);
+    
+    fev_del_listener(g_fev, fli);
+    fev_destroy(g_fev);
 }
