@@ -19,7 +19,7 @@ struct gt_catch{
 
 #define CLOCKID CLOCK_REALTIME
 #define SIG SIGRTMIN
-#define TRANS_STONS	1000000000
+#define TRANS_STONS	1000000000l
 
 #define errExit(msg)    do {	\
 	 perror(msg); exit(EXIT_FAILURE); \
