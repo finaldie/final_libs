@@ -21,6 +21,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
+#include <time.h>
 #include "fev_conn.h"
 #include "net_core.h"
 #include "fev_timer.h"
@@ -72,7 +73,8 @@ CONN_END:
 
 static void on_timer(fev_state* fev, void* arg)
 {
-    printf("connect timeout\n");
+    int now = time(NULL);
+    printf("connect timeout now=%d\n", now);
     fev_conn_info* conn_info = (fev_conn_info*)arg;
     fev_del_event(fev, conn_info->fd, FEV_READ | FEV_WRITE);
     close(conn_info->fd);
@@ -114,6 +116,8 @@ void    fev_conn(fev_state* fev,
         conn_info->timer = fev_add_timer_event(fev, to, 0, on_timer, conn_info);
         conn_info->conn_cb = pfunc;
         conn_info->arg = arg;
+        int now = time(NULL);
+        printf("now = %d\n", now);
 
         int ret = fev_reg_event(fev, sockfd, FEV_READ | FEV_WRITE, on_connect_read, on_connect, conn_info);
         if ( ret != 0 ){
