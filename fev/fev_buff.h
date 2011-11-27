@@ -40,7 +40,7 @@ fev_buff*	fevbuff_new(
 				void* arg);         // user argument
 
 // return fd and unregister from fev_state but not exec close(fd)
-int	    fevbuff_destroy(fev_buff* evbuff);
+int	    fevbuff_destroy(fev_buff*);
 
 int		fevbuff_get_fd(fev_buff*);
 void*   fevbuff_get_arg(fev_buff*);
