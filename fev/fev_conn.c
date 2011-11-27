@@ -107,6 +107,8 @@ void    fev_conn(fev_state* fev,
         conn_info->conn_cb = pfunc;
         conn_info->arg = arg;
 
-        fev_reg_event(fev, sockfd, FEV_WRITE, NULL, on_connect, conn_info);
+        int ret = fev_reg_event(fev, sockfd, FEV_WRITE, NULL, on_connect, conn_info);
+        if ( ret != 0 )
+            printf("fev reg event return value != 0\n");
     }
 }
