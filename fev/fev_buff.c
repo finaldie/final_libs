@@ -126,22 +126,22 @@ fev_buff*	fevbuff_new(
     evbuff->read_cb = read_cb;
     evbuff->error_cb = error_cb;
 
-    evbuff->rbuf = create_mbuf(FEV_BUFF_DEFAULT_SIZE);
+    evbuff->rbuf = mbuf_create(FEV_BUFF_DEFAULT_SIZE);
     if( !evbuff->rbuf ) {
         free(evbuff);
         return NULL;
     }
 
-    evbuff->rbuf = create_mbuf(FEV_BUFF_DEFAULT_SIZE);
+    evbuff->rbuf = mbuf_create(FEV_BUFF_DEFAULT_SIZE);
     if( !evbuff->wbuf ) {
-        delete_mbuf(evbuff->rbuf);
+        mbuf_delete(evbuff->rbuf);
         free(evbuff);
         return NULL;
     }
 
     if ( fev_reg_event(fev, fd, FEV_READ, evbuff_read, evbuff_write, evbuff) ) {
-        delete_mbuf(evbuff->rbuf);
-        delete_mbuf(evbuff->wbuf);
+        mbuf_delete(evbuff->rbuf);
+        mbuf_delete(evbuff->wbuf);
         free(evbuff);
         return NULL;
     }
@@ -156,8 +156,8 @@ int  fevbuff_destroy(fev_buff* evbuff)
     int fd = evbuff->fd;
     int mask = FEV_READ | FEV_WRITE;
 
-    delete_mbuf(evbuff->rbuf);
-    delete_mbuf(evbuff->wbuf);
+    mbuf_delete(evbuff->rbuf);
+    mbuf_delete(evbuff->wbuf);
     fev_del_event(evbuff->fstate, fd, mask);
     free(evbuff);
 

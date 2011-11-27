@@ -21,7 +21,7 @@ struct _mbuf
 	char	buf[1];
 };
 
-mbuf*	create_mbuf(size_t size)
+mbuf*	mbuf_create(size_t size)
 {
 	if( size > 0 )
 	{
@@ -36,14 +36,14 @@ mbuf*	create_mbuf(size_t size)
 	return NULL;
 }
 
-void	delete_mbuf(mbuf* pbuf)
+void	mbuf_delete(mbuf* pbuf)
 {
 	free(pbuf);
 }
 
 int		mbuf_push( mbuf* pbuf, const void* data, size_t size)
 {
-	if( pbuf && data && size > 0 && (uint)MBUF_FREE(pbuf) >= size )
+	if( pbuf && data && size > 0 && ((uint)MBUF_FREE(pbuf) -1) >= size )
 	{
 		uint tail_free = MBUF_END(pbuf) - MBUF_TAIL(pbuf) + 1;
 				
@@ -100,6 +100,7 @@ int		mbuf_pop( mbuf* pbuf, void* data, size_t size)
 	return	1;		//pop failed
 }
 
+// ensure you use the return value , that's safe
 void*	mbuf_vpop(mbuf* pbuf, void* data, size_t size)
 {
 	if( pbuf && data && size > 0 && size <= (uint)MBUF_USED(pbuf) )
@@ -128,8 +129,8 @@ void*	mbuf_vpop(mbuf* pbuf, void* data, size_t size)
 	return	NULL;		//pop failed
 }
 
-// only use to move the tail ptr for sometime need performance
-void	mbuf_tail_move(mbuf* pbuf, size_t size)
+// only use to move the head ptr forward tail for sometime optimizating performance
+void	mbuf_head_move(mbuf* pbuf, size_t size)
 {
 	if( pbuf && size > 0 && size <= (uint)MBUF_USED(pbuf) )
 	{
@@ -257,6 +258,11 @@ int		mbuf_used(mbuf* pbuf)
 int		mbuf_total_free(mbuf* pbuf)
 {
 	return MBUF_FREE(pbuf);
+}
+
+int     mbuf_free(mbuf* pbuf)
+{
+    return mbuf_total_free(pbuf) - 1;
 }
 
 int		mbuf_tail_free(mbuf* pbuf)

@@ -15,7 +15,8 @@ void	register_module(){
 	tu_register_module(test_mem, "for test mempool alloc and free");
 	tu_register_module(test_realloc, "for test mempool realloc");
 	tu_register_module(test_log, "for test log system");
-	tu_register_module(test_mbuf, "for test mbuf");
+	tu_register_module(test_mbuf, "for test mbuf of mbuf_seek & rewind & realloc");
+	tu_register_module(test_mbuf1, "for test mbuf of mbuf_push & mbuf_pop");
 	tu_register_module(test_timer, "for test ftimerfd");
 	tu_register_module(test_fev, "for test fev for create register add del methods");
 	tu_register_module(test_fev_listener, "for test fev listener");
