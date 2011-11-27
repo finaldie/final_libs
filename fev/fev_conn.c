@@ -32,6 +32,11 @@ typedef struct fev_conn_info {
     conn_arg_t  arg;
 }fev_conn_info;
 
+static void on_connect_read(fev_state* fev, int fd, int mask, void* arg)
+{
+    printf("on connect read mask = %d\n", mask);
+}
+
 static void on_connect(fev_state* fev, int fd, int mask, void* arg)
 {
     printf("on_connect\n");
@@ -107,8 +112,14 @@ void    fev_conn(fev_state* fev,
         conn_info->conn_cb = pfunc;
         conn_info->arg = arg;
 
-        int ret = fev_reg_event(fev, sockfd, FEV_WRITE, NULL, on_connect, conn_info);
-        if ( ret != 0 )
-            printf("fev reg event return value != 0\n");
+        int ret = fev_reg_event(fev, sockfd, FEV_READ | FEV_WRITE, on_connect_read, on_connect, conn_info);
+        if ( ret != 0 ){
+            printf("fev reg event failed! return value != 0\n");
+            fev_del_timer_event(fev, conn_info->timer);
+            close(sockfd);
+            free(conn_info);
+
+            if ( pfunc ) pfunc(-1, arg);
+        }
     }
 }
