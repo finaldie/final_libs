@@ -16,8 +16,12 @@
  * =====================================================================================
  */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
+#include <errno.h>
+#include <time.h>
 #include "fev_conn.h"
 #include "net_core.h"
 #include "fev_timer.h"
@@ -71,7 +75,7 @@ static void on_timer(fev_state* fev, void* arg)
     free(conn_info);
 }
 
-int		fev_conn(fev_state* fev, 
+void    fev_conn(fev_state* fev, 
             const char* ip, 
             int port, 
             int timeout, 
@@ -82,24 +86,31 @@ int		fev_conn(fev_state* fev,
 	int s = net_conn_a(ip, port, &sockfd);
 
 	if( s == 0 ){	// connect sucess
-		return sockfd;
+        if ( pfunc ) pfunc(sockfd, arg);
 	}
 	else if( s == -1 ){ // connect error
-		return -1;
+        if ( pfunc ) pfunc(-1, arg);
 	}
 	else{
         fev_conn_info* conn_info = (fev_conn_info*)malloc(sizeof(fev_conn_info));
         if( !conn_info ){
             close(sockfd);
-            return -1;
+            if ( pfunc ) pfunc(-1, arg);
+            return;
         }
 
         conn_info->fd = sockfd;
-        conn_info->timer = fev_add_timer_event(fev, timeout * 1000, 0, on_timer, conn_info);
+        conn_info->timer = fev_add_timer_event(fev, (long)timeout * 1000000l, 0, on_timer, conn_info);
         conn_info->conn_cb = pfunc;
         conn_info->arg = arg;
 
-        fev_reg_event(fev, sockfd, FEV_WRITE, NULL, on_connect, conn_info);
-        return 0;
+        int ret = fev_reg_event(fev, sockfd, FEV_WRITE, NULL, on_connect, conn_info);
+        if ( ret != 0 ){
+            fev_del_timer_event(fev, conn_info->timer);
+            close(sockfd);
+            free(conn_info);
+
+            if ( pfunc ) pfunc(-1, arg);
+        }
     }
 }

@@ -19,7 +19,7 @@ struct gt_catch{
 
 #define CLOCKID CLOCK_REALTIME
 #define SIG SIGRTMIN
-#define TRANS_STONS	1000000000
+#define TRANS_STONS	1000000000l
 
 #define errExit(msg)    do {	\
 	 perror(msg); exit(EXIT_FAILURE); \
@@ -97,7 +97,7 @@ int ftimerfd_start(int fd, long long nsesc, long long alter){
 	new_value.it_interval.tv_sec = alter / TRANS_STONS;
 	new_value.it_interval.tv_nsec = alter % TRANS_STONS;
 
-	if( timerfd_settime(fd, TFD_TIMER_ABSTIME, &new_value, NULL) == -1 )
+	if( timerfd_settime(fd, 0, &new_value, NULL) == -1 )
 		return 1;
 	return 0;
 }
@@ -109,7 +109,7 @@ int ftimerfd_stop(int fd){
 	new_value.it_interval.tv_sec = 0;
 	new_value.it_interval.tv_nsec = 0;
 
-	if( timerfd_settime(fd, TFD_TIMER_ABSTIME, &new_value, NULL) == -1 )
+	if( timerfd_settime(fd, 0, &new_value, NULL) == -1 )
 		return 1;
 	return 0;
 }

@@ -118,7 +118,9 @@ static int fev_state_poll(fev_state* fev, int timeout)
 
         // check the fd whether or not in firelist , if in, we ignore it
         // because sometimes we modify another fd state to FEV_NIL, so that we process it unnecessary 
-        if( fev->firelist[fd] ) continue;
+        if( fev->firelist[fd] ) {
+            continue;
+        }
 
         int mask = FEV_NIL;
         if( ee->events & EPOLLIN ) mask |= FEV_READ;
