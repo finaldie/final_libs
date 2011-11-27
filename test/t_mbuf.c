@@ -435,22 +435,22 @@ void test_mbuf1()
         mbuf_head_seek(pbuf, 4);
         mbuf_tail_seek(pbuf, 6);
 
-        mbuf_tail_move(pbuf, 4);
+        mbuf_head_move(pbuf, 4);
 
         int size = mbuf_size(pbuf);
         FTU_ASSERT_EQUAL_INT(10, size);
         
         int used = mbuf_used(pbuf);
-        FTU_ASSERT_EQUAL_INT(6, used);
+        FTU_ASSERT_EQUAL_INT(2, used);
         
         int head_free = mbuf_head_free(pbuf);
         FTU_ASSERT_EQUAL_INT(4, head_free);
 
         int tail_free = mbuf_tail_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(10, tail_free);
+        FTU_ASSERT_EQUAL_INT(4, tail_free);
 
         int total_free = mbuf_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(3, total_free);
+        FTU_ASSERT_EQUAL_INT(7, total_free);
     }
 
     mbuf_delete(pbuf);

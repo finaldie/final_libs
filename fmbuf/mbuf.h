@@ -24,7 +24,7 @@ int		mbuf_push(mbuf* pbuf, const void* data, size_t size);
 int		mbuf_pop(mbuf* pbuf, void* data, size_t size);
 void*	mbuf_vpop(mbuf* pbuf, void* data, size_t size);
 void*	mbuf_getraw(mbuf* pbuf, void* data, size_t size);
-void	mbuf_tail_move(mbuf* pbuf, size_t size);
+void	mbuf_head_move(mbuf* pbuf, size_t size);
 int     mbuf_free(mbuf* pbuf);
 
 //-----------------As a Array-----------------------------

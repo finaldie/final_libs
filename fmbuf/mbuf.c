@@ -129,8 +129,8 @@ void*	mbuf_vpop(mbuf* pbuf, void* data, size_t size)
 	return	NULL;		//pop failed
 }
 
-// only use to move the tail ptr for sometime need performance
-void	mbuf_tail_move(mbuf* pbuf, size_t size)
+// only use to move the head ptr forward tail for sometime optimizating performance
+void	mbuf_head_move(mbuf* pbuf, size_t size)
 {
 	if( pbuf && size > 0 && size <= (uint)MBUF_USED(pbuf) )
 	{
