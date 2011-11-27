@@ -291,6 +291,14 @@ static void fake_accept1(fev_state* fev, int fd)
     //close(fd);
 }
 
+static void test_for_conn(int fd, conn_arg_t arg)
+{
+    printf("tid=%lu\n", pthread_self());
+    FTU_ASSERT_GREATER_THAN_INT(0, fd);
+    close(fd);
+    start = 0;
+}
+
 static void* fake_listener1(void* arg)
 {
     g_fev = fev_create(1024);
@@ -299,6 +307,10 @@ static void* fake_listener1(void* arg)
 
     printf("wait for poll\n");
     start = 1;
+
+    conn_arg_t arg;
+    fev_conn(g_fev, "127.0.0.1", 17759, 2000, test_for_conn, arg);
+
     while(start){
         fev_poll(g_fev, 500);
     }
@@ -306,14 +318,6 @@ static void* fake_listener1(void* arg)
     fev_del_listener(g_fev, fli);
     fev_destroy(g_fev);
     return NULL;
-}
-
-static void test_for_conn(int fd, conn_arg_t arg)
-{
-    printf("tid=%lu\n", pthread_self());
-    FTU_ASSERT_GREATER_THAN_INT(0, fd);
-    close(fd);
-    end = 1;
 }
 
 void test_fev_conn()
@@ -327,19 +331,5 @@ void test_fev_conn()
     pthread_t tid;
     pthread_create(&tid, 0, fake_listener1, NULL);
 
-    while(1) {
-        sleep(1);   // wait for fev create completed
-        if( start ) break;
-    }
-
-    conn_arg_t arg;
-    fev_conn(g_fev, "127.0.0.1", 17759, 2000, test_for_conn, arg);
-
-    while(1) {
-        if( end ) break;
-        sleep(1);
-    }
-
-    start = 0;
     pthread_join(tid, NULL);
 }
