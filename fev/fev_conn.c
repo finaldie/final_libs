@@ -105,7 +105,7 @@ void    fev_conn(fev_state* fev,
         conn_info->conn_cb = pfunc;
         conn_info->arg = arg;
 
-        int ret = fev_reg_event(fev, sockfd, FEV_WRITE, on_connect_read, on_connect, conn_info);
+        int ret = fev_reg_event(fev, sockfd, FEV_WRITE, NULL, on_connect, conn_info);
         if ( ret != 0 ){
             fev_del_timer_event(fev, conn_info->timer);
             close(sockfd);
