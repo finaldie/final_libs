@@ -288,7 +288,7 @@ void test_fev_buff()
 static void fake_accept1(fev_state* fev, int fd)
 {
     printf("accept sucessful\n");
-    close(fd);
+    //close(fd);
 }
 
 static void* fake_listener1(void* arg)
