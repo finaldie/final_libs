@@ -310,6 +310,7 @@ static void* fake_listener1(void* arg)
 
 static void test_for_conn(int fd, conn_arg_t arg)
 {
+    printf("tid=%lu\n", pthread_self());
     FTU_ASSERT_GREATER_THAN_INT(0, fd);
     close(fd);
     end = 1;
@@ -322,6 +323,7 @@ void test_fev_conn()
     start = 0;
     end = 0;
 
+    printf("main tid=%lu\n", pthread_self());
     pthread_t tid;
     pthread_create(&tid, 0, fake_listener1, NULL);
 
