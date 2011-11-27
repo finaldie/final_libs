@@ -386,6 +386,7 @@ void test_mbuf1()
         FTU_ASSERT_EQUAL_INT(1, total_free);
     }
 
+    // pop 6 bytes
     {
         int ret = mbuf_pop(pbuf, pop_buf, 6);
         FTU_ASSERT_EQUAL_INT(0, ret);
@@ -404,6 +405,27 @@ void test_mbuf1()
 
         int total_free = mbuf_free(pbuf);
         FTU_ASSERT_EQUAL_INT(7, total_free);
+    }
+
+    // pop 2 bytes and then the mbuf is empty
+    {
+        int ret = mbuf_pop(pbuf, pop_buf, 2);
+        FTU_ASSERT_EQUAL_INT(0, ret);
+
+        int size = mbuf_size(pbuf);
+        FTU_ASSERT_EQUAL_INT(10, size);
+        
+        int used = mbuf_used(pbuf);
+        FTU_ASSERT_EQUAL_INT(0, used);
+        
+        int head_free = mbuf_head_free(pbuf);
+        FTU_ASSERT_EQUAL_INT(2, head_free);
+
+        int tail_free = mbuf_tail_free(pbuf);
+        FTU_ASSERT_EQUAL_INT(8, tail_free);
+
+        int total_free = mbuf_free(pbuf);
+        FTU_ASSERT_EQUAL_INT(9, total_free);
     }
 
     mbuf_delete(pbuf);
