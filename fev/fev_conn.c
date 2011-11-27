@@ -110,7 +110,7 @@ void    fev_conn(fev_state* fev,
         printf("conn sockfd=%d\n", sockfd);
         conn_info->fd = sockfd;
         long long to = (long)timeout * 1000000l;
-        printf("connect set timeout = %lu\n", to);
+        printf("connect set timeout = %lld\n", to);
         conn_info->timer = fev_add_timer_event(fev, to, 0, on_timer, conn_info);
         conn_info->conn_cb = pfunc;
         conn_info->arg = arg;
