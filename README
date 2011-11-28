@@ -21,4 +21,4 @@ Library contains:
     1. make
     2. make run_test (optional)
 
-    note: After run as above, you can find the libraries have been installed in current folder named as "final_libraries"
+    note: After run as above, you can find the libraries have been installed in current folder, which named as "final_libraries"
