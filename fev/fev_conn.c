@@ -16,12 +16,8 @@
  * =====================================================================================
  */
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <string.h>
-#include <errno.h>
-#include <time.h>
 #include "fev_conn.h"
 #include "net_core.h"
 #include "fev_timer.h"
