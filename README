@@ -1,4 +1,4 @@
-Final's common libraries
+Final's common libraries (linux platform)
 email: hyzwowtools@gmail.com
 
 [Describe]:
@@ -19,6 +19,6 @@ Librarie contain:
 
 [INSTALL]:
     1. make
-    2. make run_test
+    2. make run_test (optional)
 
-    note: After run as above, you can find the libraries install in current folder named as "final_libraries"
+    note: After run as above, you can find the libraries has been installed in current folder named as "final_libraries"
