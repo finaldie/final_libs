@@ -21,6 +21,7 @@ extern "C" {
 #include <sys/wait.h>
 #include <sys/time.h>
 #include <pthread.h>
+#include <math.h>
 
 /*
 #define fimport(module_name)	\
@@ -73,7 +74,7 @@ extern int curr_total_assert;
     do{ curr_total_assert++; if( expect != real ) { printf("(%s %s) %d: ASSERT FAILED, expect=%d but real=%d \n", __FILE__, __func__, __LINE__, expect, real); curr_failed_assert++; } }while(0)
 
 #define FTU_ASSERT_EQUAL_DOUBLE(expect, real) \
-    do{ curr_total_assert++; if( expect != real ) { printf("(%s %s) %d: ASSERT FAILED, expect=%f but real=%f \n", __FILE__, __func__, __LINE__, expect, real); curr_failed_assert++; } }while(0)
+    do{ curr_total_assert++; if( fabs(expect - real) < 0.0000001 ) { printf("(%s %s) %d: ASSERT FAILED, expect=%f but real=%f \n", __FILE__, __func__, __LINE__, expect, real); curr_failed_assert++; } }while(0)
 
 #define FTU_ASSERT_GREATER_THAN_INT(expect, real) \
     do{ curr_total_assert++; if( real < expect ) { printf("(%s %s) %d: ASSERT FAILED, expect > %d but real=%d \n", __FILE__, __func__, __LINE__, expect, real); curr_failed_assert++; } }while(0)
