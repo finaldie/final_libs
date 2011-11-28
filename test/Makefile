@@ -19,10 +19,10 @@ LIBS = -lfhash \
 	   -lrt \
 	   -lflist \
 	   -lfev \
-	   -lfnet
+	   -lfnet \
+	   -lftu
 
-SRCS = tu_inc.c \
-	   main.c \
+SRCS = main.c \
 	   t_hash.c \
 	   t_mem.c \
 	   t_log.c \

@@ -200,6 +200,7 @@ static void buff_error(fev_state* fev, fev_buff* evbuff, void* arg)
     int fd = fevbuff_destroy(evbuff);
     FTU_ASSERT_GREATER_THAN_INT(0, fd);
     close(fd);
+
     end = 1;
 }
 

@@ -8,6 +8,10 @@
 #ifndef _TEST_UNIT_INC_H_
 #define _TEST_UNIT_INC_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -79,6 +83,10 @@ extern int curr_total_assert;
 
 #define FTU_ASSERT_EXPRESS(express) \
     do{ curr_total_assert++; if( !(express) ) { printf("(%s %s) %d: ASSERT FAILED, expect=%s but failed \n", __FILE__, __func__, __LINE__, #express); curr_failed_assert++; } }while(0)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 
