@@ -1,2 +1,24 @@
 Final's common libraries
 email: hyzwowtools@gmail.com
+
+[Describe]:
+
+Librarie contain:
+    1. a fifo list ( lockfree in one production one consumer )
+    2. hash table
+    3. mutex ( wrap system lock )
+    4. log ( asynchronous log, aio not recommand use )
+    5. memory buff ( a light-weight buff )
+    6. read conf
+    7. timer
+    8. thread cache memory pool
+    9. thread pool
+    10. network 
+    11. event framework ( a simple event framework, which have internal support of evbuff & socket listen & async connect & timer)
+    12. test unit framework
+
+[INSTALL]:
+    1. make
+    2. make run_test
+
+    note: After run as above, you can find the libraries install in current folder named as "final_libraries"
