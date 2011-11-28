@@ -1,9 +1,9 @@
 Final's common libraries (linux platform)
-email: hyzwowtools@gmail.com
+Email: hyzwowtools@gmail.com
 
 [Describe]:
 
-Librarie contain:
+Library contains:
     1. a fifo list ( lockfree in one production one consumer )
     2. hash table
     3. mutex ( wrap system lock )
