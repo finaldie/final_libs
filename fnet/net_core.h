@@ -44,11 +44,11 @@ void	net_set_reuse_addr(int fd);
 int		net_create_listen(char* ip, int port, int max_link, int isblock);
 int		net_accept(int listen_fd);
 void	net_close(int fd);
-int 	net_send(int fd, const char* data, int len);
+int 	net_send(int fd, const void* data, int len);
 int 	net_recv(int fd, char* data, int len);
 int		net_conn(const char* ip, int port, int isblock);
 int		net_conn_a(const char* ip, int port, int* outfd);
-int		net_send_safe(int fd, char* data, int len);
+int		net_send_safe(int fd, const void* data, int len);
 
 char*	net_get_localip(int fd);
 char*	net_get_peerip(int fd);

@@ -137,14 +137,14 @@ void	net_close(int fd)
 
 // send data util data all send complete
 // when write return EAGAIN stop
-int		net_send_safe(int fd, char* data, int len)
+int		net_send_safe(int fd, const void* data, int len)
 {
 	int totalnum = 0;
 	int sendnum = 0;
 
 	while( totalnum < len )
 	{
-		sendnum = send(fd, data+totalnum, len-totalnum, MSG_NOSIGNAL);
+		sendnum = send(fd, (char*)data+totalnum, len-totalnum, MSG_NOSIGNAL);
 		if( sendnum != -1 )
 		{
 			totalnum += sendnum;
@@ -167,7 +167,7 @@ int		net_send_safe(int fd, char* data, int len)
 
 // return real send num
 inline
-int 	net_send(int fd, const char* data, int len)
+int 	net_send(int fd, const void* data, int len)
 {
 	do{
 		int send_num = send(fd, data, len, MSG_NOSIGNAL);
