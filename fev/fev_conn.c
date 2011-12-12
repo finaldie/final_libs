@@ -36,6 +36,7 @@ typedef struct fev_conn_info {
 
 static void on_connect(fev_state* fev, int fd, int mask, void* arg)
 {
+    printf("fev_conn: on_connect fd=%d mask=%d\n", fd, mask);
     fev_conn_info* conn_info = (fev_conn_info*)arg;
     fev_del_event(fev, conn_info->fd, FEV_READ | FEV_WRITE);
     assert( fd == conn_info->fd );
@@ -52,9 +53,8 @@ static void on_connect(fev_state* fev, int fd, int mask, void* arg)
         if( 0 == err ) {
             if( conn_info->conn_cb )
                 conn_info->conn_cb(conn_info->fd, conn_info->arg);
+            goto CONN_END;
         }
-        
-        goto CONN_END;
     }
     
 CONN_ERROR:
@@ -88,7 +88,7 @@ void    fev_conn(fev_state* fev,
 {
     int sockfd = -1;
 	int s = net_conn_a(ip, port, &sockfd);
-    printf("net_conn_a create fd=%d\\n", sockfd);
+    printf("net_conn_a create fd=%d\n", sockfd);
 
 	if( s == 0 ){	// connect sucess
         if ( pfunc ) pfunc(sockfd, arg);
