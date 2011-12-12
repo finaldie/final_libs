@@ -22,7 +22,6 @@
 #include <string.h>
 #include <errno.h>
 #include <time.h>
-#include <assert.h>
 #include "fev_conn.h"
 #include "net_core.h"
 #include "fev_timer.h"
@@ -36,11 +35,8 @@ typedef struct fev_conn_info {
 
 static void on_connect(fev_state* fev, int fd, int mask, void* arg)
 {
-    printf("fev_conn: on_connect fd=%d mask=%d\n", fd, mask);
     fev_conn_info* conn_info = (fev_conn_info*)arg;
     fev_del_event(fev, conn_info->fd, FEV_READ | FEV_WRITE);
-    assert( fd == conn_info->fd );
-    assert( fev_get_mask(fev, fd) == FEV_NIL );
     fev_del_timer_event(fev, conn_info->timer);
 
     if( mask & FEV_ERROR ) {
@@ -69,9 +65,7 @@ CONN_END:
 static void on_timer(fev_state* fev, void* arg)
 {
     fev_conn_info* conn_info = (fev_conn_info*)arg;
-    printf("fev_conn: on_timer fd=%d mask=%d\n", conn_info->fd, fev_get_mask(fev, conn_info->fd));
     fev_del_event(fev, conn_info->fd, FEV_READ | FEV_WRITE);
-    assert( fev_get_mask(fev, conn_info->fd) == FEV_NIL );
     close(conn_info->fd);
 
     if( conn_info->conn_cb )
@@ -89,7 +83,6 @@ void    fev_conn(fev_state* fev,
 {
     int sockfd = -1;
 	int s = net_conn_a(ip, port, &sockfd);
-    printf("net_conn_a create fd=%d\n", sockfd);
 
     if( !pfunc ) abort();
 

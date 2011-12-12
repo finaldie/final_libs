@@ -21,7 +21,6 @@
 #include <unistd.h>
 #include <stdint.h>
 #include <errno.h>
-#include <assert.h>
 #include "fev_timer.h"
 #include "ltimer.h"
 
@@ -65,7 +64,6 @@ fev_timer*  fev_add_timer_event(fev_state* fev, long long nsec, long long alter,
     if( !fev ) return NULL;
 
     int fd = ftimerfd_create();
-    printf("fev add timer create fd=%d\n", fd);
     if( fd == -1 ) return NULL;
 
     fev_timer* evt = (fev_timer*)malloc(sizeof(fev_timer));
@@ -102,9 +100,7 @@ int     fev_del_timer_event(fev_state* fev, fev_timer* evt)
     if( ftimerfd_stop(evt->fd) )
         return -2;
 
-    printf("fev_timer delete fd=%d\n", evt->fd);
     int ret = fev_del_event(fev, evt->fd, mask);
-    assert( fev_get_mask(fev, evt->fd) == FEV_NIL );
     if( ret != 0 ) return -3;
 
     close(evt->fd);
