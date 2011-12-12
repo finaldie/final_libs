@@ -104,8 +104,8 @@ void    fev_destroy(fev_state* fev)
 // return > 0 : sucess
 int     fev_reg_event(fev_state* fev, int fd, int mask, pfev_read pread, pfev_write pwrite, void* arg)
 {
-    printf("fev_reg_event: before reg fd=%d mask=%d opt=%d\n", fd, fev_get_mask(fev, fd), mask);
     if( !fev ) return -1; 
+    printf("fev_reg_event: before reg fd=%d mask=%d opt=%d\n", fd, fev_get_mask(fev, fd), mask);
 
     // only reversed FEV_READ & FEV_WRITE state 
     mask &= FEV_READ | FEV_WRITE;
@@ -127,8 +127,8 @@ int     fev_reg_event(fev_state* fev, int fd, int mask, pfev_read pread, pfev_wr
 
 int fev_add_event(fev_state* fev, int fd, int mask)
 {
-    printf("fev_add_event: before add fd=%d mask=%d opt=%d\n", fd, fev_get_mask(fev, fd), mask);
     if( !fev ) return -1; 
+    printf("fev_add_event: before add fd=%d mask=%d opt=%d\n", fd, fev_get_mask(fev, fd), mask);
 
     // only reversed FEV_READ & FEV_WRITE state 
     mask &= FEV_READ | FEV_WRITE;
@@ -152,8 +152,8 @@ int fev_add_event(fev_state* fev, int fd, int mask)
 // return > 0 : sucess
 int     fev_del_event(fev_state* fev, int fd, int mask)
 {
-    printf("fev_del_event: before delete fd=%d mask=%d opt=%d\n", fd, fev_get_mask(fev, fd), mask);
     if( !fev ) return -1;
+    printf("fev_del_event: before delete fd=%d mask=%d opt=%d\n", fd, fev_get_mask(fev, fd), mask);
 
     // only reversed FEV_READ & FEV_WRITE state 
     mask &= FEV_READ | FEV_WRITE;
