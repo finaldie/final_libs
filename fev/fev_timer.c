@@ -103,7 +103,6 @@ int     fev_del_timer_event(fev_state* fev, fev_timer* evt)
 
     int ret = fev_del_event(fev, evt->fd, mask);
     assert( fev_get_mask(fev, evt->fd) == FEV_NIL );
-    assert(0);
     if( ret != 0 ) return -3;
 
     close(evt->fd);
