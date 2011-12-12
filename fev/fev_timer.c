@@ -16,6 +16,7 @@
  * =====================================================================================
  */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdint.h>
@@ -75,11 +76,13 @@ fev_timer*  fev_add_timer_event(fev_state* fev, long long nsec, long long alter,
     int mask = FEV_READ;
     int ret = fev_reg_event(fev, fd, mask, fev_on_timer, NULL, evt);
     if( ret != 0 ){
+        printf("fev_timer reg_event failed fd=%d ret=%d\n", fd, ret);
         free(evt);
         return NULL;
     } 
     
     if( ftimerfd_start(fd, nsec, alter) ){
+        printf("fev_timer start timer failed fd=%d\n", fd);
         fev_del_event(fev, fd, mask);
         free(evt);
         return NULL;
