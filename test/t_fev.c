@@ -115,11 +115,11 @@ void test_fev()
     // by now there are two status in fd:FEV_READ & FEV_WRITE
     ret = fev_del_event(fev, fd, FEV_READ);
     FTU_ASSERT_EQUAL_INT(0, ret);
-    FTU_ASSERT_EQUAL_INT(FEV_WRITE, fev_get_mask(fev, fd);
+    FTU_ASSERT_EQUAL_INT(FEV_WRITE, fev_get_mask(fev, fd));
 
     ret = fev_del_event(fev, fd, FEV_WRITE);
     FTU_ASSERT_EQUAL_INT(0, ret);
-    FTU_ASSERT_EQUAL_INT(FEV_NIL, fev_get_mask(fev, fd);
+    FTU_ASSERT_EQUAL_INT(FEV_NIL, fev_get_mask(fev, fd));
 
     // now the fd has deleted from fev_state
     // so we can retest add event , lookup whether or not sucess
