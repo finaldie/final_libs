@@ -27,6 +27,7 @@
 #include "fev_buff.h"
 #include "fev_listener.h"
 #include "fev_conn.h"
+#include "fev_timer.h"
 
 typedef struct {
     fev_state* fev;
