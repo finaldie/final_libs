@@ -319,7 +319,7 @@ static void test_for_conn(int fd, conn_arg_t arg)
 {
     printf("tid=%lu\n", pthread_self());
     FTU_ASSERT_GREATER_THAN_INT(0, fd);
-    FTU_ASSERT_EQUAL_INT(FEV_NIL, fev_get_mask(g_fev, fd);
+    FTU_ASSERT_EQUAL_INT(FEV_NIL, fev_get_mask(g_fev, fd));
     close(fd);
     start = 0;
 }
