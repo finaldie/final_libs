@@ -65,6 +65,7 @@ fev_timer*  fev_add_timer_event(fev_state* fev, long long nsec, long long alter,
     if( !fev ) return NULL;
 
     int fd = ftimerfd_create();
+    printf("fev add timer create fd=%d\n", fd);
     if( fd == -1 ) return NULL;
 
     fev_timer* evt = (fev_timer*)malloc(sizeof(fev_timer));
