@@ -70,6 +70,7 @@ static void on_timer(fev_state* fev, void* arg)
 {
     fev_conn_info* conn_info = (fev_conn_info*)arg;
     fev_del_event(fev, conn_info->fd, FEV_READ | FEV_WRITE);
+    assert( fev_get_mask(fev, conn_info->fd) == FEV_NIL );
     close(conn_info->fd);
 
     if( conn_info->conn_cb )
@@ -87,6 +88,7 @@ void    fev_conn(fev_state* fev,
 {
     int sockfd = -1;
 	int s = net_conn_a(ip, port, &sockfd);
+    printf("net_conn_a create fd=%d\\n", sockfd);
 
 	if( s == 0 ){	// connect sucess
         if ( pfunc ) pfunc(sockfd, arg);
