@@ -70,7 +70,7 @@ static void on_timer(fev_state* fev, void* arg)
 {
     fev_conn_info* conn_info = (fev_conn_info*)arg;
     fev_del_event(fev, conn_info->fd, FEV_READ | FEV_WRITE);
-    assert( fev_get_mask(fev, fd) == FEV_NIL );
+    assert( fev_get_mask(fev, conn_info->fd) == FEV_NIL );
     close(conn_info->fd);
 
     if( conn_info->conn_cb )
