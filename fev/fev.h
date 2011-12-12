@@ -41,6 +41,7 @@ int  fev_poll(fev_state*, int timeout);
 int  fev_reg_event(fev_state*, int fd, int mask, pfev_read, pfev_write, void* arg);
 int  fev_add_event(fev_state*, int fd, int mask);
 int  fev_del_event(fev_state*, int fd, int mask);
+int  fev_get_mask(fev_state*, int fd);
 
 #ifdef __cplusplus
 }

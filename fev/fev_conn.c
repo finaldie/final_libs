@@ -22,6 +22,7 @@
 #include <string.h>
 #include <errno.h>
 #include <time.h>
+#include <assert.h>
 #include "fev_conn.h"
 #include "net_core.h"
 #include "fev_timer.h"
@@ -37,6 +38,8 @@ static void on_connect(fev_state* fev, int fd, int mask, void* arg)
 {
     fev_conn_info* conn_info = (fev_conn_info*)arg;
     fev_del_event(fev, conn_info->fd, FEV_READ | FEV_WRITE);
+    assert( fd == conn_info->fd );
+    assert( fev_get_mask(fev, fd) == FEV_NIL );
     fev_del_timer_event(fev, conn_info->timer);
 
     if( mask & FEV_ERROR ) {

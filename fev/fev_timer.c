@@ -21,6 +21,7 @@
 #include <unistd.h>
 #include <stdint.h>
 #include <errno.h>
+#include <assert.h>
 #include "fev_timer.h"
 #include "ltimer.h"
 
@@ -101,6 +102,7 @@ int     fev_del_timer_event(fev_state* fev, fev_timer* evt)
         return -2;
 
     int ret = fev_del_event(fev, evt->fd, mask);
+    assert( fev_get_mask(fev, evt->fd) == FEV_NIL );
     if( ret != 0 ) return -3;
 
     close(evt->fd);
