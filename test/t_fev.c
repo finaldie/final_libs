@@ -33,6 +33,27 @@ typedef struct {
     int fd;
 }test_arg;
 
+typedef struct fake_fev_event {
+    int         mask;   //READ OR WRITE
+    pfev_read   pread;
+    pfev_write  pwrite;
+    void*       arg;
+}fake_fev_event;
+
+typedef struct fake_fev_state{
+    void*           state;
+    fake_fev_event* fevents;
+    char*           firelist;
+    int             max_ev_size;
+}fake_fev_state;
+
+typedef struct fake_fev_conn_info {
+    int         fd;
+    fev_timer*  timer;
+    pfev_conn   conn_cb;
+    conn_arg_t  arg;
+}fake_fev_conn_info;
+
 void test_fev_read(fev_state* fev, int fd, int mask, void* arg)
 {
     test_arg* _arg = (test_arg*)arg;
@@ -93,9 +114,11 @@ void test_fev()
     // by now there are two status in fd:FEV_READ & FEV_WRITE
     ret = fev_del_event(fev, fd, FEV_READ);
     FTU_ASSERT_EQUAL_INT(0, ret);
+    FTU_ASSERT_EQUAL_INT(FEV_WRITE, fev_get_mask(fev, fd);
 
     ret = fev_del_event(fev, fd, FEV_WRITE);
     FTU_ASSERT_EQUAL_INT(0, ret);
+    FTU_ASSERT_EQUAL_INT(FEV_NIL, fev_get_mask(fev, fd);
 
     // now the fd has deleted from fev_state
     // so we can retest add event , lookup whether or not sucess
@@ -295,6 +318,7 @@ static void test_for_conn(int fd, conn_arg_t arg)
 {
     printf("tid=%lu\n", pthread_self());
     FTU_ASSERT_GREATER_THAN_INT(0, fd);
+    FTU_ASSERT_EQUAL_INT(FEV_NIL, fev_get_mask(g_fev, fd);
     close(fd);
     start = 0;
 }

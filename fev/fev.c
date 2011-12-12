@@ -173,3 +173,11 @@ int     fev_poll(fev_state* fev, int timeout)
 
     return num;
 }
+
+int  fev_get_mask(fev_state* fev, int fd)
+{
+    if( fd < 0 || fd >= fev->max_ev_size )
+        return -1;
+
+    return fev->fevents[fd].mask
+}
