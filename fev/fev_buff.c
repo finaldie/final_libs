@@ -243,6 +243,8 @@ static int fevbuff_cache_data(fev_buff* evbuff, const void* pbuf, size_t len)
     }
 
     memcpy(mbuf_get_tail(evbuff->wbuf), pbuf, len);
+    // add FEV_WRITE status, because it need to wait for the writing status activitly
+    fev_add_event(evbuff->fstate, evbuff->fd, FEV_WRITE);
     return 0;
 }
 
@@ -264,10 +266,11 @@ int	fevbuff_write(fev_buff* evbuff, const void* pbuf, size_t len)
         }
     }
     
-    // 1.cache data
-    // 2.modify fd state
-    fevbuff_cache_data(evbuff, pbuf+bytes, len-bytes);
-    fev_add_event(evbuff->fstate, evbuff->fd, FEV_WRITE);
+    if( len - bytes > 0 ) {
+        // cache data
+        fevbuff_cache_data(evbuff, pbuf+bytes, len-bytes);
+    }
+
     return len;
 }
 
