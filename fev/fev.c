@@ -104,6 +104,7 @@ void    fev_destroy(fev_state* fev)
 // return > 0 : sucess
 int     fev_reg_event(fev_state* fev, int fd, int mask, pfev_read pread, pfev_write pwrite, void* arg)
 {
+    printf("fev_reg_event: before reg fd=%d mask=%d opt=%d\n", fd, fev_get_mask(fev, fd), mask);
     if( !fev ) return -1; 
 
     // only reversed FEV_READ & FEV_WRITE state 
@@ -120,11 +121,13 @@ int     fev_reg_event(fev_state* fev, int fd, int mask, pfev_read pread, pfev_wr
     fev->fevents[fd].pwrite = pwrite;
     fev->fevents[fd].arg = arg;
 
+    printf("fev_reg_event: after reg fd=%d mask=%d\n", fd, fev_get_mask(fev, fd));
     return 0;
 }
 
 int fev_add_event(fev_state* fev, int fd, int mask)
 {
+    printf("fev_add_event: before add fd=%d mask=%d opt=%d\n", fd, fev_get_mask(fev, fd), mask);
     if( !fev ) return -1; 
 
     // only reversed FEV_READ & FEV_WRITE state 
@@ -140,6 +143,7 @@ int fev_add_event(fev_state* fev, int fd, int mask)
     if( fev_state_addevent(fev, fd, mask) == -1 ) 
         return -3;
 
+    printf("fev_add_event: after add fd=%d mask=%d\n", fd, fev_get_mask(fev, fd));
     return 0;
 }
 
@@ -148,6 +152,7 @@ int fev_add_event(fev_state* fev, int fd, int mask)
 // return > 0 : sucess
 int     fev_del_event(fev_state* fev, int fd, int mask)
 {
+    printf("fev_del_event: before delete fd=%d mask=%d opt=%d\n", fd, fev_get_mask(fev, fd), mask);
     if( !fev ) return -1;
 
     // only reversed FEV_READ & FEV_WRITE state 
@@ -162,6 +167,7 @@ int     fev_del_event(fev_state* fev, int fd, int mask)
         fev->firelist[fd] = 1;
     }
 
+    printf("fev_del_event: after delete fd=%d mask=%d\n", fd, fev_get_mask(fev, fd));
     return 0;
 }
 
