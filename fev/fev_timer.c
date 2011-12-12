@@ -80,6 +80,7 @@ fev_timer*  fev_add_timer_event(fev_state* fev, long long nsec, long long alter,
     } 
     
     if( ftimerfd_start(fd, nsec, alter) ){
+        fev_del_event(fev, fd, mask);
         free(evt);
         return NULL;
     } 
