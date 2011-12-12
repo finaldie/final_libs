@@ -157,8 +157,8 @@ int     fev_del_event(fev_state* fev, int fd, int mask)
     if( fev_state_delevent(fev, fd, mask) == -1 )
         return -2;
 
-    //if the mask is FEV_READ | FEV_WRITE , then put the fd into firelist
-    if( mask & (FEV_READ | FEV_WRITE) ) {
+    //finally if the fd's mask is FEV_NIL , then put the fd into firelist
+    if( fev->fevents[fd].mask == FEV_NIL ) {
         fev->firelist[fd] = 1;
     }
 
