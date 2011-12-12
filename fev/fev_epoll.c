@@ -85,12 +85,15 @@ static int fev_state_delevent(fev_state* fev, int fd, int delmask)
     if( mask & FEV_READ ) ee.events |= EPOLLIN;
     if( mask & FEV_WRITE ) ee.events |= EPOLLOUT;
 
+    // we must set it before excute epoll_ctl
+    // many library maybe close fd first, So we set our status first also
+    fev->fevents[fd].mask = mask;
+
     if ( epoll_ctl(st->epfd, op, fd, &ee) == -1 ) {
         printf("fev_epoll del event fd=%d error:%s\n", fd, strerror(errno));
         return -1;
     }
 
-    fev->fevents[fd].mask = mask;
     return 0;
 }
 
