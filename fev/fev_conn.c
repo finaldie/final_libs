@@ -74,7 +74,7 @@ static void on_timer(fev_state* fev, void* arg)
     free(conn_info);
 }
 
-void    fev_conn(fev_state* fev, 
+int    fev_conn(fev_state* fev, 
             const char* ip, 
             int port, 
             int timeout, 
@@ -88,16 +88,16 @@ void    fev_conn(fev_state* fev,
 
 	if( s == 0 ){	// connect sucess
         if ( pfunc ) pfunc(sockfd, arg);
+        return 0;
 	}
 	else if( s == -1 ){ // connect error
-        if ( pfunc ) pfunc(-2, arg);
+        return -1;
 	}
 	else{
         fev_conn_info* conn_info = (fev_conn_info*)malloc(sizeof(fev_conn_info));
         if( !conn_info ){
             close(sockfd);
-            if ( pfunc ) pfunc(-2, arg);
-            return;
+            return -1;
         }
 
         conn_info->fd = sockfd;
@@ -107,8 +107,7 @@ void    fev_conn(fev_state* fev,
             close(sockfd);
             free(conn_info);
 
-            if ( pfunc ) pfunc(-2, arg);
-            return;
+            return -1;
         }
 
         conn_info->conn_cb = pfunc;
@@ -121,7 +120,9 @@ void    fev_conn(fev_state* fev,
             close(sockfd);
             free(conn_info);
 
-            if ( pfunc ) pfunc(-2, arg);
+            return -1;
         }
+
+        return 0;
     }
 }

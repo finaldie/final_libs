@@ -37,7 +37,9 @@ typedef void (*pfev_conn)(int fd, conn_arg_t arg);
 
 // asynchronous connect method used fev
 // unit of timeout : ms
-void    fev_conn(fev_state*, 
+// return 0: connect sucessful or inprocess, you need to wait for callback
+// return -1: connect error, there is no need to wait for callback, it won't be called
+int    fev_conn(fev_state*, 
             const char* ip, 
             int port, 
             int timeout, 
