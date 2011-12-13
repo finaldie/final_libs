@@ -90,13 +90,13 @@ void    fev_conn(fev_state* fev,
         if ( pfunc ) pfunc(sockfd, arg);
 	}
 	else if( s == -1 ){ // connect error
-        if ( pfunc ) pfunc(-1, arg);
+        if ( pfunc ) pfunc(-2, arg);
 	}
 	else{
         fev_conn_info* conn_info = (fev_conn_info*)malloc(sizeof(fev_conn_info));
         if( !conn_info ){
             close(sockfd);
-            if ( pfunc ) pfunc(-1, arg);
+            if ( pfunc ) pfunc(-2, arg);
             return;
         }
 
@@ -107,7 +107,7 @@ void    fev_conn(fev_state* fev,
             close(sockfd);
             free(conn_info);
 
-            if ( pfunc ) pfunc(-1, arg);
+            if ( pfunc ) pfunc(-2, arg);
             return;
         }
 
@@ -121,7 +121,7 @@ void    fev_conn(fev_state* fev,
             close(sockfd);
             free(conn_info);
 
-            if ( pfunc ) pfunc(-1, arg);
+            if ( pfunc ) pfunc(-2, arg);
         }
     }
 }
