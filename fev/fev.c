@@ -181,3 +181,9 @@ int  fev_get_mask(fev_state* fev, int fd)
 
     return fev->fevents[fd].mask;
 }
+
+int  fev_get_fd(fev_state* fev)
+{
+    if( !fev ) return -1;
+    return fev_state_getfd(fev);
+}

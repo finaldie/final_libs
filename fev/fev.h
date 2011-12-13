@@ -42,6 +42,7 @@ int  fev_reg_event(fev_state*, int fd, int mask, pfev_read, pfev_write, void* ar
 int  fev_add_event(fev_state*, int fd, int mask);
 int  fev_del_event(fev_state*, int fd, int mask);
 int  fev_get_mask(fev_state*, int fd);
+int  fev_get_fd(fev_state*);
 
 #ifdef __cplusplus
 }

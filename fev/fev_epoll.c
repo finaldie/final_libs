@@ -6,7 +6,7 @@
  *    Description:  
  *
  *        Version:  1.0
- *        Created:  2011年11月13日 16时37分50秒
+ *        Created:  2011/11/13 16/37/50
  *       Revision:  none
  *       Compiler:  gcc
  *
@@ -140,4 +140,10 @@ static int fev_state_poll(fev_state* fev, int timeout)
     }
 
     return process;
+}
+
+int fev_state_getfd(fev_state* fev)
+{
+    state* st = fev->state; 
+    return st->epfd;
 }
