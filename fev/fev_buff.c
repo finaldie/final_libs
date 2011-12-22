@@ -285,3 +285,11 @@ int fevbuff_pop(fev_buff* evbuff, size_t len)
     mbuf_head_seek(evbuff->rbuf, pop_len);
     return pop_len;
 }
+
+// return readbuff head pointer
+void*   fevbuff_rawget(fev_buff* evbuff)
+{
+    if( !evbuff ) return NULL;
+
+    return mbuf_get_head(evbuff->rbuf);
+}

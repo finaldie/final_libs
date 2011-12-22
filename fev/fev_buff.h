@@ -47,9 +47,21 @@ void*   fevbuff_get_arg(fev_buff*);
 int		fevbuff_get_bufflen(fev_buff*, int type);
 int		fevbuff_get_usedlen(fev_buff*, int type);
 
+/**
+* descriptor: 
+*  @ if pbuf != NULL, return data_len and copy data to user
+*  @ if pbuf == NULL, return data_len without copy data
+* params:
+*  @ fev_buff* - the fev_buff 
+*  @ pbuf - which buff you want to receive data
+*  @ len - the length you want to receive
+* return:
+*  @ the length actually you can fetch in this action
+*/
 int 	fevbuff_read(fev_buff*, void* pbuf, size_t len);        // only read from fd or copy data to local buff, not pop 
 int		fevbuff_write(fev_buff*, const void* buff, size_t len);
 int     fevbuff_pop(fev_buff*, size_t len); // pop data from local buff
+void*   fevbuff_rawget(fev_buff*);  // return readbuff head pointer
 
 #ifdef __cplusplus
 }
