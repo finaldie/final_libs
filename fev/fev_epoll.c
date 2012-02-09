@@ -30,7 +30,7 @@ static int fev_state_create(fev_state* fev, int max_ev_size)
     state* st = (state*)malloc(sizeof(state) + max_ev_size * sizeof(struct epoll_event));
     if( !st ) return 1;
 
-    st->epfd = epoll_create(max_ev_size);
+    st->epfd = epoll_create(1024);  // the size argument is unused, so 1024 is just a hint for kernel
     if( st->epfd == -1 ) return 2; 
 
     fev->state = st;
