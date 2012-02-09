@@ -39,6 +39,7 @@ typedef struct fake_fev_event {
     pfev_read   pread;
     pfev_write  pwrite;
     void*       arg;
+    int         fire_idx;
 }fake_fev_event;
 
 typedef struct fake_fev_state{
@@ -46,6 +47,7 @@ typedef struct fake_fev_state{
     fake_fev_event* fevents;
     char*           firelist;
     int             max_ev_size;
+    int             fire_num;
 }fake_fev_state;
 
 typedef struct fake_fev_conn_info {
@@ -67,6 +69,9 @@ void test_fev()
 {
     fev_state* fev = fev_create(1024);
     FTU_ASSERT_EXPRESS(fev!=NULL);
+
+    fake_fev_state* fake_fev = (fake_fev_state*)fev;
+    FTU_ASSERT_EQUAL_INT(0, fake_fev->fire_num);
 
     int fd = net_create_listen(NULL, 17758, 100, 0);
     FTU_ASSERT_GREATER_THAN_INT(0, fd);
@@ -120,6 +125,9 @@ void test_fev()
     ret = fev_del_event(fev, fd, FEV_WRITE);
     FTU_ASSERT_EQUAL_INT(0, ret);
     FTU_ASSERT_EQUAL_INT(FEV_NIL, fev_get_mask(fev, fd));
+    FTU_ASSERT_EQUAL_INT(1, fake_fev->fire_num);
+    FTU_ASSERT_EQUAL_INT(0, fake_fev->fevents[fd].fire_idx);
+    FTU_ASSERT_EQUAL_INT(fd, fake_fev->firelist[0]);
 
     // now the fd has deleted from fev_state
     // so we can retest add event , lookup whether or not sucess
