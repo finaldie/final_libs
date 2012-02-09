@@ -22,12 +22,12 @@
 
 typedef struct state {
     int epfd;
-    struct epoll_event events[FEV_MAX_EVENT_NUM];
+    struct epoll_event events[0];
 }state;
 
 static int fev_state_create(fev_state* fev, int max_ev_size)
 {
-    state* st = (state*)malloc(sizeof(state));
+    state* st = (state*)malloc(sizeof(state) + max_ev_size * sizeof(struct epoll_event));
     if( !st ) return 1;
 
     st->epfd = epoll_create(max_ev_size);
@@ -104,9 +104,6 @@ static int fev_state_poll(fev_state* fev, int timeout)
     state* st = fev->state;
     int nums, i;
 
-    // clear firelist
-    memset(fev->firelist, 0, fev->max_ev_size);
-
     nums = epoll_wait(st->epfd, st->events, FEV_MAX_EVENT_NUM, timeout);
     if( nums < 0 ) {
         if( errno == EINTR )
@@ -121,7 +118,7 @@ static int fev_state_poll(fev_state* fev, int timeout)
 
         // check the fd whether or not in firelist , if in, we ignore it
         // because sometimes we modify another fd state to FEV_NIL, so that we process it unnecessary 
-        if( fev->firelist[fd] ) {
+        if( fev_is_fired(fev, fd) ) {
             continue;
         }
 

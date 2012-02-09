@@ -30,19 +30,38 @@
 #define FEV_MAX_EVENT_NUM   (1024 * 10)
 
 typedef struct fev_event {
-    int         mask;   //READ OR WRITE
+    int         mask;       //READ OR WRITE
     pfev_read   pread;
     pfev_write  pwrite;
     void*       arg;
+    int         fire_idx;   //we set the idx when the event has been disabled in one loop
 }fev_event;
 
 struct fev_state{
     void*       state;
     fev_event*  fevents;
-    char*       firelist;
+    int*        firelist;
     int         max_ev_size;
+    int         fire_num;
 };
 
+static void fev_add_firelist(fev_state* fev, int fd)
+{
+    fev->firelist[ fev->fire_num ] = fd;
+    fev->fevents[fd].fire_idx = fev->fire_num;
+    fev->fire_num++;
+}
+
+static int fev_is_fired(fev_state* fev, int fd)
+{
+    return fev->fevents[fd].fire_idx < fev->fire_num &&
+        fev->firelist[ fev->fevents[fd].fire_idx ] == fd;
+}
+
+static void fev_clear_firelist(fev_state* fev)
+{
+    fev->fire_num = 0;
+}
 
 #ifdef __linux__
 #include "fev_epoll.c"
@@ -67,7 +86,7 @@ fev_state*    fev_create(int max_ev_size)
     }
 
     fev->fevents = (fev_event*)malloc( sizeof(fev_event) * max_ev_size );
-    fev->firelist = (char*)malloc( sizeof(char) * max_ev_size );
+    fev->firelist = (int*)malloc( sizeof(int) * max_ev_size );
     if( !fev->fevents || !fev->firelist ) {
         perror("fev create events pool failed");
         fev_state_destroy(fev);
@@ -78,6 +97,8 @@ fev_state*    fev_create(int max_ev_size)
     }
 
     fev->max_ev_size = max_ev_size;
+    fev_clear_firelist(fev);
+
     int i;
     for(i=0; i<max_ev_size; i++) {
         fev->fevents[i].arg = NULL;
@@ -159,7 +180,7 @@ int     fev_del_event(fev_state* fev, int fd, int mask)
 
     //finally if the fd's mask is FEV_NIL , then put the fd into firelist
     if( fev->fevents[fd].mask == FEV_NIL ) {
-        fev->firelist[fd] = 1;
+        fev_add_firelist(fev, fd);
     }
 
     return 0;
@@ -169,6 +190,7 @@ int     fev_poll(fev_state* fev, int timeout)
 {
     if( !fev ) return 0;
 
+    fev_clear_firelist();
     int num = fev_state_poll(fev, timeout);
 
     return num;
