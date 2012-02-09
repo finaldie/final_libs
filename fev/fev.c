@@ -190,7 +190,7 @@ int     fev_poll(fev_state* fev, int timeout)
 {
     if( !fev ) return 0;
 
-    fev_clear_firelist();
+    fev_clear_firelist(fev);
     int num = fev_state_poll(fev, timeout);
 
     return num;
