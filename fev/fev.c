@@ -43,6 +43,7 @@ struct fev_state{
     int*        firelist;
     int         max_ev_size;
     int         fire_num;
+    int         in_processing;
 };
 
 static void fev_add_firelist(fev_state* fev, int fd)
@@ -98,6 +99,7 @@ fev_state*    fev_create(int max_ev_size)
 
     fev->max_ev_size = max_ev_size;
     fev_clear_firelist(fev);
+    fev->in_processing = 0;
 
     int i;
     for(i=0; i<max_ev_size; i++) {
@@ -190,8 +192,15 @@ int     fev_poll(fev_state* fev, int timeout)
 {
     if( !fev ) return 0;
 
+    if ( fev->in_processing ) {
+        perror("fev_poll shouldn't support nest call");
+        exit(EXIT_FAILURE);
+    }
+
+    fev->in_processing = 1;
     fev_clear_firelist(fev);
     int num = fev_state_poll(fev, timeout);
+    fev->in_processing = 0;
 
     return num;
 }
