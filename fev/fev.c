@@ -194,7 +194,7 @@ int     fev_poll(fev_state* fev, int timeout)
 
     if ( fev->in_processing ) {
         perror("fev_poll shouldn't support nest call");
-        exit(EXIT_FAILURE);
+        return -2;
     }
 
     fev->in_processing = 1;
