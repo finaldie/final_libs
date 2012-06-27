@@ -15,7 +15,7 @@ Library contains:
     9. thread pool
     10. network 
     11. event framework ( a simple event framework, which have internal support of evbuff & socket listen & async connect & timer)
-    12. test unit framework
+    12. unit test framework
 
 [INSTALL]:
     1. make
