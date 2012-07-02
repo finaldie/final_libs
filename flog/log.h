@@ -12,7 +12,7 @@ extern "C" {
 #endif
 
 int log_create();
-int	log_file_write(char* file_name, char* log);
+int    log_file_write(char* file_name, char* log);
 
 #ifdef __cplusplus
 }
