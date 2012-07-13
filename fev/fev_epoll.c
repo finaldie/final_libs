@@ -47,13 +47,13 @@ static void fev_state_destroy(fev_state* fev)
 // add/mod event
 static int fev_state_addevent(fev_state* fev, int fd, int mask)
 {
-    state* st = fev->state; 
+    state* st = fev->state;
     struct epoll_event ee;
     ee.data.u64 = 0;
     ee.data.fd = fd;
     ee.events = 0;
-    
-    int op = fev->fevents[fd].mask == FEV_NIL ? 
+
+    int op = fev->fevents[fd].mask == FEV_NIL ?
             EPOLL_CTL_ADD : EPOLL_CTL_MOD;
 
     mask |= fev->fevents[fd].mask;   // merge old mask state
@@ -67,7 +67,7 @@ static int fev_state_addevent(fev_state* fev, int fd, int mask)
 
     fev->fevents[fd].mask = mask;
     return 0;
-}   
+}
 
 static int fev_state_delevent(fev_state* fev, int fd, int delmask)
 {
@@ -99,12 +99,12 @@ static int fev_state_delevent(fev_state* fev, int fd, int delmask)
 
 //return -1 : error
 //return >=0 : process event num
-static int fev_state_poll(fev_state* fev, int timeout)
+static int fev_state_poll(fev_state* fev, int event_num, int timeout)
 {
     state* st = fev->state;
     int nums, i;
 
-    nums = epoll_wait(st->epfd, st->events, FEV_MAX_EVENT_NUM, timeout);
+    nums = epoll_wait(st->epfd, st->events, event_num, timeout);
     if( nums < 0 ) {
         if( errno == EINTR )
             return 0;
@@ -114,7 +114,7 @@ static int fev_state_poll(fev_state* fev, int timeout)
     int process = 0;
     for(i=0; i< nums; i++){
         struct epoll_event* ee = &(st->events[i]);
-		int fd = ee->data.fd;
+        int fd = ee->data.fd;
 
         // check the fd whether or not in firelist , if in, we ignore it
         // because sometimes we modify another fd state to FEV_NIL, so that we process it unnecessary 

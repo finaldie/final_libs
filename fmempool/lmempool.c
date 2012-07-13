@@ -31,6 +31,7 @@
 #define FMEM_DEFAULT_COUNT	256
 #define FMEM_GC_LIMIT		256
 #define FMEM_GC_TIMEOUT		(5000000000l)
+#define FMEM_GC_INTERVAL    (10000)
 #define FMEM_STEAL_COUNT	128
 #define FMEM_SYS_ALLOC_IDX	-1
 #define FMEM_DOGC			1
@@ -292,6 +293,7 @@ void	fth_delete(void* data){
 
 		free(fl->pth_mgr[i]);
 	}
+    free(fl);
 }
 
 static inline
@@ -507,7 +509,6 @@ void*	_f_alloc(fl_mgr* pmgr, size_t size){
 inline
 void*	f_alloc(size_t size){
 	if( size == 0 ) return NULL;
-	//if( !pmem && f_mp_create());
     pthread_once(&init_create, f_mp_create);
 	
 	fl_mgr*	flmgr = (fl_mgr*)pthread_getspecific(pmem->key);

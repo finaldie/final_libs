@@ -4,7 +4,7 @@ if [ $# != 1 ]; then
     echo "must input process dir";
 else
     process_files=".process_files.txt";
-    find $1 -name "*.h" -o -name "*.c" > $process_files
+    find $1 -name "*.h*" -o -name "*.c*" > $process_files
     list=`cat $process_files`
     for one in $list
     do

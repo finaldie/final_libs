@@ -74,7 +74,7 @@ fev_state*    fev_create(int max_ev_size)
 {
     if( max_ev_size <= 0 ) max_ev_size = FEV_MAX_EVENT_NUM;
 
-    fev_state* fev = (fev_state*)malloc(sizeof(fev_state));   
+    fev_state* fev = (fev_state*)malloc(sizeof(fev_state));
     if( !fev ){
         perror("fev create malloc");
         return NULL;
@@ -199,7 +199,7 @@ int     fev_poll(fev_state* fev, int timeout)
 
     fev->in_processing = 1;
     fev_clear_firelist(fev);
-    int num = fev_state_poll(fev, timeout);
+    int num = fev_state_poll(fev, fev->max_ev_size, timeout);
     fev->in_processing = 0;
 
     return num;
