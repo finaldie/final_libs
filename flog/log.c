@@ -58,8 +58,8 @@ typedef struct _log_t {
     pthread_mutex_t lock;   // protect some scences resource competion
     pthread_key_t   key;
     LOG_MODE        mode;   // global log flag
+    size_t          roll_size;
     int             is_background_thread_started;
-    int             roll_size;
     int             flush_interval;
     int             epfd;   // epoll fd
 }f_log;
@@ -257,28 +257,42 @@ size_t _log_async_write(log_file_t* f, const char* log, size_t len)
     return len;
 }
 
-static
-size_t _log_sync_write(log_file_t* f, const char* log, size_t len)
+static inline
+size_t _log_write(log_file_t* f, const char* log, size_t len)
 {
-    pthread_mutex_lock(&g_log->lock);
     size_t real_writen_len = _log_write_unlocked(f, log, len);
     if ( real_writen_len < len ) {
         // error
     }
 
+    int has_flush = 0;
     f->file_size += real_writen_len;
     time_t now = time(NULL);
     if ( now - f->last_flush_time >= g_log->flush_interval ) {
         _log_flush_file(f, now);
+        has_flush = 1;
     }
 
     if ( f->file_size > g_log->roll_size ) {
+        // if not flush, force to flush once
+        if ( !has_flush ) _log_flush_file(f, now);
         _log_roll_file(f);
     }
 
+    return real_writen_len;
+}
+
+static
+size_t _log_sync_write(log_file_t* f, const char* log, size_t len)
+{
+    size_t writen_len = 0;
+    pthread_mutex_lock(&g_log->lock);
+    {
+        writen_len = _log_write(f, log, len);
+    }
     pthread_mutex_unlock(&g_log->lock);
 
-    return real_writen_len;
+    return writen_len;
 }
 
 static inline
@@ -300,22 +314,8 @@ void _log_async_process(thread_data_t* th_data, unsigned int process_num)
             break;
         }
 
-        size_t real_writen_len = _log_write_unlocked(header.f, tmsg,
-                                                    (size_t)header.len);
-        if ( real_writen_len < (size_t)header.len ) {
-            printf("cannot write whole log message\n");
-        }
+        _log_write(header.f, tmsg, (size_t)header.len);
         mbuf_head_move(pbuf, (size_t)header.len);
-
-        header.f->file_size += real_writen_len;
-        time_t now = time(NULL);
-        if ( now - header.f->last_flush_time >= g_log->flush_interval ) {
-            _log_flush_file(header.f, now);
-        }
-
-        if ( header.f->file_size > g_log->roll_size ) {
-            _log_roll_file(header.f);
-        }
     }
 }
 
@@ -414,8 +414,8 @@ void _log_init()
     pthread_mutex_init(&t_log->lock, NULL);
     pthread_key_create(&t_log->key, _user_thread_destroy);
     t_log->mode = LOG_SYNC_MODE;
-    t_log->is_background_thread_started = 0;
     t_log->roll_size = LOG_DEFAULT_ROLL_SIZE;
+    t_log->is_background_thread_started = 0;
     t_log->flush_interval = LOG_DEFAULT_FLUSH_INTERVAL;
 
     g_log = t_log;
@@ -428,42 +428,44 @@ void _log_init()
 log_file_t* log_create(const char* filename){
     // init log system global data
     pthread_once(&init_create, _log_init);
+
+    log_file_t* f = NULL;
     pthread_mutex_lock(&g_log->lock);
+    {
+        // check whether log file data has been created
+        // if not, create it, or return its pointer
+        log_file_t* created_file = hash_get_str(g_log->phash, filename);
+        if ( created_file ) {
+            created_file->ref_count++;
+            pthread_mutex_unlock(&g_log->lock);
+            return created_file;
+        }
 
-    // check whether log file data has been created
-    // if not, create it, or return its pointer
-    log_file_t* created_file = hash_get_str(g_log->phash, filename);
-    if ( created_file ) {
-        created_file->ref_count++;
-        pthread_mutex_unlock(&g_log->lock);
-        return created_file;
+        // the file struct is the first to create
+        f = malloc(sizeof(log_file_t));
+        if ( !f ) {
+            printError("cannot alloc memory for log_file_t");
+            pthread_mutex_unlock(&g_log->lock);
+            return NULL;
+        }
+
+        // init log_file data
+        _log_generate_filename(filename, f->poutput_filename);
+        FILE* pf = _log_open(f->poutput_filename, f->filebuf,
+                             LOG_BUFFER_SIZE_PER_FILE);
+        if ( !pf ) {
+            printError("open file failed");
+            free(f);
+            pthread_mutex_unlock(&g_log->lock);
+            return NULL;
+        }
+        f->pf = pf;
+        f->file_size = 0;
+        f->last_flush_time = time(NULL);
+        snprintf(f->pfilename, LOG_MAX_FILE_NAME, "%s", filename);
+        hash_set_str(g_log->phash, filename, f);
+        f->ref_count = 1;
     }
-
-    // the file struct is the first to create
-    log_file_t* f = malloc(sizeof(log_file_t));
-    if ( !f ) {
-        printError("cannot alloc memory for log_file_t");
-        pthread_mutex_unlock(&g_log->lock);
-        return NULL;
-    }
-
-    // init log_file data
-    _log_generate_filename(filename, f->poutput_filename);
-    FILE* pf = _log_open(f->poutput_filename, f->filebuf,
-                         LOG_BUFFER_SIZE_PER_FILE);
-    if ( !pf ) {
-        printError("open file failed");
-        free(f);
-        pthread_mutex_unlock(&g_log->lock);
-        return NULL;
-    }
-    f->pf = pf;
-    f->file_size = 0;
-    f->last_flush_time = time(NULL);
-    snprintf(f->pfilename, LOG_MAX_FILE_NAME, "%s", filename);
-    hash_set_str(g_log->phash, filename, f);
-    f->ref_count = 1;
-
     pthread_mutex_unlock(&g_log->lock);
     return f;
 }
@@ -472,16 +474,16 @@ void log_destroy(log_file_t* lf)
 {
     if ( !g_log || !lf ) return;
     pthread_mutex_lock(&g_log->lock);
-    lf->ref_count--;
+    {
+        lf->ref_count--;
 
-    if ( lf->ref_count == 0 ) {
-        fclose(lf->pf);
-        hash_del_str(g_log->phash, lf->pfilename);
-        free(lf);
+        if ( lf->ref_count == 0 ) {
+            fclose(lf->pf);
+            hash_del_str(g_log->phash, lf->pfilename);
+            free(lf);
+        }
     }
-
     pthread_mutex_unlock(&g_log->lock);
-
 }
 
 /**
@@ -512,20 +514,23 @@ LOG_MODE log_set_mode(LOG_MODE mode)
 {
     if ( !g_log ) return LOG_SYNC_MODE;
 
+    LOG_MODE last_mode;
     pthread_mutex_lock(&g_log->lock);
-    if ( mode == g_log->mode ) {
-        pthread_mutex_unlock(&g_log->lock);
-        return g_log->mode;
-    }
+    {
+        if ( mode == g_log->mode ) {
+            pthread_mutex_unlock(&g_log->lock);
+            return g_log->mode;
+        }
 
-    if ( (mode == LOG_ASYNC_MODE) &&
-         !g_log->is_background_thread_started ) {
-        _create_fetcher_thread();
-        g_log->is_background_thread_started = 1;
-    }
+        if ( (mode == LOG_ASYNC_MODE) &&
+             !g_log->is_background_thread_started ) {
+            _create_fetcher_thread();
+            g_log->is_background_thread_started = 1;
+        }
 
-    LOG_MODE last_mode = g_log->mode;
-    g_log->mode = mode;
+        last_mode = g_log->mode;
+        g_log->mode = mode;
+    }
     pthread_mutex_unlock(&g_log->lock);
     return last_mode;
 }
@@ -538,7 +543,9 @@ void log_set_roll_size(size_t size)
     if ( !g_log || !size ) return;
 
     pthread_mutex_lock(&g_log->lock);
-    g_log->roll_size = size;
+    {
+        g_log->roll_size = size;
+    }
     pthread_mutex_unlock(&g_log->lock);
 }
 
@@ -550,6 +557,8 @@ void log_set_flush_interval(size_t sec)
     if ( !g_log ) return;
 
     pthread_mutex_lock(&g_log->lock);
-    g_log->flush_interval = sec;
+    {
+        g_log->flush_interval = sec;
+    }
     pthread_mutex_unlock(&g_log->lock);
 }
