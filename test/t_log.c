@@ -58,9 +58,11 @@ static
 void _test_async_log()
 {
     FLOG_DEBUG(log_handler, "debug log test");
-    FLOG_ERROR(log_handler, "error log test");
-    flog_set_level(LOG_LEVEL_ERROR);
+    FLOG_ERROR(log_handler, "error log test"); // first writen
+    flog_set_level(LOG_LEVEL_DEBUG);
     sleep(2);   // wait for log system
+    FLOG_DEBUG(log_handler, "debug log test1"); // second writen
+    FLOG_DEBUG(log_handler, "debug log test2"); // will be writen in new file
 
     fake_log_file_t* ff = (fake_log_file_t*)log_handler;
     int fd = open(ff->poutput_filename, O_RDONLY);
@@ -84,7 +86,9 @@ void test_async_log()
     log_handler = flog_create("test_async_log");
     FTU_ASSERT_EXPRESS(log_handler);
     flog_set_mode(FLOG_ASYNC_MODE);
+    flog_set_roll_size(100);
+    flog_set_flush_interval(1);
     _test_async_log();
-    flog_destroy(log_handler);
     sleep(2);
+    flog_destroy(log_handler);
 }
