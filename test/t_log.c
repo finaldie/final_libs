@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <pthread.h>
 
 #include "tu_inc.h"
 #include "log_inc.h"
@@ -55,7 +56,7 @@ void    test_log(){
 }
 
 static
-void _test_async_log()
+void* _test_async_log(void* arg)
 {
     FLOG_DEBUG(log_handler, "debug log test");
     FLOG_ERROR(log_handler, "error log test"); // first writen
@@ -79,6 +80,8 @@ void _test_async_log()
     FTU_ASSERT_EXPRESS(ptr!=NULL);
 
     close(fd);
+
+    return NULL;
 }
 
 void test_async_log()
@@ -88,7 +91,9 @@ void test_async_log()
     flog_set_mode(FLOG_ASYNC_MODE);
     flog_set_roll_size(100);
     flog_set_flush_interval(1);
-    _test_async_log();
+    pthread_t tid;
+    pthread_create(&tid, NULL, _test_async_log, NULL);
+    pthread_join(tid, NULL);
     sleep(2);
     flog_destroy(log_handler);
 }
