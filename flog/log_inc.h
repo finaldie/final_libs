@@ -43,12 +43,12 @@ void     flog_set_mode(FLOG_MODE);
 void     flog_set_roll_size(size_t size);
 void     flog_set_flush_interval(size_t sec);
 
-inline int is_trace_enable();
-inline int is_debug_enable();
-inline int is_info_enable();
-inline int is_warn_enable();
-inline int is_error_enable();
-inline int is_fatal_enable();
+int is_trace_enable();
+int is_debug_enable();
+int is_info_enable();
+int is_warn_enable();
+int is_error_enable();
+int is_fatal_enable();
 
 #ifdef __cplusplus
 }
