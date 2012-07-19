@@ -10,8 +10,7 @@
  *       Revision:  none
  *       Compiler:  gcc
  *
- *         Author:  finaldie
- *        Company:  
+ *         Author:  yuzhang hu(finaldie)
  *
  * =====================================================================================
  */
@@ -25,10 +24,10 @@ extern "C" {
 #include <stdint.h>
 #include "fev.h"
 
-typedef union conn_arg_t{
-	int		 u32;
-	uint64_t u64;
-	void*	 ptr;
+typedef union conn_arg_t {
+    int      u32;
+    uint64_t u64;
+    void*    ptr;
 }conn_arg_t;
 
 // fd > 0 : sucess
@@ -39,11 +38,11 @@ typedef void (*pfev_conn)(int fd, conn_arg_t arg);
 // unit of timeout : ms
 // return 0: connect sucessful or inprocess, you need to wait for callback
 // return -1: connect error, there is no need to wait for callback, it won't be called
-int    fev_conn(fev_state*, 
-            const char* ip, 
-            int port, 
-            int timeout, 
-            pfev_conn, 
+int    fev_conn(fev_state*,
+            const char* ip,
+            int port,
+            int timeout,
+            pfev_conn,
             conn_arg_t);
 
 #ifdef __cplusplus

@@ -10,8 +10,7 @@
  *       Revision:  none
  *       Compiler:  gcc
  *
- *         Author:  YOUR NAME (), 
- *        Company:  
+ *         Author:  yuzhang hu (finaldie)
  *
  * =====================================================================================
  */
@@ -20,17 +19,17 @@
 #define _TEST_INC_H_
 
 // all test fun declare write here
-void	test_hash();
-void	test_hash_del();
+void    test_hash();
+void    test_hash_del();
 
-void	test_mem();
-void	test_realloc();
+void    test_mem();
+void    test_realloc();
 
-void	test_log();
-void	test_async_log();
-void	test_mbuf();
+void    test_log();
+void    test_async_log();
+void    test_mbuf();
 void    test_mbuf1();
-void	test_timer();
+void    test_timer();
 void    test_list();
 void    test_fev();
 void    test_fev_listener();

@@ -24,40 +24,38 @@ extern "C" {
 #include <math.h>
 
 /*
-#define fimport(module_name)	\
-	##include "module_name.h"	\
-	register_module(#module_name, module_name_init);
-	*/
+#define fimport(module_name)    \
+    ##include "module_name.h"    \
+    register_module(#module_name, module_name_init);
+    */
 
 // test use this define
 #define TRUN(func) \
-	do{\
-		pid_t f = fork();\
-		if( f == 0 ){	\
-			printf("test start-module:%s\n", #func);	\
-			func();\
-			printf("test end-module:%s\n", #func);	\
-			exit(1);	\
-		}	\
-		else{\
-			int status;	\
-			wait(&status);	\
-		}\
-	}while(0);
-
+    do { \
+        pid_t f = fork();                               \
+        if ( f == 0 ) {                                 \
+            printf("test start-module:%s\n", #func);    \
+            func();                                     \
+            printf("test end-module:%s\n", #func);      \
+            exit(1);                                    \
+        } else {                                        \
+            int status;                                 \
+            wait(&status);                              \
+        }                                               \
+    }while(0);
 
 typedef void (*pfunc_init)();
 
-void	tu_register_init();
-void	_tu_register_module(pfunc_init pfunc, char* case_name, char* describe);
+void    tu_register_init();
+void    _tu_register_module(pfunc_init pfunc, char* case_name, char* describe);
 #define tu_register_module(pfunc, describe) \
     _tu_register_module(pfunc, #pfunc, describe);
     
 void    tu_run_cases();
 
-typedef struct{
-	struct timeval tv;
-	struct timezone tz;
+typedef struct {
+    struct timeval tv;
+    struct timezone tz;
 }my_time;
 
 void get_cur_time(my_time*);

@@ -1,9 +1,7 @@
-//base info: create by hyz
-/*effect: thread cache mempool
-*
-*
-*/
-
+/**
+ * effect: thread cache mempool
+ * author: yuzhang hu (final)
+ */
 
 #ifndef _FMEM_POOL_H_
 #define _FMEM_POOL_H_
