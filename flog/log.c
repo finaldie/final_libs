@@ -15,17 +15,17 @@
 #include "log.h"
 
 // BASE DEFINE
-#define LOG_OPEN_PERMISSION        0755
-#define LOG_MAX_THREAD_BUFF_SIZE   (1024 * 1024)
-#define LOG_MAX_FILE_NAME          (64)
-#define LOG_MAX_OUTPUT_NAME        (128)
-#define LOG_BUFFER_SIZE_PER_FILE   (1024 * 64)
-#define LOG_DEFAULT_ROLL_SIZE      (1024 * 1024 * 1024)
-#define LOG_DEFAULT_FLUSH_INTERVAL (0)
-#define LOG_MAX_LEN_PER_MSG        (4096)
-#define LOG_MSG_HEAD_SIZE          ( sizeof(log_msg_head_t) )
-#define LOG_PTO_ID_SIZE            ( sizeof(pto_id_t) )
-#define LOG_PTO_RESERVE_SIZE       LOG_PTO_ID_SIZE
+#define LOG_OPEN_PERMISSION           0755
+#define LOG_MAX_FILE_NAME             (64)
+#define LOG_MAX_OUTPUT_NAME           (128)
+#define LOG_BUFFER_SIZE_PER_FILE      (1024 * 64)
+#define LOG_DEFAULT_ROLL_SIZE         (1024 * 1024 * 1024)
+#define LOG_DEFAULT_LOCAL_BUFFER_SIZE (1024 * 1024 * 10)
+#define LOG_DEFAULT_FLUSH_INTERVAL    (0)
+#define LOG_MAX_LEN_PER_MSG           (4096)
+#define LOG_MSG_HEAD_SIZE             ( sizeof(log_msg_head_t) )
+#define LOG_PTO_ID_SIZE               ( sizeof(pto_id_t) )
+#define LOG_PTO_RESERVE_SIZE          LOG_PTO_ID_SIZE
 
 // LOG PROTOCOL DEFINE
 #define LOG_PTO_FETCH_MSG          0
@@ -70,14 +70,16 @@ typedef void (*ptofunc)(thread_data_t*);
 
 // global log system data
 typedef struct _log_t {
-    f_hash*         phash;  // mapping filename <--> log_file structure
-    pthread_mutex_t lock;   // protect some scences resource competion
+    f_hash*         phash;       // mapping filename <--> log_file structure
+    pthread_mutex_t lock;        // protect some scences resource competion
     pthread_key_t   key;
-    LOG_MODE        mode;   // global log flag
+    plog_event_func event_cb;    // event callback
+    LOG_MODE        mode;        // global log flag
     size_t          roll_size;
+    size_t          buffer_size; // buffer size of user thread
     int             is_background_thread_started;
     int             flush_interval;
-    int             epfd;   // epoll fd
+    int             epfd;        // epoll fd
 }f_log;
 
 // define global log struct
@@ -101,6 +103,25 @@ static ptofunc g_pto_tbl[] = {
 /******************************************************************************
  * Internal functions
  *****************************************************************************/
+static inline
+int _log_set_nonblocking(int fd)
+{
+    int flag = fcntl(fd, F_GETFL, 0);
+    if ( flag != -1 ) {
+        return fcntl(fd, F_SETFL, flag | O_NONBLOCK);
+    }
+
+    return flag;
+}
+
+static inline
+void _log_event_notice(LOG_EVENT event)
+{
+    if ( g_log->event_cb ) {
+        g_log->event_cb(event);
+    }
+}
+
 static inline
 int _lopen(const char* filename){
     return open(filename, O_CREAT | O_WRONLY | O_APPEND, LOG_OPEN_PERMISSION);
@@ -219,7 +240,7 @@ size_t _log_async_write(log_file_t* f, const char* log, size_t len)
             return 0;
         }
 
-        mbuf* pbuf = mbuf_create(LOG_MAX_THREAD_BUFF_SIZE);
+        mbuf* pbuf = mbuf_create(g_log->buffer_size);
         if ( !pbuf ) {
             printError("cannot alloc memory for thread data");
             free(th_data);
@@ -227,7 +248,16 @@ size_t _log_async_write(log_file_t* f, const char* log, size_t len)
         }
         th_data->plog_buf = pbuf;
 
-        int efd = eventfd(0, EFD_NONBLOCK);
+        // for forward compatible old version of kernel from 2.6.22 - 2.6.26
+        // we couldn't use EFD_NONBLOCK flag, so we need to call fcntl for
+        // setting nonblocking flag
+        int efd = eventfd(0, 0);
+        if ( _log_set_nonblocking(efd) == -1 ) {
+            printError("error in set nonblocking flag for efd");
+            free(th_data);
+            return 0;
+        }
+
         if ( efd == -1 ) {
             printError("cannot create eventfd for thread data");
             free(th_data);
@@ -252,12 +282,14 @@ size_t _log_async_write(log_file_t* f, const char* log, size_t len)
 
     // wrap and push log message
     if ( len > LOG_MAX_LEN_PER_MSG) {
+        _log_event_notice(LOG_EVENT_ERROR_MSG_SIZE);
         return 0;
     }
 
     size_t total_msg_len = sizeof(log_fetch_msg_head_t) + len;
     if ( mbuf_free(th_data->plog_buf) < (int)total_msg_len +
                                         LOG_PTO_RESERVE_SIZE ) {
+        _log_event_notice(LOG_EVENT_BUFF_FULL);
         return 0;
     }
 
@@ -285,9 +317,6 @@ static inline
 size_t _log_write(log_file_t* f, const char* log, size_t len)
 {
     size_t real_writen_len = _log_write_unlocked(f, log, len);
-    if ( real_writen_len < len ) {
-        // error
-    }
 
     int has_flush = 0;
     f->file_size += real_writen_len;
@@ -316,6 +345,10 @@ size_t _log_sync_write(log_file_t* f, const char* log, size_t len)
     }
     pthread_mutex_unlock(&g_log->lock);
 
+    if ( writen_len < len ) {
+        _log_event_notice(LOG_EVENT_ERROR_WRITE);
+    }
+
     return writen_len;
 }
 
@@ -336,7 +369,11 @@ void _log_pto_fetch_msg(thread_data_t* th_data)
         return;
     }
 
-    _log_write(header.f, tmsg, (size_t)header.len);
+    size_t writen_len = _log_write(header.f, tmsg, (size_t)header.len);
+    if ( writen_len < (size_t)header.len) {
+        _log_event_notice(LOG_EVENT_ERROR_WRITE);
+    }
+
     mbuf_head_move(pbuf, (size_t)header.len);
 }
 
@@ -464,8 +501,10 @@ void _log_init()
     t_log->phash = hash_create(0);
     pthread_mutex_init(&t_log->lock, NULL);
     pthread_key_create(&t_log->key, _user_thread_destroy);
+    t_log->event_cb = NULL;
     t_log->mode = LOG_SYNC_MODE;
     t_log->roll_size = LOG_DEFAULT_ROLL_SIZE;
+    t_log->buffer_size = LOG_DEFAULT_LOCAL_BUFFER_SIZE;
     t_log->is_background_thread_started = 0;
     t_log->flush_interval = LOG_DEFAULT_FLUSH_INTERVAL;
 
@@ -563,6 +602,8 @@ size_t log_file_write(log_file_t* f, const char* log, size_t len)
 
 LOG_MODE log_set_mode(LOG_MODE mode)
 {
+    // init log system global data
+    pthread_once(&init_create, _log_init);
     if ( !g_log ) return LOG_SYNC_MODE;
 
     LOG_MODE last_mode;
@@ -591,6 +632,8 @@ LOG_MODE log_set_mode(LOG_MODE mode)
  */
 void log_set_roll_size(size_t size)
 {
+    // init log system global data
+    pthread_once(&init_create, _log_init);
     if ( !g_log || !size ) return;
 
     pthread_mutex_lock(&g_log->lock);
@@ -605,11 +648,39 @@ void log_set_roll_size(size_t size)
  */
 void log_set_flush_interval(size_t sec)
 {
+    // init log system global data
+    pthread_once(&init_create, _log_init);
     if ( !g_log ) return;
 
     pthread_mutex_lock(&g_log->lock);
     {
         g_log->flush_interval = sec;
+    }
+    pthread_mutex_unlock(&g_log->lock);
+}
+
+void log_set_buffer_size(size_t size)
+{
+    // init log system global data
+    pthread_once(&init_create, _log_init);
+    if ( !g_log ) return;
+
+    pthread_mutex_lock(&g_log->lock);
+    {
+        g_log->buffer_size = size;
+    }
+    pthread_mutex_unlock(&g_log->lock);
+}
+
+void log_register_event_callback(plog_event_func pfunc)
+{
+    // init log system global data
+    pthread_once(&init_create, _log_init);
+    if ( !g_log || !pfunc ) return;
+
+    pthread_mutex_lock(&g_log->lock);
+    {
+        g_log->event_cb = pfunc;
     }
     pthread_mutex_unlock(&g_log->lock);
 }

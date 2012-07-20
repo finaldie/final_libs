@@ -4,7 +4,6 @@
 #include <stdarg.h>
 #include <time.h>
 #include "log_inc.h"
-#include "log.h"
 
 #define LOG_TIME_LEN 22
 #define LOG_MAX_LEN  1024
@@ -118,6 +117,16 @@ void flog_set_roll_size(size_t size)
 void flog_set_flush_interval(size_t sec)
 {
     log_set_flush_interval(sec);
+}
+
+void flog_set_buffer_size(size_t size)
+{
+    log_set_buffer_size(size);
+}
+
+void flog_register_event_callback(plog_event_func pfunc)
+{
+    log_register_event_callback(pfunc);
 }
 
 inline int is_trace_enable()  { return LOG_LEVEL_TRACE  >= flog_get_level(); }
