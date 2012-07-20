@@ -68,6 +68,14 @@ void log_set_roll_size(size_t size);
  */
 void log_set_flush_interval(size_t sec);
 
+/**
+ *  @brief Set buffer size for user thread, should set before async writing
+ *  @param size
+ *  @return void
+ */
+void log_set_buffer_size(size_t size);
+
+
 #ifdef __cplusplus
 }
 #endif
