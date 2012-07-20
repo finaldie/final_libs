@@ -2,9 +2,9 @@
  * Base info: Created by Yuzhang Hu
  * modify: 06/20/2012
  * Description: Asynchronous logging system
- *   The base idea of this system is using the thread cache to buffer log 
+ *   The base idea of this system is using the thread cache to buffer log
  *   messages, and there is one background thread to fetch log messages.
- *   So it try the best to remove locks, which will be influence performance. 
+ *   So it try the best to remove locks, which will be influence performance.
  *   It could be very fast, simple and strong. have a fun :)
  *****************************************************************************/
 
@@ -18,8 +18,15 @@ extern "C" {
 typedef enum {
     LOG_SYNC_MODE,
     LOG_ASYNC_MODE
-}LOG_MODE;
+} LOG_MODE;
 
+typedef enum {
+    LOG_EVENT_ERROR_WRITE,
+    LOG_EVENT_ERROR_MSG_SIZE,
+    LOG_EVENT_BUFF_FULL
+} LOG_EVENT;
+
+typedef void (*plog_event_func)(LOG_EVENT);
 typedef struct _log_file_t log_file_t;
 
 /**
@@ -75,6 +82,12 @@ void log_set_flush_interval(size_t sec);
  */
 void log_set_buffer_size(size_t size);
 
+/**
+ *  @brief Register a callback function for notifying user some important status
+ *  @param pfunc - user callback function
+ *  @return void
+ */
+void log_register_event_callback(plog_event_func pfunc);
 
 #ifdef __cplusplus
 }

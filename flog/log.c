@@ -73,6 +73,7 @@ typedef struct _log_t {
     f_hash*         phash;       // mapping filename <--> log_file structure
     pthread_mutex_t lock;        // protect some scences resource competion
     pthread_key_t   key;
+    plog_event_func event_cb;    // event callback
     LOG_MODE        mode;        // global log flag
     size_t          roll_size;
     size_t          buffer_size; // buffer size of user thread
@@ -111,6 +112,14 @@ int _log_set_nonblocking(int fd)
     }
 
     return flag;
+}
+
+static inline
+void _log_event_notice(LOG_EVENT event)
+{
+    if ( g_log->event_cb ) {
+        g_log->event_cb(event);
+    }
 }
 
 static inline
@@ -273,12 +282,14 @@ size_t _log_async_write(log_file_t* f, const char* log, size_t len)
 
     // wrap and push log message
     if ( len > LOG_MAX_LEN_PER_MSG) {
+        _log_event_notice(LOG_EVENT_ERROR_MSG_SIZE);
         return 0;
     }
 
     size_t total_msg_len = sizeof(log_fetch_msg_head_t) + len;
     if ( mbuf_free(th_data->plog_buf) < (int)total_msg_len +
                                         LOG_PTO_RESERVE_SIZE ) {
+        _log_event_notice(LOG_EVENT_BUFF_FULL);
         return 0;
     }
 
@@ -306,9 +317,6 @@ static inline
 size_t _log_write(log_file_t* f, const char* log, size_t len)
 {
     size_t real_writen_len = _log_write_unlocked(f, log, len);
-    if ( real_writen_len < len ) {
-        // error
-    }
 
     int has_flush = 0;
     f->file_size += real_writen_len;
@@ -337,6 +345,10 @@ size_t _log_sync_write(log_file_t* f, const char* log, size_t len)
     }
     pthread_mutex_unlock(&g_log->lock);
 
+    if ( writen_len < len ) {
+        _log_event_notice(LOG_EVENT_ERROR_WRITE);
+    }
+
     return writen_len;
 }
 
@@ -357,7 +369,11 @@ void _log_pto_fetch_msg(thread_data_t* th_data)
         return;
     }
 
-    _log_write(header.f, tmsg, (size_t)header.len);
+    size_t writen_len = _log_write(header.f, tmsg, (size_t)header.len);
+    if ( writen_len < (size_t)header.len) {
+        _log_event_notice(LOG_EVENT_ERROR_WRITE);
+    }
+
     mbuf_head_move(pbuf, (size_t)header.len);
 }
 
@@ -485,6 +501,7 @@ void _log_init()
     t_log->phash = hash_create(0);
     pthread_mutex_init(&t_log->lock, NULL);
     pthread_key_create(&t_log->key, _user_thread_destroy);
+    t_log->event_cb = NULL;
     t_log->mode = LOG_SYNC_MODE;
     t_log->roll_size = LOG_DEFAULT_ROLL_SIZE;
     t_log->buffer_size = LOG_DEFAULT_LOCAL_BUFFER_SIZE;
@@ -651,6 +668,19 @@ void log_set_buffer_size(size_t size)
     pthread_mutex_lock(&g_log->lock);
     {
         g_log->buffer_size = size;
+    }
+    pthread_mutex_unlock(&g_log->lock);
+}
+
+void log_register_event_callback(plog_event_func pfunc)
+{
+    // init log system global data
+    pthread_once(&init_create, _log_init);
+    if ( !g_log || !pfunc ) return;
+
+    pthread_mutex_lock(&g_log->lock);
+    {
+        g_log->event_cb = pfunc;
     }
     pthread_mutex_unlock(&g_log->lock);
 }

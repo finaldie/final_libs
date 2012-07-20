@@ -1,6 +1,6 @@
 TARGET = libflog.a
 
-INCLUDE_FILES = log_inc.h
+INCLUDE_FILES = log_inc.h log.h
 INSTALL_PATH = ../final_libraries
 INCLUDE_PATH = include
 LIBS_PATH = libs
