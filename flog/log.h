@@ -77,6 +77,8 @@ void log_set_flush_interval(size_t sec);
 
 /**
  *  @brief Set buffer size for user thread, should set before async writing
+ *    The default buffer size per thread is 10M, call this interface if you
+ *    want to change it
  *  @param size
  *  @return void
  */

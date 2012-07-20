@@ -15,7 +15,7 @@
 #include "log.h"
 
 // BASE DEFINE
-#define LOG_OPEN_PERMISSION           0755
+#define LOG_OPEN_PERMISSION           0644
 #define LOG_MAX_FILE_NAME             (64)
 #define LOG_MAX_OUTPUT_NAME           (128)
 #define LOG_BUFFER_SIZE_PER_FILE      (1024 * 64)
