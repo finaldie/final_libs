@@ -64,8 +64,10 @@ void* _test_async_log(void* arg)
     sleep(2);   // wait for log system
     FLOG_DEBUG(log_handler, "debug log test1"); // second writen
     FLOG_DEBUG(log_handler, "debug log test2"); // will be writen in new file
+    sleep(2);   // wait for log system
 
     fake_log_file_t* ff = (fake_log_file_t*)log_handler;
+    printf("try to open file:%s\n", ff->poutput_filename);
     int fd = open(ff->poutput_filename, O_RDONLY);
     FTU_ASSERT_GREATER_THAN_INT(0, fd);
 
@@ -75,7 +77,7 @@ void* _test_async_log(void* arg)
     FTU_ASSERT_GREATER_THAN_INT(0, bytes_read);
 
     printf("read log info:%s\n", assert_info);
-    char* ptr = strstr(assert_info, "error log test");
+    char* ptr = strstr(assert_info, "debug log test");
     printf("find ptr=%p\n", ptr);
     FTU_ASSERT_EXPRESS(ptr!=NULL);
 
@@ -84,16 +86,25 @@ void* _test_async_log(void* arg)
     return NULL;
 }
 
+static
+void _test_async_event(LOG_EVENT event)
+{
+    printf("receive log event:%u\n", event);
+}
+
 void test_async_log()
 {
-    log_handler = flog_create("test_async_log");
-    FTU_ASSERT_EXPRESS(log_handler);
     flog_set_mode(FLOG_ASYNC_MODE);
     flog_set_roll_size(100);
     flog_set_flush_interval(1);
+    flog_set_buffer_size(1024 * 1024);
+    flog_register_event_callback(_test_async_event);
+
+    log_handler = flog_create("test_async_log");
+    FTU_ASSERT_EXPRESS(log_handler);
+
     pthread_t tid;
     pthread_create(&tid, NULL, _test_async_log, NULL);
     pthread_join(tid, NULL);
-    sleep(2);
     flog_destroy(log_handler);
 }
