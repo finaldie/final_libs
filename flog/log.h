@@ -23,7 +23,8 @@ typedef enum {
 typedef enum {
     LOG_EVENT_ERROR_WRITE,
     LOG_EVENT_ERROR_MSG_SIZE,
-    LOG_EVENT_BUFF_FULL
+    LOG_EVENT_BUFF_FULL,
+    LOG_EVENT_USER_BUFFER_RELEASED
 } LOG_EVENT;
 
 typedef void (*plog_event_func)(LOG_EVENT);

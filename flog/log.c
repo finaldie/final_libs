@@ -384,6 +384,7 @@ void _log_pto_thread_quit(thread_data_t* th_data)
         mbuf_delete(th_data->plog_buf);
     close(th_data->efd);
     free(th_data);
+    _log_event_notice(LOG_EVENT_USER_BUFFER_RELEASED);
 }
 
 static inline
@@ -475,6 +476,7 @@ void _user_thread_destroy(void* arg)
             mbuf_delete(th_data->plog_buf);
         close(th_data->efd);
         free(th_data);
+        _log_event_notice(LOG_EVENT_USER_BUFFER_RELEASED);
     } else {
         // thread buffer is no empty, notice fetcher to release th_data
         pto_id_t id = LOG_PTO_THREAD_QUIT;
