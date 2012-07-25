@@ -10,7 +10,7 @@
 #include "tu_inc.h"
 #include "log_inc.h"
 
-static flogger* log_handler = NULL;
+static log_file_t* log_handler = NULL;
 
 typedef struct fake_log_file_t {
     FILE*  pf;

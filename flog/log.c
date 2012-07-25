@@ -773,15 +773,19 @@ size_t log_file_write(log_file_t* f, const char* log, size_t len)
 }
 
 void log_file_write_f(log_file_t* f, const char* file_sig, size_t sig_len,
-                        const char* fmt, va_list ap)
+                        const char* fmt, ...)
 {
     if ( !g_log ) return;
+    va_list ap;
+    va_start(ap, fmt);
 
     if ( g_log->mode == LOG_ASYNC_MODE ) {
         _log_async_write_f(f, file_sig, sig_len, fmt, ap);
     } else {
         _log_sync_write_f(f, file_sig, sig_len, fmt, ap);
     }
+
+    va_end(ap);
 }
 
 LOG_MODE log_set_mode(LOG_MODE mode)

@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdarg.h>
 #include <time.h>
 #include "log_inc.h"
 
@@ -11,14 +10,14 @@
 static int _f_log_level = LOG_LEVEL_INFO;
 
 inline
-flogger* flog_create(const char* file_name)
+log_file_t* flog_create(const char* file_name)
 {
-    return (flogger*)log_create(file_name);
+    return log_create(file_name);
 }
 
-void flog_destroy(flogger* fl)
+void flog_destroy(log_file_t* fl)
 {
-    log_destroy((log_file_t*)fl);
+    log_destroy(fl);
 }
 
 inline
@@ -36,6 +35,7 @@ int    flog_get_level()
     return _f_log_level;
 }
 
+/*
 void   flog(flogger* log_handler, const char* file_sig, size_t sig_len,
             const char* fmt, ...)
 {
@@ -46,7 +46,6 @@ void   flog(flogger* log_handler, const char* file_sig, size_t sig_len,
     log_file_write_f((log_file_t*)log_handler, file_sig, sig_len, fmt, ap);
     va_end(ap);
 
-    /*
     char log_data[LOG_MAX_LEN];
     char now[LOG_TIME_LEN];
     va_list va;
@@ -78,8 +77,8 @@ void   flog(flogger* log_handler, const char* file_sig, size_t sig_len,
     }
 
     return 0;
-    */
 }
+*/
 
 void flog_set_mode(FLOG_MODE mode)
 {

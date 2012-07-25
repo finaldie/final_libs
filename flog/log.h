@@ -65,7 +65,7 @@ size_t log_file_write(log_file_t*, const char* log, size_t len);
  *  @return 1 - failed
  */
 void log_file_write_f(log_file_t*, const char* file_sig, size_t sig_len,
-                        const char* fmt, va_list ap);
+                        const char* fmt, ...);
 
 /**
  *  @brief Set log mode
