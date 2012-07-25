@@ -14,6 +14,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include <stdarg.h>
 
 typedef enum {
     LOG_SYNC_MODE,
@@ -46,12 +47,25 @@ void log_destroy(log_file_t* logger);
 
 /**
  *  @brief Write log
- *  @param file_name
  *  @param log - log message
+ *  @param len - length of message
  *  @return 0 - success
  *  @return 1 - failed
  */
 size_t log_file_write(log_file_t*, const char* log, size_t len);
+
+/**
+ *  @brief Write log with format
+ *  @param src_filename - filename of writing log
+ *  @param func_name
+ *  @param lineno - line number
+ *  @param fmt - format string
+ *  @param ... - dynamic args for format
+ *  @return 0 - success
+ *  @return 1 - failed
+ */
+void log_file_write_f(log_file_t*, const char* file_sig, size_t sig_len,
+                        const char* fmt, ...);
 
 /**
  *  @brief Set log mode

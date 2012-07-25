@@ -1,47 +1,23 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdarg.h>
 #include <time.h>
 #include "log_inc.h"
 
 #define LOG_TIME_LEN 22
 #define LOG_MAX_LEN  1024
 
-static const char* level_str[] = {
-    "TRACE",
-    "DEBUG",
-    "INFO",
-    "WARN",
-    "ERROR",
-    "FATAL"
-};
-/** default set by INFO
- *  use flog_set_level() to change the priority
- */
 static int _f_log_level = LOG_LEVEL_INFO;
 
-static
-void    log_get_time(char* now_time)
-{
-    // need buff len = 22
-    time_t tm_time = time(NULL);
-    struct tm now;
-    gmtime_r(&tm_time, &now);
-    snprintf(now_time, LOG_TIME_LEN, "[%04d-%02d-%02d %02d:%02d:%02d]",
-                (now.tm_year+1900), now.tm_mon+1, now.tm_mday,
-                now.tm_hour, now.tm_min, now.tm_sec);
-}
-
 inline
-flogger* flog_create(const char* file_name)
+log_file_t* flog_create(const char* file_name)
 {
-    return (flogger*)log_create(file_name);
+    return log_create(file_name);
 }
 
-void flog_destroy(flogger* fl)
+void flog_destroy(log_file_t* fl)
 {
-    log_destroy((log_file_t*)fl);
+    log_destroy(fl);
 }
 
 inline
@@ -59,13 +35,16 @@ int    flog_get_level()
     return _f_log_level;
 }
 
-int    flog(flogger* log_handler, const char* src_filename, int lineno,
-        const char* func_name, int level, const char* fmt, ...)
+/*
+void   flog(flogger* log_handler, const char* file_sig, size_t sig_len,
+            const char* fmt, ...)
 {
-    if( !log_handler ) return 1;
-    if( level < LOG_LEVEL_TRACE || level > LOG_LEVEL_FATAL )
-        return 2;
-    if( !fmt ) return 3;
+    if( !log_handler ) return;
+    if( !fmt ) return;
+    va_list ap;
+    va_start(ap, fmt);
+    log_file_write_f((log_file_t*)log_handler, file_sig, sig_len, fmt, ap);
+    va_end(ap);
 
     char log_data[LOG_MAX_LEN];
     char now[LOG_TIME_LEN];
@@ -99,6 +78,7 @@ int    flog(flogger* log_handler, const char* src_filename, int lineno,
 
     return 0;
 }
+*/
 
 void flog_set_mode(FLOG_MODE mode)
 {
