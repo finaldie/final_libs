@@ -26,6 +26,7 @@
 #define LOG_MSG_HEAD_SIZE             ( sizeof(log_msg_head_t) )
 #define LOG_PTO_ID_SIZE               ( sizeof(pto_id_t) )
 #define LOG_PTO_RESERVE_SIZE          LOG_PTO_ID_SIZE
+#define LOG_TIME_STR_LEN              (21)
 
 // LOG PROTOCOL DEFINE
 #define LOG_PTO_FETCH_MSG          0
@@ -64,6 +65,9 @@ typedef struct {
 typedef struct _thread_data_t {
     mbuf*        plog_buf;
     int          efd;       // eventfd
+    time_t       last_time;
+    char         last_time_str[LOG_TIME_STR_LEN + 1];
+    char         tmp_buf[LOG_MAX_LEN_PER_MSG];
 }thread_data_t;
 
 typedef void (*ptofunc)(thread_data_t*);
@@ -80,6 +84,8 @@ typedef struct _log_t {
     int             is_background_thread_started;
     int             flush_interval;
     int             epfd;        // epoll fd
+    time_t          last_time;
+    char            last_time_str[LOG_TIME_STR_LEN + 1];
 }f_log;
 
 // define global log struct
@@ -161,6 +167,17 @@ char* _log_generate_filename(const char* filename, char* output_filename)
     return output_filename;
 }
 
+// The time_str size > 21 at least
+static
+void _log_get_time(time_t tm_time, char* time_str)
+{
+    struct tm now;
+    gmtime_r(&tm_time, &now);
+    snprintf(time_str, LOG_TIME_STR_LEN + 1, "[%04d-%02d-%02d %02d:%02d:%02d]",
+                (now.tm_year+1900), now.tm_mon+1, now.tm_mday,
+                now.tm_hour, now.tm_min, now.tm_sec);
+}
+
 static inline
 void _log_flush_file(log_file_t* lf, time_t now)
 {
@@ -216,6 +233,58 @@ size_t _log_write_unlocked(log_file_t* lf, const char* log, size_t len)
     return len - remain_len;
 }
 
+static
+thread_data_t* _log_create_thread_data()
+{
+    thread_data_t* th_data = malloc( sizeof (thread_data_t) );
+    if ( !th_data ) {
+        printError("cannot alloc memory for thread data");
+        return NULL;
+    }
+
+    mbuf* pbuf = mbuf_create(g_log->buffer_size);
+    if ( !pbuf ) {
+        printError("cannot alloc memory for thread data");
+        free(th_data);
+        return NULL;
+    }
+    th_data->plog_buf = pbuf;
+
+    // for forward compatible old version of kernel from 2.6.22 - 2.6.26
+    // we couldn't use EFD_NONBLOCK flag, so we need to call fcntl for
+    // setting nonblocking flag
+    int efd = eventfd(0, 0);
+    if ( _log_set_nonblocking(efd) == -1 ) {
+        printError("error in set nonblocking flag for efd");
+        free(th_data);
+        return NULL;
+    }
+
+    if ( efd == -1 ) {
+        printError("cannot create eventfd for thread data");
+        free(th_data);
+        return NULL;
+    }
+    th_data->efd = efd;
+
+    struct epoll_event ee;
+    ee.data.u64 = 0;
+    ee.data.fd = 0;
+    ee.data.ptr = th_data;
+    ee.events = 0;
+    ee.events |= EPOLLIN;
+    if ( epoll_ctl( g_log->epfd, EPOLL_CTL_ADD, efd, &ee) ) {
+        printError("cannot add eventfd into epoll for thread data");
+        close(efd);
+        free(th_data);
+        return NULL;
+    }
+
+    th_data->last_time = 0;
+
+    return th_data;
+}
+
 /**
  * Asynchronous mode we use a large ring buffer to hold the log messages data,
  * the format of log message is:
@@ -234,50 +303,14 @@ size_t _log_async_write(log_file_t* f, const char* log, size_t len)
     // check whether have private thread data, if not, create it
     thread_data_t* th_data = pthread_getspecific(g_log->key);
     if ( !th_data ) {
-        th_data = malloc( sizeof (thread_data_t) );
-        if ( !th_data ) {
-            printError("cannot alloc memory for thread data");
-            return 0;
-        }
-
-        mbuf* pbuf = mbuf_create(g_log->buffer_size);
-        if ( !pbuf ) {
-            printError("cannot alloc memory for thread data");
+        th_data = _log_create_thread_data();
+        if ( !th_data ) return 0;
+        if ( pthread_setspecific(g_log->key, th_data) ) {
+            printError("error in setting key");
+            close(th_data->efd);
             free(th_data);
             return 0;
         }
-        th_data->plog_buf = pbuf;
-
-        // for forward compatible old version of kernel from 2.6.22 - 2.6.26
-        // we couldn't use EFD_NONBLOCK flag, so we need to call fcntl for
-        // setting nonblocking flag
-        int efd = eventfd(0, 0);
-        if ( _log_set_nonblocking(efd) == -1 ) {
-            printError("error in set nonblocking flag for efd");
-            free(th_data);
-            return 0;
-        }
-
-        if ( efd == -1 ) {
-            printError("cannot create eventfd for thread data");
-            free(th_data);
-            return 0;
-        }
-        th_data->efd = efd;
-
-        struct epoll_event ee;
-        ee.data.u64 = 0;
-        ee.data.fd = 0;
-        ee.data.ptr = th_data;
-        ee.events = 0;
-        ee.events |= EPOLLIN;
-        if ( epoll_ctl( g_log->epfd, EPOLL_CTL_ADD, efd, &ee) ) {
-            printError("cannot add eventfd into epoll for thread data");
-            free(th_data);
-            return 0;
-        }
-
-        pthread_setspecific(g_log->key, th_data);
     }
 
     // wrap and push log message
@@ -311,6 +344,94 @@ size_t _log_async_write(log_file_t* f, const char* log, size_t len)
     }
 
     return len;
+}
+
+static inline
+int _log_fill_async_msg(log_file_t* f, thread_data_t* th_data, char* buff,
+                        const char* file_sig, size_t sig_len, const char* fmt,
+                        va_list ap)
+{
+    char* tbuf = buff;
+    log_fetch_msg_head_t* header = (log_fetch_msg_head_t*)tbuf;
+    header->id = LOG_PTO_FETCH_MSG;
+    header->msgh.f = f;
+    header->msgh.len = 0;
+
+    time_t now = time(NULL);
+    if ( now > th_data->last_time ) {
+        _log_get_time(now, th_data->last_time_str);
+        th_data->last_time = now;
+    }
+
+    tbuf += sizeof(log_fetch_msg_head_t);
+    memcpy(tbuf, th_data->last_time_str, LOG_TIME_STR_LEN);
+    memcpy(tbuf + LOG_TIME_STR_LEN, file_sig, sig_len);
+
+    int copy_len = 0;
+    int head_len = LOG_TIME_STR_LEN + sig_len;
+    int max_len = LOG_MAX_LEN_PER_MSG - head_len - 1;
+    copy_len = vsnprintf(tbuf + head_len, max_len, fmt, ap);
+
+    // fill \n
+    if ( copy_len > max_len ) {
+        tbuf[LOG_MAX_LEN_PER_MSG - 1] = '\n';
+    } else {
+        tbuf[head_len + copy_len] = '\n';
+    }
+
+    // after all, fill the size with real write number
+    int msg_len = head_len + copy_len + 1;
+    header->msgh.len = (unsigned short)msg_len;
+
+    return (int)sizeof(log_fetch_msg_head_t) + msg_len;
+}
+
+static
+void _log_async_write_f(log_file_t* f, const char* file_sig, size_t sig_len,
+                        const char* fmt, va_list ap)
+{
+    if ( !f || !file_sig || !sig_len || !fmt ) {
+        return;
+    }
+
+    // check whether have private thread data, if not, create it
+    thread_data_t* th_data = pthread_getspecific(g_log->key);
+    if ( !th_data ) {
+        th_data = _log_create_thread_data();
+        if ( !th_data ) return;
+        if ( pthread_setspecific(g_log->key, th_data) ) {
+            printError("error in setting key");
+            close(th_data->efd);
+            free(th_data);
+            return;
+        }
+    }
+
+    size_t max_msg_len = sizeof(log_fetch_msg_head_t) + LOG_MAX_LEN_PER_MSG +
+                        LOG_PTO_RESERVE_SIZE;
+
+    char* head = mbuf_get_head(th_data->plog_buf);
+    char* tail = mbuf_get_tail(th_data->plog_buf);
+    int tail_free_size = tail < head ? mbuf_free(th_data->plog_buf) :
+                                  mbuf_tail_free(th_data->plog_buf);
+    if ( tail_free_size >= (int)max_msg_len ) {
+        // fill log message in mbuf directly
+        char* buf = mbuf_get_tail(th_data->plog_buf);
+        int buff_size = _log_fill_async_msg(f, th_data, buf, file_sig, sig_len,
+                                            fmt, ap);
+        mbuf_tail_seek(th_data->plog_buf, buff_size);
+    } else {
+        // fill log message in tmp buffer
+        char* buf = th_data->tmp_buf;
+        int buff_size = _log_fill_async_msg(f, th_data, buf, file_sig, sig_len,
+                                            fmt, ap);
+        mbuf_push(th_data->plog_buf, buf, buff_size);
+    }
+
+    // notice fetcher to write log
+    if ( eventfd_write(th_data->efd, 1) ) {
+        return;
+    }
 }
 
 static inline
@@ -350,6 +471,54 @@ size_t _log_sync_write(log_file_t* f, const char* log, size_t len)
     }
 
     return writen_len;
+}
+
+static
+void _log_sync_write_f(log_file_t* f, const char* file_sig, size_t sig_len,
+                        const char* fmt, va_list ap)
+{
+    size_t writen_len = 0;
+    char log[LOG_MAX_LEN_PER_MSG];
+    time_t now = time(NULL);
+    if ( now > g_log->last_time ) {
+        do {
+            pthread_mutex_lock(&g_log->lock);
+            time_t check_time = time(NULL);
+            if ( now != check_time ) {
+                pthread_mutex_unlock(&g_log->lock);
+                break;
+            }
+
+            _log_get_time(now, g_log->last_time_str);
+            g_log->last_time = now;
+            pthread_mutex_unlock(&g_log->lock);
+        } while (0);
+    }
+    memcpy(log, g_log->last_time_str, LOG_TIME_STR_LEN);
+    memcpy(log + LOG_TIME_STR_LEN, file_sig, sig_len);
+
+    int copy_len = 0;
+    int head_len = LOG_TIME_STR_LEN + sig_len;
+    int max_len = LOG_MAX_LEN_PER_MSG - head_len - 1;
+    copy_len = vsnprintf(log + head_len, max_len, fmt, ap);
+
+    // fill \n
+    if ( copy_len > max_len ) {
+        log[LOG_MAX_LEN_PER_MSG - 1] = '\n';
+    } else {
+        log[head_len + copy_len] = '\n';
+    }
+
+    int len = head_len + copy_len + 1;
+    pthread_mutex_lock(&g_log->lock);
+    {
+        writen_len = _log_write(f, log, len);
+    }
+    pthread_mutex_unlock(&g_log->lock);
+
+    if ( writen_len < len ) {
+        _log_event_notice(LOG_EVENT_ERROR_WRITE);
+    }
 }
 
 inline
@@ -509,6 +678,7 @@ void _log_init()
     t_log->buffer_size = LOG_DEFAULT_LOCAL_BUFFER_SIZE;
     t_log->is_background_thread_started = 0;
     t_log->flush_interval = LOG_DEFAULT_FLUSH_INTERVAL;
+    t_log->last_time = 0;
 
     g_log = t_log;
     printf("log system init complete\n");
@@ -599,6 +769,18 @@ size_t log_file_write(log_file_t* f, const char* log, size_t len)
         return _log_async_write(f, log, len);
     } else {
         return _log_sync_write(f, log, len);
+    }
+}
+
+void log_file_write_f(log_file_t* f, const char* file_sig, size_t sig_len,
+                        const char* fmt, va_list ap)
+{
+    if ( !g_log ) return;
+
+    if ( g_log->mode == LOG_ASYNC_MODE ) {
+        _log_async_write_f(f, file_sig, sig_len, fmt, ap);
+    } else {
+        _log_sync_write_f(f, file_sig, sig_len, fmt, ap);
     }
 }
 
