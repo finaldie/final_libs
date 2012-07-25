@@ -409,10 +409,15 @@ void _log_async_write_f(log_file_t* f, const char* file_sig, size_t sig_len,
 
     size_t max_msg_len = sizeof(log_fetch_msg_head_t) + LOG_MAX_LEN_PER_MSG +
                         LOG_PTO_RESERVE_SIZE;
+    size_t total_free = mbuf_free(th_data->plog_buf);
+    if ( total_free < max_msg_len ) {
+        _log_event_notice(LOG_EVENT_BUFF_FULL);
+        return;
+    }
 
     char* head = mbuf_get_head(th_data->plog_buf);
     char* tail = mbuf_get_tail(th_data->plog_buf);
-    int tail_free_size = tail < head ? mbuf_free(th_data->plog_buf) :
+    int tail_free_size = tail < head ? total_free :
                                   mbuf_tail_free(th_data->plog_buf);
     if ( tail_free_size >= (int)max_msg_len ) {
         // fill log message in mbuf directly
