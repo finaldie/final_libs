@@ -13,12 +13,6 @@ extern "C" {
 
 #include "log.h"
 
-// LOG MODE
-typedef enum {
-    FLOG_SYNC_MODE,
-    FLOG_ASYNC_MODE
-}FLOG_MODE;
-
 #define LOG_LEVEL_TRACE 0
 #define LOG_LEVEL_DEBUG 1
 #define LOG_LEVEL_INFO  2
@@ -38,21 +32,21 @@ typedef enum {
 #define FLOG_FATAL(log_handler, fmt, args...) if( is_fatal_enable() ) { log_file_write_f(log_handler, EXTRACT_STR(" [FATAL]" __FILE__ ":" "(" TO_STR(__LINE__) ") - "), fmt, ##args); }
 
 log_file_t* flog_create(const char* file_name);
-void     flog_destroy(log_file_t* fl);
-int      flog_set_level(int level);
-int      flog_get_level();
-void     flog_set_mode(FLOG_MODE);
-void     flog_set_roll_size(size_t size);
-void     flog_set_flush_interval(size_t sec);
-void     flog_set_buffer_size(size_t size);
-void     flog_register_event_callback(plog_event_func);
+void        flog_destroy(log_file_t* fl);
+int         flog_set_level(int level);
+int         flog_get_level();
+void        flog_set_mode(LOG_MODE);
+void        flog_set_roll_size(size_t size);
+void        flog_set_flush_interval(size_t sec);
+void        flog_set_buffer_size(size_t size);
+void        flog_register_event_callback(plog_event_func);
 
-int is_trace_enable();
-int is_debug_enable();
-int is_info_enable();
-int is_warn_enable();
-int is_error_enable();
-int is_fatal_enable();
+int         is_trace_enable();
+int         is_debug_enable();
+int         is_info_enable();
+int         is_warn_enable();
+int         is_error_enable();
+int         is_fatal_enable();
 
 #ifdef __cplusplus
 }

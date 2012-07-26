@@ -80,7 +80,7 @@ typedef struct _log_t {
     plog_event_func event_cb;    // event callback
     LOG_MODE        mode;        // global log flag
     size_t          roll_size;
-    size_t          buffer_size; // buffer size of user thread
+    size_t          buffer_size; // buffer size per user thread
     int             is_background_thread_started;
     int             flush_interval;
     int             epfd;        // epoll fd
@@ -602,7 +602,9 @@ LOG_LOOP:
 
     // timeout
     if ( nums == 0 ) {
+        pthread_mutex_lock(&g_log->lock);
         hash_foreach(g_log->phash, _log_process_timeout);
+        pthread_mutex_unlock(&g_log->lock);
     }
 
     for(i=0; i<nums; i++) {
@@ -860,6 +862,10 @@ void log_set_buffer_size(size_t size)
 
     pthread_mutex_lock(&g_log->lock);
     {
+        if ( size == 0 ) size = LOG_DEFAULT_LOCAL_BUFFER_SIZE;
+        size_t min_size = sizeof(log_fetch_msg_head_t) + LOG_MAX_LEN_PER_MSG +
+                            LOG_PTO_RESERVE_SIZE;
+        if ( size < min_size ) size = min_size;
         g_log->buffer_size = size;
     }
     pthread_mutex_unlock(&g_log->lock);
