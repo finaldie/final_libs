@@ -91,13 +91,19 @@ void log_set_roll_size(size_t size);
 void log_set_flush_interval(size_t sec);
 
 /**
- *  @brief Set buffer size for user thread, should set before async writing
+ *  @brief Set buffer size for per user thread, should set before async writing
  *    The default buffer size per thread is 10M, call this interface if you
  *    want to change it
  *  @param size
  *  @return void
  */
 void log_set_buffer_size(size_t size);
+
+/**
+ *  @brief Get buffer size of per user thread
+ *  @return buffer size
+ */
+size_t log_get_buffer_size();
 
 /**
  *  @brief Register a callback function for notifying user some important status

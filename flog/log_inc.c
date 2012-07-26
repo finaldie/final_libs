@@ -52,6 +52,11 @@ void flog_set_buffer_size(size_t size)
     log_set_buffer_size(size);
 }
 
+size_t flog_get_buffer_size()
+{
+    return log_get_buffer_size();
+}
+
 void flog_register_event_callback(plog_event_func pfunc)
 {
     log_register_event_callback(pfunc);

@@ -39,6 +39,7 @@ void        flog_set_mode(LOG_MODE);
 void        flog_set_roll_size(size_t size);
 void        flog_set_flush_interval(size_t sec);
 void        flog_set_buffer_size(size_t size);
+size_t      flog_get_buffer_size();
 void        flog_register_event_callback(plog_event_func);
 
 int         is_trace_enable();

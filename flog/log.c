@@ -871,6 +871,12 @@ void log_set_buffer_size(size_t size)
     pthread_mutex_unlock(&g_log->lock);
 }
 
+size_t log_get_buffer_size()
+{
+    if ( !g_log ) return 0;
+    return g_log->buffer_size;
+}
+
 void log_register_event_callback(plog_event_func pfunc)
 {
     // init log system global data
