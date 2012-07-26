@@ -94,7 +94,7 @@ void _test_async_event(LOG_EVENT event)
 
 void test_async_log()
 {
-    flog_set_mode(FLOG_ASYNC_MODE);
+    flog_set_mode(LOG_ASYNC_MODE);
     flog_set_roll_size(100);
     flog_set_flush_interval(1);
     flog_set_buffer_size(1024 * 1024);
