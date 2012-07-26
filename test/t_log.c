@@ -98,6 +98,8 @@ void test_async_log()
     flog_set_roll_size(100);
     flog_set_flush_interval(1);
     flog_set_buffer_size(1024 * 1024);
+    size_t buffer_size = flog_get_buffer_size();
+    FTU_ASSERT_EXPRESS(buffer_size == (1024*1024));
     flog_register_event_callback(_test_async_event);
 
     log_handler = flog_create("test_async_log");
