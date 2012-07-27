@@ -47,18 +47,20 @@ void log_destroy(log_file_t* logger);
 
 /**
  *  @brief Write log
+ *  @param file_sig - the signature of log message
+ *  @param sig_len - length of signature
  *  @param log - log message
  *  @param len - length of message
  *  @return 0 - success
  *  @return 1 - failed
  */
-size_t log_file_write(log_file_t*, const char* log, size_t len);
+size_t log_file_write(log_file_t*, const char* file_sig, size_t sig_len,
+                        const char* log, size_t len);
 
 /**
  *  @brief Write log with format
- *  @param src_filename - filename of writing log
- *  @param func_name
- *  @param lineno - line number
+ *  @param file_sig - the signature of log message
+ *  @param sig_len - length of signature
  *  @param fmt - format string
  *  @param ... - dynamic args for format
  *  @return 0 - success
