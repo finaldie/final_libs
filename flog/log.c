@@ -294,7 +294,8 @@ thread_data_t* _log_create_thread_data()
  * log_file_ptr(4/8 bytes) | len(2 bytes) | log message(len bytes)
  */
 static
-size_t _log_async_write(log_file_t* f, const char* log, size_t len)
+size_t _log_async_write(log_file_t* f, const char* file_sig, size_t sig_len,
+                        const char* log, size_t len)
 {
     if ( !f || !log || len == 0 ) {
         return 0;
@@ -319,7 +320,9 @@ size_t _log_async_write(log_file_t* f, const char* log, size_t len)
         return 0;
     }
 
-    size_t total_msg_len = sizeof(log_fetch_msg_head_t) + len;
+    if ( !file_sig ) sig_len = 0;
+    size_t msg_body_len = LOG_TIME_STR_LEN + sig_len + len;
+    size_t total_msg_len = sizeof(log_fetch_msg_head_t) + msg_body_len;
     if ( mbuf_free(th_data->plog_buf) < (int)total_msg_len +
                                         LOG_PTO_RESERVE_SIZE ) {
         _log_event_notice(LOG_EVENT_BUFF_FULL);
@@ -329,10 +332,22 @@ size_t _log_async_write(log_file_t* f, const char* log, size_t len)
     log_fetch_msg_head_t header;
     header.id = LOG_PTO_FETCH_MSG;
     header.msgh.f = f;
-    header.msgh.len = (unsigned short)len;
+    header.msgh.len = (unsigned short)msg_body_len;
     if ( mbuf_push(th_data->plog_buf, &header, sizeof(log_fetch_msg_head_t)) ) {
         return 0;
     }
+
+    time_t now = time(NULL);
+    if ( now > th_data->last_time ) {
+        _log_get_time(now, th_data->last_time_str);
+        th_data->last_time = now;
+    }
+
+    if( mbuf_push(th_data->plog_buf, th_data->last_time_str, LOG_TIME_STR_LEN) ) {
+        return 0;
+    }
+
+    mbuf_push(th_data->plog_buf, file_sig, sig_len);
 
     if( mbuf_push(th_data->plog_buf, log, len) ) {
         return 0;
@@ -365,7 +380,9 @@ int _log_fill_async_msg(log_file_t* f, thread_data_t* th_data, char* buff,
 
     tbuf += sizeof(log_fetch_msg_head_t);
     memcpy(tbuf, th_data->last_time_str, LOG_TIME_STR_LEN);
-    memcpy(tbuf + LOG_TIME_STR_LEN, file_sig, sig_len);
+
+    if ( !file_sig ) sig_len = 0;
+    else memcpy(tbuf + LOG_TIME_STR_LEN, file_sig, sig_len);
 
     int copy_len = 0;
     int head_len = LOG_TIME_STR_LEN + sig_len;
@@ -390,9 +407,7 @@ static
 void _log_async_write_f(log_file_t* f, const char* file_sig, size_t sig_len,
                         const char* fmt, va_list ap)
 {
-    if ( !f || !file_sig || !sig_len || !fmt ) {
-        return;
-    }
+    if ( !f || !fmt ) return;
 
     // check whether have private thread data, if not, create it
     thread_data_t* th_data = pthread_getspecific(g_log->key);
@@ -461,29 +476,9 @@ size_t _log_write(log_file_t* f, const char* log, size_t len)
     return real_writen_len;
 }
 
-static
-size_t _log_sync_write(log_file_t* f, const char* log, size_t len)
+static inline
+size_t _log_wrap_sync_head(char* buf, const char* file_sig, size_t sig_len)
 {
-    size_t writen_len = 0;
-    pthread_mutex_lock(&g_log->lock);
-    {
-        writen_len = _log_write(f, log, len);
-    }
-    pthread_mutex_unlock(&g_log->lock);
-
-    if ( writen_len < len ) {
-        _log_event_notice(LOG_EVENT_ERROR_WRITE);
-    }
-
-    return writen_len;
-}
-
-static
-void _log_sync_write_f(log_file_t* f, const char* file_sig, size_t sig_len,
-                        const char* fmt, va_list ap)
-{
-    size_t writen_len = 0;
-    char log[LOG_MAX_LEN_PER_MSG];
     time_t now = time(NULL);
     if ( now > g_log->last_time ) {
         do {
@@ -499,16 +494,50 @@ void _log_sync_write_f(log_file_t* f, const char* file_sig, size_t sig_len,
             pthread_mutex_unlock(&g_log->lock);
         } while (0);
     }
-    memcpy(log, g_log->last_time_str, LOG_TIME_STR_LEN);
-    memcpy(log + LOG_TIME_STR_LEN, file_sig, sig_len);
+    memcpy(buf, g_log->last_time_str, LOG_TIME_STR_LEN);
 
+    if ( !file_sig ) sig_len = 0;
+    else memcpy(buf + LOG_TIME_STR_LEN, file_sig, sig_len);
+
+    return LOG_TIME_STR_LEN + sig_len;
+}
+
+static
+size_t _log_sync_write(log_file_t* f, const char* file_sig, size_t sig_len,
+                        const char* log, size_t len)
+{
+    char buf[LOG_MAX_LEN_PER_MSG];
+    size_t head_len = _log_wrap_sync_head(buf, file_sig, sig_len);
+    size_t writen_len = 0;
+    pthread_mutex_lock(&g_log->lock);
+    {
+        writen_len += _log_write(f, buf, head_len);
+        writen_len += _log_write(f, log, len);
+    }
+    pthread_mutex_unlock(&g_log->lock);
+
+    if ( writen_len < len + head_len ) {
+        _log_event_notice(LOG_EVENT_ERROR_WRITE);
+    }
+
+    return writen_len;
+}
+
+static
+void _log_sync_write_f(log_file_t* f, const char* file_sig, size_t sig_len,
+                        const char* fmt, va_list ap)
+{
+    if ( !f || !fmt ) return;
+
+    char log[LOG_MAX_LEN_PER_MSG];
     int copy_len = 0;
-    int head_len = LOG_TIME_STR_LEN + sig_len;
-    int max_len = LOG_MAX_LEN_PER_MSG - head_len - 1;
+    size_t writen_len = 0;
+    size_t head_len = _log_wrap_sync_head(log, file_sig, sig_len);
+    size_t max_len = LOG_MAX_LEN_PER_MSG - head_len - 1;
     copy_len = vsnprintf(log + head_len, max_len, fmt, ap);
 
     // fill \n
-    if ( copy_len > max_len ) {
+    if ( copy_len > (int)max_len ) {
         log[LOG_MAX_LEN_PER_MSG - 1] = '\n';
     } else {
         log[head_len + copy_len] = '\n';
@@ -765,7 +794,8 @@ void log_destroy(log_file_t* lf)
  * @ When we use asynchronization mode, it will push log message into thread
  * buffer, and notice the fetcher thread to fetch it
  */
-size_t log_file_write(log_file_t* f, const char* log, size_t len)
+size_t log_file_write(log_file_t* f, const char* file_sig, size_t sig_len,
+                        const char* log, size_t len)
 {
     if ( !g_log || !f || !log || !len ) {
         printError("input invalid args");
@@ -773,9 +803,9 @@ size_t log_file_write(log_file_t* f, const char* log, size_t len)
     }
 
     if ( g_log->mode == LOG_ASYNC_MODE ) {
-        return _log_async_write(f, log, len);
+        return _log_async_write(f, file_sig, sig_len, log, len);
     } else {
-        return _log_sync_write(f, log, len);
+        return _log_sync_write(f, file_sig, sig_len, log, len);
     }
 }
 
