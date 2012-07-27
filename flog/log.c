@@ -506,7 +506,7 @@ static
 size_t _log_sync_write(log_file_t* f, const char* file_sig, size_t sig_len,
                         const char* log, size_t len)
 {
-    char buf[LOG_MAX_LEN_PER_MSG];
+    char buf[LOG_TIME_STR_LEN + sig_len + 1];
     size_t head_len = _log_wrap_sync_head(buf, file_sig, sig_len);
     if ( len > LOG_MAX_LEN_PER_MSG ) len = LOG_MAX_LEN_PER_MSG;
     size_t writen_len = 0;
@@ -688,6 +688,9 @@ void _user_thread_destroy(void* arg)
         // thread buffer is no empty, notice fetcher to release th_data
         pto_id_t id = LOG_PTO_THREAD_QUIT;
         mbuf_push(th_data->plog_buf, &id, LOG_PTO_ID_SIZE);
+
+        // notice fetcher to fetch this exit message
+        eventfd_write(th_data->efd, 1);
     }
 }
 
