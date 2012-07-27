@@ -347,7 +347,7 @@ size_t _log_async_write(log_file_t* f, const char* file_sig, size_t sig_len,
         return 0;
     }
 
-    mbuf_push(th_data->plog_buf, file_sig, sig_len);
+    if ( file_sig && sig_len && mbuf_push(th_data->plog_buf, file_sig, sig_len) ) {}
 
     if( mbuf_push(th_data->plog_buf, log, len) ) {
         return 0;
