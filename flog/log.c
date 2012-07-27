@@ -688,6 +688,9 @@ void _user_thread_destroy(void* arg)
         // thread buffer is no empty, notice fetcher to release th_data
         pto_id_t id = LOG_PTO_THREAD_QUIT;
         mbuf_push(th_data->plog_buf, &id, LOG_PTO_ID_SIZE);
+
+        // notice fetcher to fetch this exit message
+        eventfd_write(th_data->efd, 1);
     }
 }
 
