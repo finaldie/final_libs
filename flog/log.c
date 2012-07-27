@@ -321,7 +321,7 @@ size_t _log_async_write(log_file_t* f, const char* file_sig, size_t sig_len,
     }
 
     if ( !file_sig ) sig_len = 0;
-    size_t msg_body_len = LOG_TIME_STR_LEN + sig_len + len;
+    size_t msg_body_len = LOG_TIME_STR_LEN + sig_len + len + 1;
     size_t total_msg_len = sizeof(log_fetch_msg_head_t) + msg_body_len;
     if ( mbuf_free(th_data->plog_buf) < (int)total_msg_len +
                                         LOG_PTO_RESERVE_SIZE ) {
@@ -350,6 +350,10 @@ size_t _log_async_write(log_file_t* f, const char* file_sig, size_t sig_len,
     mbuf_push(th_data->plog_buf, file_sig, sig_len);
 
     if( mbuf_push(th_data->plog_buf, log, len) ) {
+        return 0;
+    }
+
+    if( mbuf_push(th_data->plog_buf, "\n", 1) ) {
         return 0;
     }
 
@@ -513,6 +517,7 @@ size_t _log_sync_write(log_file_t* f, const char* file_sig, size_t sig_len,
     {
         writen_len += _log_write(f, buf, head_len);
         writen_len += _log_write(f, log, len);
+        writen_len += _log_write(f, "\n", 1);
     }
     pthread_mutex_unlock(&g_log->lock);
 
