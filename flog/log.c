@@ -314,21 +314,17 @@ size_t _log_async_write(log_file_t* f, const char* file_sig, size_t sig_len,
         }
     }
 
-    // wrap and push log message
-    if ( len > LOG_MAX_LEN_PER_MSG) {
-        _log_event_notice(LOG_EVENT_ERROR_MSG_SIZE);
-        return 0;
-    }
-
     if ( !file_sig ) sig_len = 0;
+    if ( len > LOG_MAX_LEN_PER_MSG ) len = LOG_MAX_LEN_PER_MSG;
     size_t msg_body_len = LOG_TIME_STR_LEN + sig_len + len + 1;
-    size_t total_msg_len = sizeof(log_fetch_msg_head_t) + msg_body_len;
-    if ( mbuf_free(th_data->plog_buf) < (int)total_msg_len +
-                                        LOG_PTO_RESERVE_SIZE ) {
+    size_t total_msg_len = sizeof(log_fetch_msg_head_t) + msg_body_len +
+                            LOG_PTO_RESERVE_SIZE;
+    if ( mbuf_free(th_data->plog_buf) < (int)total_msg_len ) {
         _log_event_notice(LOG_EVENT_BUFF_FULL);
         return 0;
     }
 
+    // wrap and push log message
     log_fetch_msg_head_t header;
     header.id = LOG_PTO_FETCH_MSG;
     header.msgh.f = f;
@@ -512,6 +508,7 @@ size_t _log_sync_write(log_file_t* f, const char* file_sig, size_t sig_len,
 {
     char buf[LOG_MAX_LEN_PER_MSG];
     size_t head_len = _log_wrap_sync_head(buf, file_sig, sig_len);
+    if ( len > LOG_MAX_LEN_PER_MSG ) len = LOG_MAX_LEN_PER_MSG;
     size_t writen_len = 0;
     pthread_mutex_lock(&g_log->lock);
     {
