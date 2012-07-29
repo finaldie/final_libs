@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include "compiler.h"
 #include "mbuf.h"
 
 #define MBUF_START(pbuf)    ( (char*)(pbuf->buf) )
@@ -123,7 +124,7 @@ void    mbuf_head_move(mbuf* pbuf, size_t size)
         if ( tail_use >= size ) {
             MBUF_HEAD(pbuf) += size;
 
-            if( MBUF_HEAD(pbuf) > MBUF_END(pbuf) )
+            if( unlikely(MBUF_HEAD(pbuf) > MBUF_END(pbuf)) )
                 MBUF_HEAD(pbuf) = MBUF_START(pbuf);
         } else {
             uint left = size - tail_use;

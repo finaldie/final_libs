@@ -10,6 +10,7 @@
 #include <sys/eventfd.h>
 #include <sys/epoll.h>
 
+#include "compiler.h"
 #include "mbuf.h"
 #include "lhash.h"
 #include "log.h"
@@ -467,7 +468,7 @@ size_t _log_write(log_file_t* f, const char* log, size_t len)
         has_flush = 1;
     }
 
-    if ( f->file_size > g_log->roll_size ) {
+    if ( unlikely(f->file_size > g_log->roll_size) ) {
         // if not flush, force to flush once
         if ( !has_flush ) _log_flush_file(f, now);
         _log_roll_file(f);
@@ -632,7 +633,7 @@ LOG_LOOP:
         goto LOG_LOOP;
 
     // timeout
-    if ( nums == 0 ) {
+    if ( unlikely(nums == 0) ) {
         pthread_mutex_lock(&g_log->lock);
         hash_foreach(g_log->phash, _log_process_timeout);
         pthread_mutex_unlock(&g_log->lock);
@@ -807,10 +808,10 @@ size_t log_file_write(log_file_t* f, const char* file_sig, size_t sig_len,
         return 0;
     }
 
-    if ( g_log->mode == LOG_ASYNC_MODE ) {
-        return _log_async_write(f, file_sig, sig_len, log, len);
-    } else {
+    if ( unlikely(g_log->mode == LOG_SYNC_MODE) ) {
         return _log_sync_write(f, file_sig, sig_len, log, len);
+    } else {
+        return _log_async_write(f, file_sig, sig_len, log, len);
     }
 }
 
@@ -821,10 +822,10 @@ void log_file_write_f(log_file_t* f, const char* file_sig, size_t sig_len,
     va_list ap;
     va_start(ap, fmt);
 
-    if ( g_log->mode == LOG_ASYNC_MODE ) {
-        _log_async_write_f(f, file_sig, sig_len, fmt, ap);
-    } else {
+    if ( unlikely(g_log->mode == LOG_SYNC_MODE) ) {
         _log_sync_write_f(f, file_sig, sig_len, fmt, ap);
+    } else {
+        _log_async_write_f(f, file_sig, sig_len, fmt, ap);
     }
 
     va_end(ap);
