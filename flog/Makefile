@@ -7,7 +7,7 @@ LIBS_PATH = libs
 
 CC = gcc
 AR = ar -rcs
-INC = -I$(INSTALL_PATH)/$(INCLUDE_PATH)
+INC = -I$(INSTALL_PATH)/$(INCLUDE_PATH) -I../common/
 LL = 
 LIBS = 
 

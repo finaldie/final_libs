@@ -7,7 +7,7 @@ LIBS_PATH = libs
 
 CC = gcc
 AR = ar -rcs
-INC = 
+INC = -I../common/
 LL = 
 LIBS = 
 
@@ -22,7 +22,7 @@ $(TARGET):$(OBJS) $(DEPS)
 	$(AR) $(TARGET) $(OBJS)
 
 %.d:%.c
-	$(CC) -MM $< > $@
+	$(CC) $(INC) -MM $< > $@
 %.o:%.c
 	$(CC) $(CFLAGS) $(INC) -c $< 
 
