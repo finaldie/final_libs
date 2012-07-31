@@ -78,7 +78,7 @@ LOG_MODE log_set_mode(LOG_MODE mode);
 
 /**
  *  @brief Set file roll size, when greater than the given size, log system
- *  will roll a new file to continue writing messages
+ *  will roll a new file to continue writing messages, default value is 2G
  *  @param size - set max size for rolling
  *  @return void
  */
@@ -86,7 +86,7 @@ void log_set_roll_size(size_t size);
 
 /**
  *  @brief Set max flush interval, unit msec
- *  @param sec - after given time, it will force to flush
+ *  @param sec - after given time, it will force to flush, default value is 0
  *  @return void
  */
 void log_set_flush_interval(size_t sec);
@@ -95,7 +95,7 @@ void log_set_flush_interval(size_t sec);
  *  @brief Set buffer size for per user thread, should set before async writing
  *    The default buffer size per thread is 10M, call this interface if you
  *    want to change it
- *  @param size
+ *  @param size - buffer size per thread
  *  @return void
  */
 void log_set_buffer_size(size_t size);
