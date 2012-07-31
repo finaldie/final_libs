@@ -1,7 +1,7 @@
 /** ==========================================================================
  *       Filename:  compiler.h
  *
- *    Description:  Some compiler marcos for compiler
+ *    Description:  Some marcos for compiler
  *
  *        Version:  1.0
  *        Created:  07/29/2012 21:05:39
