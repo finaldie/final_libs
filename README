@@ -7,7 +7,7 @@ Library contains:
     1. a fifo list ( lockfree in one production one consumer )
     2. hash table
     3. mutex ( wrap system lock )
-    4. log ( asynchronous log, aio not recommand use )
+    4. log ( A High Performance Log System -- Thread-Caching Log System )
     5. memory buff ( a light-weight buff )
     6. read conf
     7. timer
