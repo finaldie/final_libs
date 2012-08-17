@@ -12,12 +12,15 @@ NETWORK = fnet
 EVENT = fev
 TEST_UNIT = ftu
 TEST = test
+CACHE = fcache
 
 all:
 	( test -d $(LIST) && cd $(LIST) && make )
 	( test -d $(LIST) && cd $(LIST) && make install )
 	( test -d $(HASH) && cd $(HASH) && make )
 	( test -d $(HASH) && cd $(HASH) && make install )
+	( test -d $(CACHE) && cd $(CACHE) && make )
+	( test -d $(CACHE) && cd $(CACHE) && make install )
 	( test -d $(LOCK) && cd $(LOCK) && make )
 	( test -d $(LOCK) && cd $(LOCK) && make install )
 	( test -d $(MBUF) && cd $(MBUF) && make )
@@ -46,6 +49,7 @@ run_test:
 clean:
 	-( test -d $(LIST) && cd $(LIST) && make clean )
 	-( test -d $(HASH) && cd $(HASH) && make clean )
+	-( test -d $(CACHE) && cd $(CACHE) && make clean )
 	-( test -d $(LOCK) && cd $(LOCK) && make clean )
 	-( test -d $(MBUF) && cd $(MBUF) && make clean )
 	-( test -d $(LOG) && cd $(LOG) && make clean )

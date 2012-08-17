@@ -34,6 +34,7 @@ pl_mgr  flist_create()
 
 void    flist_delete(pl_mgr pmgr)
 {
+    if ( !pmgr ) return;
     while( flist_pop(pmgr) );
     free(pmgr->head);
     free(pmgr);

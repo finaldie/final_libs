@@ -20,6 +20,7 @@ LIBS = -lfhash \
 	   -lflist \
 	   -lfev \
 	   -lfnet \
+	   -lfcache \
 	   -lftu
 
 SRCS = main.c \

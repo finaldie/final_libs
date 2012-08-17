@@ -344,6 +344,7 @@ f_hash*    hash_create(int size)
 
 void    hash_delete(f_hash* phash)
 {
+    if ( !phash ) return;
     int i, size = phash->size;
 
     for(i=0; i<size; ++i)
