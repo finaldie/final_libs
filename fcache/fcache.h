@@ -49,7 +49,7 @@ void      fcache_destroy(fcache_t* pcache);
  *  @return 0 - success
  *  @return 1 - failed
  */
-int       fcache_add_obj(fcache_t*, const char* key, void* value,
+int       fcache_set_obj(fcache_t*, const char* key, void* value,
                          size_t value_size, cache_obj_free obj_free);
 
 /**

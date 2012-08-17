@@ -69,7 +69,7 @@ typedef struct _fb {
     union {
         char        block[0];
         struct _fb* next;
-    }block_data;
+    } block_data;
 } free_block;
 
 typedef struct _sys_fb {
