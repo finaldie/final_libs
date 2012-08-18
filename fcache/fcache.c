@@ -86,7 +86,8 @@ static inline
 int       _fcache_update_node(fcache_t* pcache, fcache_node_t* node, void* value,
                               size_t value_size, cache_obj_free obj_free)
 {
-    if ( obj_free ) {
+    // call obj_free only when the target node has changed
+    if ( node->data != value && obj_free ) {
         obj_free(node->data);
     }
 
@@ -100,7 +101,6 @@ static inline
 void    _fcache_del_node(fcache_t* pcache, fcache_node_t* node, const char* key,
                            cache_obj_free obj_free)
 {
-    size_t del_size = 0;
     if ( obj_free ) {
         obj_free(node->data);
     } else {
@@ -137,42 +137,76 @@ int       _fcache_balance_nodes(fcache_t* pcache)
     for ( ; i < need_move_count; i++ ) {
         fcache_node_t* node = fcache_list_pop(pcache->pactive_list);
         if ( !node ) break;
-        fcache_list_push(pcache->pinactive_list, node, node->data_size);
+        fcache_list_push(pcache->pinactive_list, node, fcache_list_node_size(node));
     }
 
     return 0;
+}
+
+static inline
+size_t  _fcache_free_size(fcache_t* pcache)
+{
+    return pcache->max_size - fcache_list_data_size(pcache->pactive_list) -
+            fcache_list_data_size(pcache->pinactive_list);
 }
 
 /**
  * brief check and drop nodes from inactive list
  */
 static inline
-void      _fcache_check_and_drop_nodes(fcache_t* pcache, fcache_node_t* node,
+int     _fcache_check_and_drop_nodes(fcache_t* pcache, fcache_node_t* node,
                                   size_t target_size, cache_obj_free obj_free)
 {
-    size_t result_size = 0;
-    size_t current_size = fcache_list_data_size(pcache->pinactive_list) +
-                          fcache_list_data_size(pcache->pactive_list);
-    if ( !node ) {
-        result_size = current_size + target_size;
-    } else {
-        diff_size = node->data_size <= target_size ? target_size - node->data_size : 0;
-        result_size = current_size + diff_size;
+    size_t grow_size = 0;
+    size_t inactive_size = fcache_list_data_size(pcache->pinactive_list);
+    size_t free_size = _fcache_free_size(pcache);
+
+    if ( !node ) { // add new node
+        grow_size = target_size;
+    } else { // update node
+        size_t node_data_size = fcache_list_node_size(node);
+        grow_size = node_data_size <= target_size ? target_size - node_data_size : 0;
     }
 
-    if ( result_size > pcache->max_size ) {
-        size_t drop_size = result_size - pcache->max_size;
-        size_t droped_size = 0;
-        while ( droped_size < drop_size ) {
-            fcache_node_t* node = fcache_list_pop(pcache->pactive_list);
-            if ( !node ) break;
-            dropped_size += node->data_size;
+    // have enough size for growing
+    if ( free_size >= grow_size ) {
+        return 0;
+    }
 
-            if ( obj_free ) {
-                obj_free(node->data);
-            }
+    // there no enough free space, need to drop some nodes
+    // first calculatie the size we need to drop
+    size_t drop_size = grow_size - free_size;
+
+    // second check inactive list whether have enough space to drop
+    // if no, balance once and try again
+    if ( inactive_size < drop_size ) {
+        _fcache_balance_nodes(pcache);
+        inactive_size = fcache_list_data_size(pcache->pinactive_list);
+        if ( inactive_size < drop_size ) {
+            return 1;
         }
     }
+
+    // when this is a updating mode, move node to inactive list tail
+    if ( node ) {
+        fcache_list_move_node(node, pcache->pinactive_list);
+    }
+
+    // inactive list has enough space to drop
+    size_t dropped_size = 0;
+    while ( dropped_size < drop_size ) {
+        fcache_node_t* dropped_node = fcache_list_pop(pcache->pinactive_list);
+        if ( !dropped_node ) break;
+        dropped_size += fcache_list_node_size(dropped_node);
+
+        if ( obj_free ) {
+            obj_free(dropped_node->data);
+        }
+
+        fcache_list_destory_node(dropped_node);
+    }
+
+    return 0;
 }
 
 /**
@@ -188,11 +222,15 @@ int       fcache_set_obj(fcache_t* pcache, const char* key, void* value,
 {
     if ( !pcache || !key ) return 1;
     if ( value && !value_size ) return 1;
+    if ( value_size > pcache->max_size ) return 1;
 
     fcache_node_t* node = hash_get_str(pcache->phash_node_index, key);
+    if ( _fcache_check_and_drop_nodes(pcache, node, value_size, obj_free) ) {
+        return 1;
+    }
+
     int ret = 0;
     if ( likely(!node) ) {
-        _fcache_check_and_drop_nodes(pcache, value_size);
         ret = _fcache_add_node(pcache, key, value, value_size);
     } else {
         if ( value ) {

@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include "fcache_list.h"
 
 #define FO_PREV(orig_node)     ((orig_node)->priv.prev)
@@ -12,9 +13,10 @@
 #define FN_DATASIZE(node)      (FO_DATASIZE(FN_HEAD(node)))
 
 #pragma pack(4)
+struct fcache_orig_node_t;
 typedef struct fcache_priv_t {
-    struct _fcache_node_t* prev;
-    struct _fcache_node_t* next;
+    struct fcache_orig_node_t* prev;
+    struct fcache_orig_node_t* next;
     fc_list*               owner;
     size_t                 data_size;
 } fc_priv_t;
@@ -27,12 +29,12 @@ typedef struct fcache_orig_node_t {
     fcache_node_t node;
 } fc_orig_node_t;
 
-struct _fcache_node_t {
+struct _fcache_list_mgr {
     fc_orig_node_t* head;
     fc_orig_node_t* tail;
     size_t size;
     size_t total_data_size;
-} fc_list;
+};
 #pragma pack()
 
 fc_list* fcache_list_create()
@@ -100,10 +102,10 @@ fcache_node_t* fcache_list_pop(fc_list* plist)
     if ( !plist || fcache_list_empty(plist) ) return NULL;
 
     fc_orig_node_t* orig_node = plist->head;
-    if ( !plist->head->next ) {
+    if ( !FO_NEXT(plist->head) ) {
         plist->head = plist->tail = NULL;
     } else {
-        plist->head = plist->head->next;
+        plist->head = FO_NEXT(plist->head);
     }
     plist->size--;
     plist->total_data_size -= FO_DATASIZE(orig_node);
