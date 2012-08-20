@@ -22,6 +22,7 @@ typedef struct fcache_priv_t {
 } fc_priv_t;
 
 struct _fcache_node_t {
+    char* key;
     void* data;
 };
 
@@ -53,12 +54,12 @@ fc_list* fcache_list_create()
     return list;
 }
 
-void    fcache_list_destory(fc_list* plist)
+void     fcache_list_destroy(fc_list* plist)
 {
     free(plist);
 }
 
-int     fcache_list_empty(fc_list* plist)
+int      fcache_list_empty(fc_list* plist)
 {
     if ( plist->tail == NULL && plist->head == plist->tail && !plist->size ) {
         return 1;
@@ -67,7 +68,7 @@ int     fcache_list_empty(fc_list* plist)
     }
 }
 
-fcache_node_t*  fcache_list_make_node()
+fcache_node_t* fcache_list_make_node()
 {
     fc_orig_node_t* orig_node = malloc(sizeof(fc_orig_node_t));
     if ( !orig_node ) return NULL;
@@ -76,12 +77,13 @@ fcache_node_t*  fcache_list_make_node()
     return &orig_node->node;
 }
 
-void    fcache_list_destory_node(fcache_node_t* node)
+void     fcache_list_destroy_node(fcache_node_t* node)
 {
+    free(node->key);
     free(FN_HEAD(node));
 }
 
-int     fcache_list_push(fc_list* plist, fcache_node_t* node, size_t data_size)
+int      fcache_list_push(fc_list* plist, fcache_node_t* node, size_t data_size)
 {
     if ( !plist || !node ) return 1;
 
@@ -111,14 +113,16 @@ fcache_node_t* fcache_list_pop(fc_list* plist)
     } else {
         plist->head = FO_NEXT(plist->head);
     }
+    FO_PREV(orig_node) = FO_NEXT(orig_node) = NULL;
     plist->size--;
     plist->total_data_size -= FO_DATASIZE(orig_node);
     return &orig_node->node;
 }
 
-fcache_node_t*  fcache_list_delete_node(fcache_node_t* node)
+fcache_node_t* fcache_list_delete_node(fcache_node_t* node)
 {
     if ( !node ) return NULL;
+    if ( !FN_PREV(node) && !FN_NEXT(node)) return NULL;
 
     fc_list* plist = FN_OWNER(node);
     fc_orig_node_t* orig_node = FN_HEAD(node);
@@ -134,12 +138,13 @@ fcache_node_t*  fcache_list_delete_node(fcache_node_t* node)
         FO_NEXT(FO_PREV(orig_node)) = FO_NEXT(orig_node);
         FO_PREV(FO_NEXT(orig_node)) = FO_PREV(orig_node);
     }
+    FN_PREV(node) = FN_NEXT(node) = NULL;
     plist->size--;
     plist->total_data_size -= FO_DATASIZE(orig_node);
     return node;
 }
 
-int     fcache_list_move_node(fcache_node_t* node, fc_list* to)
+int      fcache_list_move_node(fcache_node_t* node, fc_list* to)
 {
     if ( !node ) return 1;
 
@@ -157,7 +162,7 @@ int     fcache_list_move_node(fcache_node_t* node, fc_list* to)
     }
 }
 
-void    fcache_list_update_node(fcache_node_t* node, size_t size)
+void     fcache_list_update_node(fcache_node_t* node, size_t size)
 {
     if ( !node ) return;
 
@@ -166,19 +171,19 @@ void    fcache_list_update_node(fcache_node_t* node, size_t size)
     plist->total_data_size += size;
 }
 
-size_t  fcache_list_size(fc_list* plist)
+size_t   fcache_list_size(fc_list* plist)
 {
     if ( !plist ) return 0;
     return plist->size;
 }
 
-size_t  fcache_list_data_size(fc_list* plist)
+size_t   fcache_list_data_size(fc_list* plist)
 {
     if ( !plist ) return 0;
     return plist->total_data_size;
 }
 
-size_t  fcache_list_node_size(fcache_node_t* node)
+size_t   fcache_list_node_size(fcache_node_t* node)
 {
     if ( node ) {
         return FN_DATASIZE(node);
@@ -196,10 +201,24 @@ fc_list* fcache_list_node_owner(fcache_node_t* node)
     }
 }
 
+void     fcache_list_set_nodekey(fcache_node_t* node, const char* key)
+{
+    if ( !node || !key ) return;
+    size_t len = strlen(key);
+    node->key = malloc(len + 1);
+    strncpy(node->key, key, len);
+}
+
 void     fcache_list_set_nodedata(fcache_node_t* node, void* data)
 {
     if ( !node || !data ) return;
     node->data = data;
+}
+
+const char* fcache_list_get_nodekey(fcache_node_t* node)
+{
+    if ( !node ) return NULL;
+    return node->key;
 }
 
 void*    fcache_list_get_nodedata(fcache_node_t* node)

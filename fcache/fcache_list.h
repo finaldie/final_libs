@@ -22,10 +22,10 @@ typedef struct _fcache_node_t   fcache_node_t;
 typedef struct _fcache_list_mgr fc_list;
 
 fc_list*        fcache_list_create();
-void            fcache_list_destory(fc_list* plist);
+void            fcache_list_destroy(fc_list* plist);
 int             fcache_list_empty(fc_list* plist);
 fcache_node_t*  fcache_list_make_node();
-void            fcache_list_destory_node(fcache_node_t* node);
+void            fcache_list_destroy_node(fcache_node_t* node);
 int             fcache_list_push(fc_list* plist, fcache_node_t* node, size_t size);
 fcache_node_t*  fcache_list_pop(fc_list* plist);
 fcache_node_t*  fcache_list_delete_node(fcache_node_t* node);
@@ -35,7 +35,9 @@ size_t          fcache_list_size(fc_list* plist);
 size_t          fcache_list_data_size(fc_list* plist);
 size_t          fcache_list_node_size(fcache_node_t* node);
 fc_list*        fcache_list_node_owner(fcache_node_t* node);
+void            fcache_list_set_nodekey(fcache_node_t*, const char* key);
 void            fcache_list_set_nodedata(fcache_node_t*, void* data);
+const char*     fcache_list_get_nodekey(fcache_node_t*);
 void*           fcache_list_get_nodedata(fcache_node_t*);
 
 #endif

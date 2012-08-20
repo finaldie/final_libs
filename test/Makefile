@@ -30,7 +30,8 @@ SRCS = main.c \
 	   t_mbuf.c \
 	   t_timer.c \
 	   t_list.c \
-	   t_fev.c
+	   t_fev.c \
+	   t_fcache.c
 
 COPY_FILES = 
 	   

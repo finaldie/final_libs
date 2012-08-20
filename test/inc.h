@@ -35,5 +35,6 @@ void    test_fev();
 void    test_fev_listener();
 void    test_fev_buff();
 void    test_fev_conn();
+void    test_fcache();
 
 #endif

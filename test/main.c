@@ -23,6 +23,7 @@ void register_module(){
     tu_register_module(test_fev_listener, "for testing fev listener");
     tu_register_module(test_fev_buff,     "for testing fev buff");
     tu_register_module(test_fev_conn,     "for testing fev asynchronous connect");
+    tu_register_module(test_fcache,       "for testing fcache set and get");
 }
 
 int main(int argc, char** argv){

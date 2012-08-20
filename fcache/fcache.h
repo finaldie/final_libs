@@ -42,7 +42,11 @@ fcache_t* fcache_create(size_t max_size, cache_obj_free);
 void      fcache_destroy(fcache_t* pcache);
 
 /**
- *  @brief Add object
+ *  @brief Add object, it has three behavior:
+ *         1. if key not in the cache, fcache will add it into cache
+ *         2. if key in the cache, fcache will update it
+ *         3. if key in the cache, but user_data arg is NULL, fcache will drop
+ *            this node
  *  @param key - the key of user_data
  *  @param user_data - user need to construct it by himself
  *  @param data_size - size of user_data
