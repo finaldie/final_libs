@@ -120,7 +120,7 @@ void      _fcache_del_node(fcache_t* pcache, fcache_node_t* node)
     if ( pcache->obj_free ) {
         pcache->obj_free(fcache_list_get_nodedata(node));
     } else {
-        fprintf(stderr, "[WARNNING]: data delete may cause memory leak, key = %s\n", key);
+        fprintf(stderr, "[WARNING]: data delete may cause memory leak, key = %s\n", key);
     }
 
     hash_del_str(pcache->phash_node_index, key);
