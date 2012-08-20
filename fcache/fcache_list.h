@@ -18,10 +18,7 @@
 #ifndef _FCACHE_LIST_H_
 #define _FCACHE_LIST_H_
 
-typedef struct _fcache_node_t {
-    void*   data;
-} fcache_node_t;
-
+typedef struct _fcache_node_t   fcache_node_t;
 typedef struct _fcache_list_mgr fc_list;
 
 fc_list*        fcache_list_create();
@@ -38,5 +35,7 @@ size_t          fcache_list_size(fc_list* plist);
 size_t          fcache_list_data_size(fc_list* plist);
 size_t          fcache_list_node_size(fcache_node_t* node);
 fc_list*        fcache_list_node_owner(fcache_node_t* node);
+void            fcache_list_set_nodedata(fcache_node_t*, void* data);
+void*           fcache_list_get_nodedata(fcache_node_t*);
 
 #endif

@@ -67,8 +67,7 @@ int       _fcache_add_node(fcache_t* pcache, const char* key, void* value,
 {
     fcache_node_t* add_node = fcache_list_make_node();
     if ( !add_node ) return 1;
-
-    add_node->data = value;
+    fcache_list_set_nodedata(add_node, value);
 
     // for a new node
     // 1. add into hash table
@@ -76,7 +75,7 @@ int       _fcache_add_node(fcache_t* pcache, const char* key, void* value,
     hash_set_str(pcache->phash_node_index, key, add_node);
     if ( fcache_list_push(pcache->pinactive_list, add_node, value_size) ) {
         hash_del_str(pcache->phash_node_index, key);
-        free(add_node);
+        fcache_list_destory_node(add_node);
     }
 
     return 0;
@@ -87,11 +86,12 @@ int       _fcache_update_node(fcache_t* pcache, fcache_node_t* node, void* value
                               size_t value_size, cache_obj_free obj_free)
 {
     // call obj_free only when the target node has changed
-    if ( node->data != value && obj_free ) {
-        obj_free(node->data);
+    void* user_data = fcache_list_get_nodedata(node);
+    if ( user_data != value && obj_free ) {
+        obj_free(user_data);
     }
 
-    node->data = value;
+    fcache_list_set_nodedata(node, value);
     fcache_list_update_node(node, value_size);
 
     return 0;
@@ -102,7 +102,7 @@ void    _fcache_del_node(fcache_t* pcache, fcache_node_t* node, const char* key,
                            cache_obj_free obj_free)
 {
     if ( obj_free ) {
-        obj_free(node->data);
+        obj_free(fcache_list_get_nodedata(node));
     } else {
         fprintf(stderr, "data delete may cause memory leak\n");
     }
@@ -200,7 +200,7 @@ int     _fcache_check_and_drop_nodes(fcache_t* pcache, fcache_node_t* node,
         dropped_size += fcache_list_node_size(dropped_node);
 
         if ( obj_free ) {
-            obj_free(dropped_node->data);
+            obj_free(fcache_list_get_nodedata(dropped_node));
         }
 
         fcache_list_destory_node(dropped_node);
@@ -278,11 +278,11 @@ void*     fcache_get_obj(fcache_t* pcache, const char* key)
     if ( fcache_list_node_owner(node) == pcache->pactive_list ) {
         // move it to head of the list when size of list > 1
         fcache_list_move_node(node, pcache->pactive_list);
-        return node->data;
+        return fcache_list_get_nodedata(node);
     } else {
         // we don't care the result of moving, if failure, try it next time
         _fcache_move_node(pcache, node);
-        return node->data;
+        return fcache_list_get_nodedata(node);
     }
 }
 

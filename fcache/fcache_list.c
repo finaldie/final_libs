@@ -21,6 +21,10 @@ typedef struct fcache_priv_t {
     size_t                 data_size;
 } fc_priv_t;
 
+struct _fcache_node_t {
+    void* data;
+};
+
 typedef struct fcache_orig_node_t {
     // private data
     fc_priv_t     priv;
@@ -190,4 +194,16 @@ fc_list* fcache_list_node_owner(fcache_node_t* node)
     } else {
         return NULL;
     }
+}
+
+void     fcache_list_set_nodedata(fcache_node_t* node, void* data)
+{
+    if ( !node || !data ) return;
+    node->data = data;
+}
+
+void*    fcache_list_get_nodedata(fcache_node_t* node)
+{
+    if ( !node ) return NULL;
+    return node->data;
 }
