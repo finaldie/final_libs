@@ -169,4 +169,50 @@ void test_fcache()
         fcache_destroy(cache);
     }
 
+    // add 3 new objs, drop the last one
+    // this case, there is 2 nodes in active list(key1, key2),
+    // but key3's node is too large, there is no enough space for it, so drop it
+    {
+        fcache_t* cache = fcache_create(20, NULL);
+        FTU_ASSERT(cache != NULL);
+
+        // add a new obj
+        char* key1 = "key1";
+        char* key2 = "key2";
+        char* key3 = "key3";
+        char* value1 = "123456789"; // total len = 10
+        char* value2 = "234567891"; // total len = 10
+        char* value3 = "3456789123"; // total len = 11
+
+        // add first
+        int ret = fcache_set_obj(cache, key1, value1, strlen(value1) + 1);
+        FTU_ASSERT(ret == 0);
+        char* get1 = fcache_get_obj(cache, key1);
+        FTU_ASSERT( strcmp(get1, value1) == 0 );
+        FTU_ASSERT( get1 == value1 );
+
+        // add second
+        ret = fcache_set_obj(cache, key2, value2, strlen(value2) + 1);
+        FTU_ASSERT(ret == 0);
+        char* get2 = fcache_get_obj(cache, key2);
+        FTU_ASSERT( strcmp(get2, value2) == 0 );
+        FTU_ASSERT( get2 == value2 );
+
+        // add third
+        ret = fcache_set_obj(cache, key3, value3, strlen(value3) + 1);
+        FTU_ASSERT(ret == 1);
+        char* get3 = fcache_get_obj(cache, key3);
+        FTU_ASSERT( get3 == NULL );
+
+        // and the first one will be dropped
+        char* get4 = fcache_get_obj(cache, key1);
+        char* get5 = fcache_get_obj(cache, key2);
+        char* get6 = fcache_get_obj(cache, key3);
+        printf("get key1:%s\n", get4);
+        printf("get key2:%s\n", get5);
+        printf("get key3:%s\n", get6);
+        FTU_ASSERT( get6 == NULL );
+
+        fcache_destroy(cache);
+    }
 }
