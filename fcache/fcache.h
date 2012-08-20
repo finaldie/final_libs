@@ -28,9 +28,11 @@ typedef void (*cache_obj_free)(void* data);
 /**
  *  @brief Create fcache
  *  @param max_size - max size of cache
+ *  @param obj_free - if obj_free is not NULL, will call it when the node is not
+ *                    in the cache
  *  @return a pointer of fcache structure
  */
-fcache_t* fcache_create(size_t max_size);
+fcache_t* fcache_create(size_t max_size, cache_obj_free);
 
 /**
  *  @brief Destroy fcache
@@ -41,16 +43,14 @@ void      fcache_destroy(fcache_t* pcache);
 
 /**
  *  @brief Add object
- *  @param key
- *  @param value
- *  @param value_size
- *  @param obj_free - if obj_free is not NULL, will call it when update or move
- *                    node
+ *  @param key - the key of user_data
+ *  @param user_data - user need to construct it by himself
+ *  @param data_size - size of user_data
  *  @return 0 - success
  *  @return 1 - failed
  */
-int       fcache_set_obj(fcache_t*, const char* key, void* value,
-                         size_t value_size, cache_obj_free obj_free);
+int       fcache_set_obj(fcache_t*, const char* key, void* user_data,
+                         size_t data_size);
 
 /**
  *  @brief Get object
