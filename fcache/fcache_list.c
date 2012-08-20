@@ -114,6 +114,7 @@ fcache_node_t* fcache_list_pop(fc_list* plist)
         plist->head = FO_NEXT(plist->head);
     }
     FO_PREV(orig_node) = FO_NEXT(orig_node) = NULL;
+    FO_OWNER(orig_node) = NULL;
     plist->size--;
     plist->total_data_size -= FO_DATASIZE(orig_node);
     return &orig_node->node;
@@ -122,7 +123,7 @@ fcache_node_t* fcache_list_pop(fc_list* plist)
 fcache_node_t* fcache_list_delete_node(fcache_node_t* node)
 {
     if ( !node ) return NULL;
-    if ( !FN_PREV(node) && !FN_NEXT(node)) return NULL;
+    if ( !FN_OWNER(node) ) return NULL;
 
     fc_list* plist = FN_OWNER(node);
     fc_orig_node_t* orig_node = FN_HEAD(node);
@@ -139,6 +140,7 @@ fcache_node_t* fcache_list_delete_node(fcache_node_t* node)
         FO_PREV(FO_NEXT(orig_node)) = FO_PREV(orig_node);
     }
     FN_PREV(node) = FN_NEXT(node) = NULL;
+    FN_OWNER(node) = NULL;
     plist->size--;
     plist->total_data_size -= FO_DATASIZE(orig_node);
     return node;
@@ -204,8 +206,8 @@ fc_list* fcache_list_node_owner(fcache_node_t* node)
 void     fcache_list_set_nodekey(fcache_node_t* node, const char* key)
 {
     if ( !node || !key ) return;
-    size_t len = strlen(key);
-    node->key = malloc(len + 1);
+    size_t len = strlen(key) + 1;
+    node->key = malloc(len);
     strncpy(node->key, key, len);
 }
 

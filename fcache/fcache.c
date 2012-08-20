@@ -116,13 +116,13 @@ int       _fcache_update_node(fcache_t* pcache, fcache_node_t* node, void* value
 static inline
 void      _fcache_del_node(fcache_t* pcache, fcache_node_t* node)
 {
+    const char* key = fcache_list_get_nodekey(node);
     if ( pcache->obj_free ) {
         pcache->obj_free(fcache_list_get_nodedata(node));
     } else {
-        fprintf(stderr, "data delete may cause memory leak\n");
+        fprintf(stderr, "[WARNNING]: data delete may cause memory leak, key = %s\n", key);
     }
 
-    const char* key = fcache_list_get_nodekey(node);
     hash_del_str(pcache->phash_node_index, key);
     fcache_list_delete_node(node);
     fcache_list_destroy_node(node);
