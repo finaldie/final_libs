@@ -296,7 +296,7 @@ void*    hash_del(f_hash* phash, int h, int type, const void* key)
                 find = 1;
             }
         } else{
-            if( strcmp((const char*)key, node->key.str_key) == 0 ){
+            if( strcmp(key, node->key.str_key) == 0 ){
                 free(node->key.str_key);
                 find = 1;
             }
