@@ -16,6 +16,7 @@ Library contains:
     10. network 
     11. event framework ( a simple event framework, which have internal support of evbuff & socket listen & async connect & timer)
     12. unit test framework
+    13. fcache ( a simple cache with LRU )
 
 [INSTALL]:
     1. make
