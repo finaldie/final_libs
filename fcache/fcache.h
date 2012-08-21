@@ -48,13 +48,14 @@ void      fcache_destroy(fcache_t* pcache);
  *         3. if key in the cache, but user_data arg is NULL, fcache will drop
  *            this node
  *  @param key - the key of user_data
+ *  @param key_size - size of key
  *  @param user_data - user need to construct it by himself
  *  @param data_size - size of user_data
  *  @return 0 - success
  *  @return 1 - failed
  */
-int       fcache_set_obj(fcache_t*, const char* key, void* user_data,
-                         size_t data_size);
+int       fcache_set_obj(fcache_t*, const char* key, size_t key_size,
+                         void* user_data, size_t data_size);
 
 /**
  *  @brief Get object

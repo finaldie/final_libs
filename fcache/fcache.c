@@ -77,12 +77,12 @@ void      fcache_destroy(fcache_t* pcache)
 }
 
 static inline
-int       _fcache_add_node(fcache_t* pcache, const char* key, void* value,
-                           size_t value_size)
+int       _fcache_add_node(fcache_t* pcache, const char* key, size_t key_size,
+                           void* value, size_t value_size)
 {
-    fcache_node_t* add_node = fcache_list_make_node();
+    fcache_node_t* add_node = fcache_list_make_node(key_size);
     if ( !add_node ) return 1;
-    fcache_list_set_nodekey(add_node, key);
+    fcache_list_set_nodekey(add_node, key, key_size);
     fcache_list_set_nodedata(add_node, value);
 
     // for a new node
@@ -228,10 +228,10 @@ int       _fcache_check_and_drop_nodes(fcache_t* pcache, fcache_node_t* node,
  *       mechanism
  *       @ remove node only from inactive list
  */
-int       fcache_set_obj(fcache_t* pcache, const char* key, void* value,
-                         size_t value_size)
+int       fcache_set_obj(fcache_t* pcache, const char* key, size_t key_size,
+                         void* value, size_t value_size)
 {
-    if ( !pcache || !key ) return 1;
+    if ( !pcache || !key || !key_size ) return 1;
     if ( value && !value_size ) return 1;
     if ( value_size > pcache->max_size ) return 1;
 
@@ -242,7 +242,7 @@ int       fcache_set_obj(fcache_t* pcache, const char* key, void* value,
 
     int ret = 0;
     if ( likely(!node) ) {
-        ret = _fcache_add_node(pcache, key, value, value_size);
+        ret = _fcache_add_node(pcache, key, key_size, value, value_size);
     } else {
         if ( value ) {
             ret = _fcache_update_node(pcache, node, value, value_size);

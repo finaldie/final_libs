@@ -27,7 +27,7 @@ void test_fcache()
 
         char* key = "first";
         char* value = "hello_fcache";
-        int ret = fcache_set_obj(cache, key, value, strlen(value) + 1);
+        int ret = fcache_set_obj(cache, key, strlen(key), value, strlen(value) + 1);
         FTU_ASSERT(ret != 0);
 
         fcache_destroy(cache);
@@ -40,7 +40,7 @@ void test_fcache()
 
         char* key = "first";
         char* value = "hello_fcache";
-        int ret = fcache_set_obj(cache, key, value, strlen(value) + 1);
+        int ret = fcache_set_obj(cache, key, strlen(key), value, strlen(value) + 1);
         FTU_ASSERT(ret == 0);
         char* get = fcache_get_obj(cache, key);
         FTU_ASSERT( strcmp(get, value) == 0 );
@@ -57,7 +57,7 @@ void test_fcache()
         // add a new obj
         char* key = "first";
         char* value = "hello_fcache";
-        int ret = fcache_set_obj(cache, key, value, strlen(value) + 1);
+        int ret = fcache_set_obj(cache, key, strlen(key), value, strlen(value) + 1);
         FTU_ASSERT(ret == 0);
         char* get = fcache_get_obj(cache, key);
         FTU_ASSERT( strcmp(get, value) == 0 );
@@ -65,7 +65,7 @@ void test_fcache()
 
         // update it
         char* new_value = "I'm the new value";
-        ret = fcache_set_obj(cache, key, new_value, strlen(new_value) + 1);
+        ret = fcache_set_obj(cache, key, strlen(key), new_value, strlen(new_value) + 1);
         FTU_ASSERT(ret == 0);
         char* get_new = fcache_get_obj(cache, key);
         FTU_ASSERT( strcmp(get_new, new_value) == 0 );
@@ -92,21 +92,21 @@ void test_fcache()
         char* value3 = "345678912"; // total len = 10
 
         // add first
-        int ret = fcache_set_obj(cache, key1, value1, strlen(value1) + 1);
+        int ret = fcache_set_obj(cache, key1, strlen(key1), value1, strlen(value1) + 1);
         FTU_ASSERT(ret == 0);
         char* get1 = fcache_get_obj(cache, key1);
         FTU_ASSERT( strcmp(get1, value1) == 0 );
         FTU_ASSERT( get1 == value1 );
 
         // add second
-        ret = fcache_set_obj(cache, key2, value2, strlen(value2) + 1);
+        ret = fcache_set_obj(cache, key2, strlen(key2), value2, strlen(value2) + 1);
         FTU_ASSERT(ret == 0);
         char* get2 = fcache_get_obj(cache, key2);
         FTU_ASSERT( strcmp(get2, value2) == 0 );
         FTU_ASSERT( get2 == value2 );
 
         // add third
-        ret = fcache_set_obj(cache, key3, value3, strlen(value3) + 1);
+        ret = fcache_set_obj(cache, key3, strlen(key3), value3, strlen(value3) + 1);
         FTU_ASSERT(ret == 0);
         char* get3 = fcache_get_obj(cache, key3);
         FTU_ASSERT( strcmp(get3, value3) == 0 );
@@ -140,18 +140,18 @@ void test_fcache()
         char* value3 = "345678912"; // total len = 10
 
         // add first
-        int ret = fcache_set_obj(cache, key1, value1, strlen(value1) + 1);
+        int ret = fcache_set_obj(cache, key1, strlen(key1), value1, strlen(value1) + 1);
         FTU_ASSERT(ret == 0);
         char* get1 = fcache_get_obj(cache, key1);
         FTU_ASSERT( strcmp(get1, value1) == 0 );
         FTU_ASSERT( get1 == value1 );
 
         // add second
-        ret = fcache_set_obj(cache, key2, value2, strlen(value2) + 1);
+        ret = fcache_set_obj(cache, key2, strlen(key2), value2, strlen(value2) + 1);
         FTU_ASSERT(ret == 0);
 
         // add third
-        ret = fcache_set_obj(cache, key3, value3, strlen(value3) + 1);
+        ret = fcache_set_obj(cache, key3, strlen(key3), value3, strlen(value3) + 1);
         FTU_ASSERT(ret == 0);
         char* get3 = fcache_get_obj(cache, key3);
         FTU_ASSERT( strcmp(get3, value3) == 0 );
@@ -185,21 +185,21 @@ void test_fcache()
         char* value3 = "3456789123"; // total len = 11
 
         // add first
-        int ret = fcache_set_obj(cache, key1, value1, strlen(value1) + 1);
+        int ret = fcache_set_obj(cache, key1, strlen(key1), value1, strlen(value1) + 1);
         FTU_ASSERT(ret == 0);
         char* get1 = fcache_get_obj(cache, key1);
         FTU_ASSERT( strcmp(get1, value1) == 0 );
         FTU_ASSERT( get1 == value1 );
 
         // add second
-        ret = fcache_set_obj(cache, key2, value2, strlen(value2) + 1);
+        ret = fcache_set_obj(cache, key2, strlen(key2), value2, strlen(value2) + 1);
         FTU_ASSERT(ret == 0);
         char* get2 = fcache_get_obj(cache, key2);
         FTU_ASSERT( strcmp(get2, value2) == 0 );
         FTU_ASSERT( get2 == value2 );
 
         // add third
-        ret = fcache_set_obj(cache, key3, value3, strlen(value3) + 1);
+        ret = fcache_set_obj(cache, key3, strlen(key3), value3, strlen(value3) + 1);
         FTU_ASSERT(ret == 1);
         char* get3 = fcache_get_obj(cache, key3);
         FTU_ASSERT( get3 == NULL );
@@ -211,6 +211,56 @@ void test_fcache()
         printf("get key1:%s\n", get4);
         printf("get key2:%s\n", get5);
         printf("get key3:%s\n", get6);
+        FTU_ASSERT( get6 == NULL );
+
+        fcache_destroy(cache);
+    }
+
+    {
+        fcache_t* cache = fcache_create(20, NULL);
+        FTU_ASSERT(cache != NULL);
+
+        // add a new obj
+        char* key1 = "key1";
+        char* key2 = "key2";
+        char* key3 = "key3";
+        char* value1 = "123456789"; // total len = 10
+        char* value2 = "234567891"; // total len = 10
+        char* value3 = "345678912"; // total len = 10
+
+        // add first
+        int ret = fcache_set_obj(cache, key1, strlen(key1), value1, strlen(value1) + 1);
+        FTU_ASSERT(ret == 0);
+        char* get1 = fcache_get_obj(cache, key1);
+        FTU_ASSERT( strcmp(get1, value1) == 0 );
+        FTU_ASSERT( get1 == value1 );
+
+        // add second
+        ret = fcache_set_obj(cache, key2, strlen(key2), value2, strlen(value2) + 1);
+        FTU_ASSERT(ret == 0);
+        char* get2 = fcache_get_obj(cache, key2);
+        FTU_ASSERT( strcmp(get2, value2) == 0 );
+        FTU_ASSERT( get2 == value2 );
+
+        // touch key1, so move it to tail
+        char* get3 = fcache_get_obj(cache, key1);
+        FTU_ASSERT( strcmp(get3, value1) == 0 );
+        FTU_ASSERT( get3 == value1 );
+
+        // add third
+        ret = fcache_set_obj(cache, key3, strlen(key3), value3, strlen(value3) + 1);
+        FTU_ASSERT(ret == 0);
+        char* get4 = fcache_get_obj(cache, key3);
+        FTU_ASSERT( strcmp(get4, value3) == 0 );
+        FTU_ASSERT( get4 == value3 );
+
+        // and the first one will be dropped
+        char* get5 = fcache_get_obj(cache, key1);
+        char* get6 = fcache_get_obj(cache, key2);
+        char* get7 = fcache_get_obj(cache, key3);
+        printf("get key1:%s\n", get5);
+        printf("get key2:%s\n", get6);
+        printf("get key3:%s\n", get7);
         FTU_ASSERT( get6 == NULL );
 
         fcache_destroy(cache);

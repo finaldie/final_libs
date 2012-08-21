@@ -22,8 +22,8 @@ typedef struct fcache_priv_t {
 } fc_priv_t;
 
 struct _fcache_node_t {
-    char* key;
     void* data;
+    char  key[0];
 };
 
 typedef struct fcache_orig_node_t {
@@ -68,18 +68,17 @@ int      fcache_list_empty(fc_list* plist)
     }
 }
 
-fcache_node_t* fcache_list_make_node()
+fcache_node_t* fcache_list_make_node(size_t key_size)
 {
-    fc_orig_node_t* orig_node = malloc(sizeof(fc_orig_node_t));
+    fc_orig_node_t* orig_node = malloc(sizeof(fc_orig_node_t) + key_size + 1);
     if ( !orig_node ) return NULL;
 
-    memset(orig_node, 0, sizeof(fc_orig_node_t));
+    memset(orig_node, 0, sizeof(fc_orig_node_t) + key_size + 1);
     return &orig_node->node;
 }
 
 void     fcache_list_destroy_node(fcache_node_t* node)
 {
-    free(node->key);
     free(FN_HEAD(node));
 }
 
@@ -203,12 +202,11 @@ fc_list* fcache_list_node_owner(fcache_node_t* node)
     }
 }
 
-void     fcache_list_set_nodekey(fcache_node_t* node, const char* key)
+void     fcache_list_set_nodekey(fcache_node_t* node, const char* key,
+                                 size_t key_size)
 {
-    if ( !node || !key ) return;
-    size_t len = strlen(key) + 1;
-    node->key = malloc(len);
-    strncpy(node->key, key, len);
+    if ( !node || !key || !key_size ) return;
+    strncpy(node->key, key, key_size+1);
 }
 
 void     fcache_list_set_nodedata(fcache_node_t* node, void* data)
