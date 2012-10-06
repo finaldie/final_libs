@@ -120,8 +120,8 @@ fco* fco_create(fco* co, pfunc_co pf)
         return NULL;
     }
 
-    subco->container = container;
-    return co;
+    co->container = container;
+    return subco;
 }
 
 static
