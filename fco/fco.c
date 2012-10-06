@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ucontext.h>
@@ -125,7 +126,7 @@ fco* fco_create(fco* co, pfunc_co pf)
 }
 
 static
-void co_main(uint32_t co_low32, uint32_t co_hi32, uint32_t arg_low32, uint32_t arg_hi32)
+void co_main(uint32_t co_low32, uint32_t co_hi32)
 {
     long long_co = (long)co_low32 | ((long)co_hi32 << 32);
     fco* co = (fco*)long_co;
@@ -160,7 +161,8 @@ void* fco_resume(fco* co, void* arg)
             swapcontext(&co->prev_ctx, &co->ctx);
             break;
         default:
-            break;
+            fprintf(stderr, "[WARING] shouldn't resume a non-RUNNING or non-SUSPEND status co\n");
+            return NULL;
     }
 
     void* ret = co->owner->arg;
