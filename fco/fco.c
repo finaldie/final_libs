@@ -8,9 +8,21 @@
 
 #define FCO_DEFAULT_STACK_SIZE (1024*1024)
 
+typedef struct plugin_node {
+    phook_cb cb;
+    void* arg;
+    struct plugin_node* next;
+} plugin_node;
+
+typedef struct plugin_meta {
+    plugin_node* before_chain_head;
+    plugin_node* after_chain_head;
+} plugin_meta;
+
 struct _fco {
     ucontext_t   prev_ctx;
     ucontext_t   ctx;
+    fco_sched*   root;
     fco_sched*   owner;
     fco_sched*   container;
     pfunc_co     pf;
@@ -22,19 +34,25 @@ struct _fco {
 
 struct _fco_sched {
     uint64_t     numco;
-    fco*         current;
     void*        arg;
     struct _fco* head;
     struct _fco* tail;
+    char         plugin_data[0];    // only root used
 };
+
+fco_sched* _fco_scheduler_create(int is_root)
+{
+    size_t tot_size = sizeof(fco_sched) + is_root ? sizeof(plugin_meta) : 0;
+    fco_sched* sched = malloc(tot_size);
+    if ( !sched ) return NULL;
+
+    memset(sched, 0, tot_size);
+    return sched;
+}
 
 fco_sched* fco_scheduler_create()
 {
-    fco_sched* sched = malloc(sizeof(fco_sched));
-    if ( !sched ) return NULL;
-
-    memset(sched, 0, sizeof(fco_sched));
-    return sched;
+    return _fco_scheduler_create(1);
 }
 
 void fco_scheduler_destroy(fco_sched* fco_sched)
@@ -55,12 +73,68 @@ void fco_scheduler_destroy(fco_sched* fco_sched)
 }
 
 static
-fco* _fco_create(fco_sched* owner, pfunc_co pf)
+plugin_node* _fco_create_plugin_node(phook_cb cb, void* arg)
+{
+    plugin_node* node = malloc(sizeof(plugin_node));
+    if ( !node ) return NULL;
+
+    node->cb = cb;
+    node->arg = arg;
+    node->next = NULL;
+    return node;
+}
+
+void fco_register_plugin(fco_sched* root, void* arg,
+                               phook_cb before, phook_cb after)
+{
+    if ( !root ) return;
+    plugin_meta* meta = (plugin_meta*)(root->plugin_data);
+    plugin_node* anode = _fco_create_plugin_node(after, arg);
+    plugin_node* bnode = _fco_create_plugin_node(before, arg);
+    if ( !anode || !bnode ) {
+        free(anode);
+        free(bnode);
+        return;
+    }
+
+    bnode->next = meta->before_chain_head;
+    meta->before_chain_head = bnode;
+
+    anode->next = meta->after_chain_head;
+    meta->after_chain_head = anode;
+}
+
+static
+void __call_plugin(plugin_node* head, fco* co)
+{
+    plugin_node* node = head;
+    while ( node ) {
+        node->cb(co, node->arg);
+        node = node->next;
+    }
+}
+
+// type: 0 -- call before chain
+// type: 1 -- call after chain
+static
+void _fco_call_plugin(fco* co, int type)
+{
+    plugin_meta* meta = (plugin_meta*)(co->root->plugin_data);
+    if ( type ) {
+        __call_plugin(meta->after_chain_head, co);
+    } else {
+        __call_plugin(meta->before_chain_head, co);
+    }
+}
+
+static
+fco* _fco_create(fco_sched* root, fco_sched* owner, pfunc_co pf)
 {
     fco* co = malloc(sizeof(fco) + FCO_DEFAULT_STACK_SIZE);
     if ( !co ) return NULL;
 
     memset(co, 0, sizeof(fco) + FCO_DEFAULT_STACK_SIZE);
+    co->root = root;
     co->owner = owner;
     co->pf = pf;
     co->status = FCO_STATUS_READY;
@@ -105,24 +179,29 @@ void _fco_delete(fco* co)
 fco* fco_main_create(fco_sched* owner, pfunc_co pf)
 {
     if ( !owner || !pf) return NULL;
-    return _fco_create(owner, pf);
+    return _fco_create(owner, owner, pf);
 }
 
-fco* fco_create(fco* co, pfunc_co pf)
+fco* fco_create(fco* co, pfunc_co pf, int type)
 {
     if ( !co || !co->owner || !pf ) return NULL;
+    if ( (type < FCO_TYPE_ALONE) || (type > FCO_TYPE_CHILD) ) return NULL;
 
-    fco_sched* container = fco_scheduler_create();
-    if ( !container ) return NULL;
+    if ( type == FCO_TYPE_ALONE ) {
+        return _fco_create(co->root, co->root, pf);
+    } else {
+        fco_sched* container = _fco_scheduler_create(0);
+        if ( !container ) return NULL;
 
-    fco* subco = _fco_create(container, pf);
-    if ( !subco ) {
-        fco_scheduler_destroy(container);
-        return NULL;
+        fco* subco = _fco_create(co->root, container, pf);
+        if ( !subco ) {
+            fco_scheduler_destroy(container);
+            return NULL;
+        }
+
+        co->container = container;
+        return subco;
     }
-
-    co->container = container;
-    return subco;
 }
 
 static
@@ -145,20 +224,23 @@ void* fco_resume(fco* co, void* arg)
         case FCO_STATUS_SUSPEND:
             co->status = FCO_STATUS_RUNNING;
             co->owner->arg = arg;
+            _fco_call_plugin(co, 0);
             swapcontext(&co->prev_ctx, &co->ctx);
+            _fco_call_plugin(co, 1);
             break;
         case FCO_STATUS_READY:
             getcontext(&co->ctx);
             co->ctx.uc_stack.ss_sp = co->stack;
             co->ctx.uc_stack.ss_size = FCO_DEFAULT_STACK_SIZE;
             co->ctx.uc_link = &co->prev_ctx;
-            co->owner->current = co;
             co->owner->arg = arg;
             co->status = FCO_STATUS_RUNNING;
             long lco = (long)co;
             makecontext(&co->ctx, (void (*)(void)) co_main, 2, (uint32_t)lco,
                         (uint32_t)(lco >> 32));
+            _fco_call_plugin(co, 0);
             swapcontext(&co->prev_ctx, &co->ctx);
+            _fco_call_plugin(co, 1);
             break;
         default:
             fprintf(stderr, "[WARING] shouldn't resume a non-RUNNING or non-SUSPEND status co\n");
@@ -181,7 +263,9 @@ void* fco_yield(fco* co, void* arg)
     if ( !co ) return NULL;
     co->status = FCO_STATUS_SUSPEND;
     co->owner->arg = arg;
+    _fco_call_plugin(co, 0);
     swapcontext(&co->ctx, &co->prev_ctx);
+    _fco_call_plugin(co, 1);
     return co->owner->arg;
 }
 

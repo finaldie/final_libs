@@ -21,20 +21,25 @@ extern "C" {
 #define FCO_STATUS_RUNNING 2
 #define FCO_STATUS_SUSPEND 3
 
+#define FCO_TYPE_ALONE 0
+#define FCO_TYPE_CHILD 1
+
 typedef struct _fco_sched fco_sched;
 typedef struct _fco fco;
 
 typedef void* (*pfunc_co)(fco*, void* arg);
+typedef void (*phook_cb)(fco*, void* arg);
 
 fco_sched* fco_scheduler_create();
 void       fco_scheduler_destroy(fco_sched*);
 
-fco*       fco_main_create(fco_sched* sched, pfunc_co);
-fco*       fco_create(fco*, pfunc_co);
+fco*       fco_main_create(fco_sched*, pfunc_co);
+fco*       fco_create(fco*, pfunc_co, int type);
 void*      fco_resume(fco*, void*);
 void*      fco_yield(fco*, void*);
 int        fco_status(fco*);
-
+void       fco_register_plugin(fco_sched*, void* arg,
+                               phook_cb before, phook_cb after);
 
 #ifdef __cplusplus
 }
