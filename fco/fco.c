@@ -42,7 +42,7 @@ struct _fco_sched {
 
 fco_sched* _fco_scheduler_create(int is_root)
 {
-    size_t tot_size = sizeof(fco_sched) + is_root ? sizeof(plugin_meta) : 0;
+    size_t tot_size = sizeof(fco_sched) + (is_root ? sizeof(plugin_meta) : 0);
     fco_sched* sched = malloc(tot_size);
     if ( !sched ) return NULL;
 
@@ -143,11 +143,11 @@ fco* _fco_create(fco_sched* root, fco_sched* owner, pfunc_co pf)
     if ( co->owner->head == co->owner->tail &&
          co->owner->head == NULL ) {
         co->owner->head = co->owner->tail = co;
-     } else {
-        co->prev = co->owner->tail;
-        co->owner->tail->next = co;
-        co->owner->tail = co;
-     }
+    } else {
+       co->prev = co->owner->tail;
+       co->owner->tail->next = co;
+       co->owner->tail = co;
+    }
 
     return co;
 }

@@ -21,6 +21,7 @@ LIBS = -lfhash \
 	   -lfev \
 	   -lfnet \
 	   -lfcache \
+	   -lfco \
 	   -lftu
 
 SRCS = main.c \
@@ -31,7 +32,8 @@ SRCS = main.c \
 	   t_timer.c \
 	   t_list.c \
 	   t_fev.c \
-	   t_fcache.c
+	   t_fcache.c \
+	   t_fco.c
 
 COPY_FILES = 
 	   
