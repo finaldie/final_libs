@@ -41,6 +41,7 @@ void* test(fco* co, void* arg)
     fco* co2 = fco_create(co, test2, FCO_TYPE_ALONE);
     FTU_ASSERT( co2 != NULL );
     fco_resume(co2, NULL);
+    printf("[in co1] end\n");
     return NULL;
 }
 
