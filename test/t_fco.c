@@ -56,6 +56,7 @@ void test_fco()
     FTU_ASSERT(*n1 == 10);
     int n2 = 100;
     fco_resume(co, &n2);
+    fco_scheduler_destroy(sched);
     printf("[in main] after resume2\n");
 
 }

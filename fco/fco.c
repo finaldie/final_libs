@@ -17,11 +17,12 @@ typedef struct plugin_node {
 typedef struct plugin_meta {
     plugin_node* before_chain_head;
     plugin_node* after_chain_head;
+    ucontext_t   main_ctx;
 } plugin_meta;
 
 struct _fco {
-    ucontext_t   prev_ctx;
     ucontext_t   ctx;
+    ucontext_t*  prev_ctx;
     fco_sched*   root;
     fco_sched*   owner;
     fco_sched*   container;
@@ -128,12 +129,13 @@ void _fco_call_plugin(fco* co, int type)
 }
 
 static
-fco* _fco_create(fco_sched* root, fco_sched* owner, pfunc_co pf)
+fco* _fco_create(fco_sched* root, fco_sched* owner, ucontext_t* prev_ctx, pfunc_co pf)
 {
     fco* co = malloc(sizeof(fco) + FCO_DEFAULT_STACK_SIZE);
     if ( !co ) return NULL;
 
     memset(co, 0, sizeof(fco) + FCO_DEFAULT_STACK_SIZE);
+    co->prev_ctx = prev_ctx;
     co->root = root;
     co->owner = owner;
     co->pf = pf;
@@ -176,10 +178,11 @@ void _fco_delete(fco* co)
     free(co);
 }
 
-fco* fco_main_create(fco_sched* owner, pfunc_co pf)
+fco* fco_main_create(fco_sched* root, pfunc_co pf)
 {
-    if ( !owner || !pf) return NULL;
-    return _fco_create(owner, owner, pf);
+    if ( !root || !pf) return NULL;
+    plugin_meta* meta = (plugin_meta*)root->plugin_data;
+    return _fco_create(root, root, &meta->main_ctx, pf);
 }
 
 fco* fco_create(fco* co, pfunc_co pf, int type)
@@ -188,12 +191,12 @@ fco* fco_create(fco* co, pfunc_co pf, int type)
     if ( (type < FCO_TYPE_ALONE) || (type > FCO_TYPE_CHILD) ) return NULL;
 
     if ( type == FCO_TYPE_ALONE ) {
-        return _fco_create(co->root, co->root, pf);
+        return _fco_create(co->root, co->root, &co->ctx, pf);
     } else {
         fco_sched* container = _fco_scheduler_create(0);
         if ( !container ) return NULL;
 
-        fco* subco = _fco_create(co->root, container, pf);
+        fco* subco = _fco_create(co->root, container, &co->ctx, pf);
         if ( !subco ) {
             fco_scheduler_destroy(container);
             return NULL;
@@ -225,21 +228,21 @@ void* fco_resume(fco* co, void* arg)
             co->status = FCO_STATUS_RUNNING;
             co->owner->arg = arg;
             _fco_call_plugin(co, 0);
-            swapcontext(&co->prev_ctx, &co->ctx);
+            swapcontext(co->prev_ctx, &co->ctx);
             _fco_call_plugin(co, 1);
             break;
         case FCO_STATUS_READY:
             getcontext(&co->ctx);
             co->ctx.uc_stack.ss_sp = co->stack;
             co->ctx.uc_stack.ss_size = FCO_DEFAULT_STACK_SIZE;
-            co->ctx.uc_link = &co->prev_ctx;
+            co->ctx.uc_link = co->prev_ctx;
             co->owner->arg = arg;
             co->status = FCO_STATUS_RUNNING;
             long lco = (long)co;
             makecontext(&co->ctx, (void (*)(void)) co_main, 2, (uint32_t)lco,
                         (uint32_t)(lco >> 32));
             _fco_call_plugin(co, 0);
-            swapcontext(&co->prev_ctx, &co->ctx);
+            swapcontext(co->prev_ctx, &co->ctx);
             _fco_call_plugin(co, 1);
             break;
         default:
@@ -264,7 +267,7 @@ void* fco_yield(fco* co, void* arg)
     co->status = FCO_STATUS_SUSPEND;
     co->owner->arg = arg;
     _fco_call_plugin(co, 0);
-    swapcontext(&co->ctx, &co->prev_ctx);
+    swapcontext(&co->ctx, co->prev_ctx);
     _fco_call_plugin(co, 1);
     return co->owner->arg;
 }
