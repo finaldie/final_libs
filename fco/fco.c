@@ -3,6 +3,7 @@
 #include <string.h>
 #include <ucontext.h>
 #include <stdint.h>
+#include <errno.h>
 
 #include "fco.h"
 
@@ -219,6 +220,15 @@ void co_main(uint32_t co_low32, uint32_t co_hi32)
     co->status = FCO_STATUS_DEAD;
 }
 
+static
+void _fco_do_swap(ucontext_t* save, ucontext_t* to)
+{
+    if ( swapcontext(save, to) ) {
+        fprintf(stderr, "[FATAL] swapcontext failed, detail:%s\n", strerror(errno));
+        exit(1);
+    }
+}
+
 void* fco_resume(fco* co, void* arg)
 {
     if ( !co ) return NULL;
@@ -228,11 +238,15 @@ void* fco_resume(fco* co, void* arg)
             co->status = FCO_STATUS_RUNNING;
             co->owner->arg = arg;
             _fco_call_plugin(co, 0);
-            swapcontext(co->prev_ctx, &co->ctx);
+            _fco_do_swap(co->prev_ctx, &co->ctx);
             _fco_call_plugin(co, 1);
             break;
         case FCO_STATUS_READY:
-            getcontext(&co->ctx);
+            if ( getcontext(&co->ctx) ) {
+                fprintf(stderr, "[FATAL] getcontext failed, detail:%s\n", strerror(errno));
+                exit(1);
+            }
+
             co->ctx.uc_stack.ss_sp = co->stack;
             co->ctx.uc_stack.ss_size = FCO_DEFAULT_STACK_SIZE;
             co->ctx.uc_link = co->prev_ctx;
@@ -242,7 +256,7 @@ void* fco_resume(fco* co, void* arg)
             makecontext(&co->ctx, (void (*)(void)) co_main, 2, (uint32_t)lco,
                         (uint32_t)(lco >> 32));
             _fco_call_plugin(co, 0);
-            swapcontext(co->prev_ctx, &co->ctx);
+            _fco_do_swap(co->prev_ctx, &co->ctx);
             _fco_call_plugin(co, 1);
             break;
         default:
@@ -267,7 +281,7 @@ void* fco_yield(fco* co, void* arg)
     co->status = FCO_STATUS_SUSPEND;
     co->owner->arg = arg;
     _fco_call_plugin(co, 0);
-    swapcontext(&co->ctx, co->prev_ctx);
+    _fco_do_swap(&co->ctx, co->prev_ctx);
     _fco_call_plugin(co, 1);
     return co->owner->arg;
 }
