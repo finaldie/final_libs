@@ -11,7 +11,7 @@
 
 typedef struct plugin_node {
     phook_cb cb;
-    void* arg;
+    void*    arg;
     struct plugin_node* next;
 } plugin_node;
 
@@ -35,11 +35,11 @@ struct _fco {
 };
 
 struct _fco_sched {
-    uint64_t     numco;
-    void*        arg;
-    struct _fco* head;
-    struct _fco* tail;
-    char         plugin_data[0];    // only root used
+    uint64_t       numco;
+    volatile void* arg;
+    struct _fco*   head;
+    struct _fco*   tail;
+    char           plugin_data[0];    // only root used
 };
 
 fco_sched* _fco_scheduler_create(int is_root)
@@ -86,13 +86,13 @@ plugin_node* _fco_create_plugin_node(phook_cb cb, void* arg)
     return node;
 }
 
-void fco_register_plugin(fco_sched* root, void* arg,
-                               phook_cb before, phook_cb after)
+void fco_register_plugin(fco_sched* root, void* arg, plugin_init init,
+                               phook_cb before_sw, phook_cb after_sw)
 {
     if ( !root ) return;
     plugin_meta* meta = (plugin_meta*)(root->plugin_data);
-    plugin_node* anode = _fco_create_plugin_node(after, arg);
-    plugin_node* bnode = _fco_create_plugin_node(before, arg);
+    plugin_node* anode = _fco_create_plugin_node(after_sw, arg);
+    plugin_node* bnode = _fco_create_plugin_node(before_sw, arg);
     if ( !anode || !bnode ) {
         free(anode);
         free(bnode);
@@ -104,6 +104,8 @@ void fco_register_plugin(fco_sched* root, void* arg,
 
     anode->next = meta->after_chain_head;
     meta->after_chain_head = anode;
+
+    init(root, arg);
 }
 
 static
@@ -213,7 +215,7 @@ void co_main(uint32_t co_low32, uint32_t co_hi32)
 {
     long long_co = (long)co_low32 | ((long)co_hi32 << 32);
     fco* co = (fco*)long_co;
-    void* arg = co->owner->arg;
+    void* arg = (void*)co->owner->arg;
 
     void* ret = co->pf(co, arg);
     co->owner->arg = ret;
@@ -264,7 +266,7 @@ void* fco_resume(fco* co, void* arg)
             return NULL;
     }
 
-    void* ret = co->owner->arg;
+    void* ret = (void*)co->owner->arg;
     if ( co->status == FCO_STATUS_DEAD ) {
         if ( co->container ) {
             fco_scheduler_destroy(co->container);
@@ -283,7 +285,7 @@ void* fco_yield(fco* co, void* arg)
     _fco_call_plugin(co, 0);
     _fco_do_swap(&co->ctx, co->prev_ctx);
     _fco_call_plugin(co, 1);
-    return co->owner->arg;
+    return (void*)co->owner->arg;
 }
 
 int fco_status(fco* co)
