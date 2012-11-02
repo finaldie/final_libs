@@ -40,6 +40,7 @@ void    net_set_recv_timeout(int fd, int timeout);
 void    net_set_send_timeout(int fd, int timeout);
 void    net_set_linger(int fd);
 void    net_set_reuse_addr(int fd);
+void    net_set_reuse_port(int fd);
 
 int     net_create_listen(char* ip, int port, int max_link, int isblock);
 int     net_accept(int listen_fd);
