@@ -29,6 +29,7 @@ typedef struct _fco fco;
 
 typedef void* (*pfunc_co)(fco*, void* arg);
 typedef void (*phook_cb)(fco*, void* arg);
+typedef void (*plugin_init)(fco_sched*, void* arg);
 
 fco_sched* fco_scheduler_create();
 void       fco_scheduler_destroy(fco_sched*);
@@ -38,8 +39,8 @@ fco*       fco_create(fco*, pfunc_co, int type);
 void*      fco_resume(fco*, void*);
 void*      fco_yield(fco*, void*);
 int        fco_status(fco*);
-void       fco_register_plugin(fco_sched*, void* arg,
-                               phook_cb before, phook_cb after);
+void       fco_register_plugin(fco_sched*, void* arg, plugin_init init,
+                               phook_cb before_sw, phook_cb after_sw);
 
 #ifdef __cplusplus
 }

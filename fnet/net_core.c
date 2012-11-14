@@ -50,6 +50,22 @@ void    net_set_reuse_addr(int fd)
     setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(int));
 }
 
+//set SO_REUSEPORT option(different fds can bind on the same address and same port)
+//both suit for TCP and UDP
+//to enable this, need also enable kernel support it
+//before start program, run the command as below:
+//sysctl net.core.allow_reuseport=1
+inline
+void    net_set_reuse_port(int fd)
+{
+#ifdef SO_REUSEPORT
+    int optval = 0x1;
+    if ( setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(int)) ) {
+        printf("setsocket SO_REUSEPORT failed, detail:%s\n", strerror(errno));
+    }
+#endif
+}
+
 inline
 void     net_set_nonblocking(int fd)
 {
@@ -108,6 +124,7 @@ int     net_create_listen(char* ip, int port, int max_link, int isblock)
     if (0 > listen_fd) return -1;
 
     net_set_reuse_addr(listen_fd);
+    net_set_reuse_port(listen_fd);
     net_set_linger(listen_fd);
 
     if ( !isblock )

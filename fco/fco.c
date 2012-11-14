@@ -3,6 +3,7 @@
 #include <string.h>
 #include <ucontext.h>
 #include <stdint.h>
+#include <errno.h>
 
 #include "fco.h"
 
@@ -10,7 +11,7 @@
 
 typedef struct plugin_node {
     phook_cb cb;
-    void* arg;
+    void*    arg;
     struct plugin_node* next;
 } plugin_node;
 
@@ -34,11 +35,11 @@ struct _fco {
 };
 
 struct _fco_sched {
-    uint64_t     numco;
-    void*        arg;
-    struct _fco* head;
-    struct _fco* tail;
-    char         plugin_data[0];    // only root used
+    uint64_t       numco;
+    volatile void* arg;
+    struct _fco*   head;
+    struct _fco*   tail;
+    char           plugin_data[0];    // only root used
 };
 
 fco_sched* _fco_scheduler_create(int is_root)
@@ -85,13 +86,13 @@ plugin_node* _fco_create_plugin_node(phook_cb cb, void* arg)
     return node;
 }
 
-void fco_register_plugin(fco_sched* root, void* arg,
-                               phook_cb before, phook_cb after)
+void fco_register_plugin(fco_sched* root, void* arg, plugin_init init,
+                               phook_cb before_sw, phook_cb after_sw)
 {
     if ( !root ) return;
     plugin_meta* meta = (plugin_meta*)(root->plugin_data);
-    plugin_node* anode = _fco_create_plugin_node(after, arg);
-    plugin_node* bnode = _fco_create_plugin_node(before, arg);
+    plugin_node* anode = _fco_create_plugin_node(after_sw, arg);
+    plugin_node* bnode = _fco_create_plugin_node(before_sw, arg);
     if ( !anode || !bnode ) {
         free(anode);
         free(bnode);
@@ -103,6 +104,8 @@ void fco_register_plugin(fco_sched* root, void* arg,
 
     anode->next = meta->after_chain_head;
     meta->after_chain_head = anode;
+
+    init(root, arg);
 }
 
 static
@@ -212,11 +215,20 @@ void co_main(uint32_t co_low32, uint32_t co_hi32)
 {
     long long_co = (long)co_low32 | ((long)co_hi32 << 32);
     fco* co = (fco*)long_co;
-    void* arg = co->owner->arg;
+    void* arg = (void*)co->owner->arg;
 
     void* ret = co->pf(co, arg);
     co->owner->arg = ret;
     co->status = FCO_STATUS_DEAD;
+}
+
+static
+void _fco_do_swap(ucontext_t* save, ucontext_t* to)
+{
+    if ( swapcontext(save, to) ) {
+        fprintf(stderr, "[FATAL] swapcontext failed, detail:%s\n", strerror(errno));
+        exit(1);
+    }
 }
 
 void* fco_resume(fco* co, void* arg)
@@ -228,11 +240,15 @@ void* fco_resume(fco* co, void* arg)
             co->status = FCO_STATUS_RUNNING;
             co->owner->arg = arg;
             _fco_call_plugin(co, 0);
-            swapcontext(co->prev_ctx, &co->ctx);
+            _fco_do_swap(co->prev_ctx, &co->ctx);
             _fco_call_plugin(co, 1);
             break;
         case FCO_STATUS_READY:
-            getcontext(&co->ctx);
+            if ( getcontext(&co->ctx) ) {
+                fprintf(stderr, "[FATAL] getcontext failed, detail:%s\n", strerror(errno));
+                exit(1);
+            }
+
             co->ctx.uc_stack.ss_sp = co->stack;
             co->ctx.uc_stack.ss_size = FCO_DEFAULT_STACK_SIZE;
             co->ctx.uc_link = co->prev_ctx;
@@ -242,7 +258,7 @@ void* fco_resume(fco* co, void* arg)
             makecontext(&co->ctx, (void (*)(void)) co_main, 2, (uint32_t)lco,
                         (uint32_t)(lco >> 32));
             _fco_call_plugin(co, 0);
-            swapcontext(co->prev_ctx, &co->ctx);
+            _fco_do_swap(co->prev_ctx, &co->ctx);
             _fco_call_plugin(co, 1);
             break;
         default:
@@ -250,7 +266,7 @@ void* fco_resume(fco* co, void* arg)
             return NULL;
     }
 
-    void* ret = co->owner->arg;
+    void* ret = (void*)co->owner->arg;
     if ( co->status == FCO_STATUS_DEAD ) {
         if ( co->container ) {
             fco_scheduler_destroy(co->container);
@@ -267,9 +283,9 @@ void* fco_yield(fco* co, void* arg)
     co->status = FCO_STATUS_SUSPEND;
     co->owner->arg = arg;
     _fco_call_plugin(co, 0);
-    swapcontext(&co->ctx, co->prev_ctx);
+    _fco_do_swap(&co->ctx, co->prev_ctx);
     _fco_call_plugin(co, 1);
-    return co->owner->arg;
+    return (void*)co->owner->arg;
 }
 
 int fco_status(fco* co)
