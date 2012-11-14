@@ -107,6 +107,7 @@ fev_state*    fev_create(int max_ev_size)
         fev->fevents[i].mask = FEV_NIL;
         fev->fevents[i].pread = NULL;
         fev->fevents[i].pwrite = NULL;
+        fev->fevents[i].fire_idx = 0;
     }
 
     return fev;

@@ -162,10 +162,10 @@ void _fco_delete(fco* co)
     if ( !co->prev ) { // node at head
         co->owner->head = co->next;
         if ( co->next ) co->owner->head->prev = NULL;
-    } else if ( !co->next ) { // node at middle
+    } else if ( !co->next ) { // node at tail
         co->owner->tail = co->prev;
         if ( co->prev ) co->owner->tail->next = NULL;
-    } else { // node at tail
+    } else { // node at middle
         co->prev->next = co->next;
         co->next->prev = co->prev;
     }
