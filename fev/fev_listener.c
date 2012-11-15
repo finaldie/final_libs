@@ -26,6 +26,7 @@
 struct fev_listen_info {
     int         fd;
     pfev_accept accept_cb;
+    void*       ud;
 };
 
 static void on_listen_port(fev_state* fev, int fd, int mask, void* arg)
@@ -37,12 +38,12 @@ static void on_listen_port(fev_state* fev, int fd, int mask, void* arg)
         if( new_fd < 0 ) return;
 
         if ( listen_info->accept_cb )
-            listen_info->accept_cb(fev, new_fd);
+            listen_info->accept_cb(fev, new_fd, listen_info->ud);
     }
 }
 
 fev_listen_info* fev_add_listener(fev_state* fev, 
-        int port, pfev_accept accept_cb)
+        int port, pfev_accept accept_cb, void* ud)
 {
     if( !fev ) return NULL;
 
@@ -57,6 +58,7 @@ fev_listen_info* fev_add_listener(fev_state* fev,
 
     listen_info->fd = listen_fd;
     listen_info->accept_cb = accept_cb;
+    listen_info->ud = ud;
 
     int ret = fev_reg_event(fev, listen_info->fd, FEV_READ, on_listen_port, NULL, listen_info);
     if( ret < 0 ) {

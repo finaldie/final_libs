@@ -143,7 +143,7 @@ static int start = 0;
 static int end = 0;
 static fev_listen_info* fli;
 
-static void test_accept(fev_state* fev, int fd)
+static void test_accept(fev_state* fev, int fd, void* ud)
 {
     FTU_ASSERT_EXPRESS(g_fev==fev);
     FTU_ASSERT_GREATER_THAN_INT(0, fd);
@@ -154,7 +154,7 @@ static void* test_listener(void* arg)
 {
     printf("test listener thread startup\n");
     g_fev = fev_create(1024);
-    fli = fev_add_listener(g_fev, 17759, test_accept);
+    fli = fev_add_listener(g_fev, 17759, test_accept, NULL);
     FTU_ASSERT_EXPRESS(fli!=NULL);
 
     printf("wait for poll\n");
@@ -236,7 +236,7 @@ static void buff_error(fev_state* fev, fev_buff* evbuff, void* arg)
     end = 1;
 }
 
-static void fake_accept(fev_state* fev, int fd)
+static void fake_accept(fev_state* fev, int fd, void* ud)
 {
     fev_buff* evbuff = fevbuff_new(fev, fd, buff_read, buff_error, NULL);
     FTU_ASSERT_EXPRESS(evbuff!=NULL);
@@ -263,7 +263,7 @@ static void fake_accept(fev_state* fev, int fd)
 static void* fake_listener(void* arg)
 {
     g_fev = fev_create(1024);
-    fli = fev_add_listener(g_fev, 17759, fake_accept);
+    fli = fev_add_listener(g_fev, 17759, fake_accept, NULL);
     FTU_ASSERT_EXPRESS(fli!=NULL);
 
     printf("wait for poll\n");
@@ -317,7 +317,7 @@ void test_fev_buff()
     fev_destroy(g_fev);
 }
 
-static void fake_accept1(fev_state* fev, int fd)
+static void fake_accept1(fev_state* fev, int fd, void* ud)
 {
     printf("accept sucessful\n");
     //close(fd);
@@ -335,7 +335,7 @@ static void test_for_conn(int fd, conn_arg_t arg)
 static void* fake_listener1(void* arg)
 {
     g_fev = fev_create(1024);
-    fli = fev_add_listener(g_fev, 17759, fake_accept1);
+    fli = fev_add_listener(g_fev, 17759, fake_accept1, NULL);
     FTU_ASSERT_EXPRESS(fli!=NULL);
 
     printf("wait for poll\n");

@@ -26,9 +26,9 @@ extern "C" {
 #include "fev.h"
 
 typedef struct fev_listen_info fev_listen_info;
-typedef void (*pfev_accept)(fev_state*, int fd);
+typedef void (*pfev_accept)(fev_state*, int fd, void* ud);
 
-fev_listen_info* fev_add_listener(fev_state*, int port, pfev_accept);
+fev_listen_info* fev_add_listener(fev_state*, int port, pfev_accept, void* ud);
 void fev_del_listener(fev_state*, fev_listen_info*);
 
 #ifdef __cplusplus
