@@ -8,7 +8,7 @@
 #include "conf.h"
 
 //return    0:normal 1:error
-int     ReadConfig(char* filename, char* pBuf, unsigned int len)
+int     ReadConfig(const char* filename, char* pBuf, unsigned int len)
 {
     int fd, bytes_read = 0;
 

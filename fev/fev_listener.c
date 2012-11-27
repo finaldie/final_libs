@@ -21,7 +21,7 @@
 #include "fev_listener.h"
 #include "net_core.h"
 
-#define FEV_LISTEN_QUEUE_NUM    100
+#define FEV_LISTEN_QUEUE_NUM 1024
 
 struct fev_listen_info {
     int         fd;
@@ -55,6 +55,28 @@ fev_listen_info* fev_add_listener(fev_state* fev,
         free(listen_info);
         return NULL;
     }
+
+    listen_info->fd = listen_fd;
+    listen_info->accept_cb = accept_cb;
+    listen_info->ud = ud;
+
+    int ret = fev_reg_event(fev, listen_info->fd, FEV_READ, on_listen_port, NULL, listen_info);
+    if( ret < 0 ) {
+        free(listen_info);
+        return NULL;
+    }
+
+    return listen_info;
+}
+
+fev_listen_info* fev_add_listener_byfd(fev_state* fev, int listen_fd,
+                                  pfev_accept accept_cb, void* ud)
+{
+    if( !fev ) return NULL;
+    if( listen_fd < 0 || !accept_cb) return NULL;
+
+    fev_listen_info* listen_info = (fev_listen_info*)malloc(sizeof(fev_listen_info)); 
+    if( !listen_info ) return NULL;
 
     listen_info->fd = listen_fd;
     listen_info->accept_cb = accept_cb;

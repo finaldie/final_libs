@@ -10,7 +10,7 @@ extern "C" {
 
 typedef void (*pf_on_read)(char* key, char* value);
 
-int GenConfig(char* filename, pf_on_read pfunc);
+int GenConfig(const char* filename, pf_on_read pfunc);
 
 #ifdef __cplusplus
 }

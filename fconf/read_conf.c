@@ -14,7 +14,7 @@ int IsTokenEqual( char pStr )
     return IsToken(pStr, '=');
 }
 
-int GenConfig(char* filename, pf_on_read pfunc)
+int GenConfig(const char* filename, pf_on_read pfunc)
 {
     int   read_sign = 0;
     int   read_len  = 0;
