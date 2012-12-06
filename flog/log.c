@@ -219,16 +219,14 @@ size_t _log_write_unlocked(log_file_t* lf, const char* log, size_t len)
 
     do {
         size_t real_len = fwrite_unlocked(log, 1, len, f);
-        if ( real_len > 0 ) {
-            remain_len -= real_len;
-        } else {
-            // encounter error
-            int err = ferror(lf->pf);
-            if ( err ) {
-                printError("encounter error when writing logging message");
-                return len - remain_len;
-            }
+        int err = ferror_unlocked(lf->pf);
+        if ( err ) {
+            printError("encounter error when writing logging message");
+            clearerr_unlocked(lf->pf);
+            return len - remain_len;
         }
+
+        remain_len -= real_len;
     } while( remain_len );
 
     return len - remain_len;
