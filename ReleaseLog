@@ -1,0 +1,4 @@
+0.3.3
+	* Issue 11: fix dead loop when no space on disk
+0.3.2
+	* Add new interface -- fev_add_listener_byfd
