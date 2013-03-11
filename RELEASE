@@ -1,4 +1,6 @@
+2013-03-12
+   * Add hash set/get/del for uint64 api
 2012-12-06 0.3.3
-	* Issue 11: fix dead loop when no space on disk
+   * Issue 11: fix dead loop when no space on disk
 2012-11-28 0.3.2
-	* Add new interface -- fev_add_listener_byfd
+   * Add new interface -- fev_add_listener_byfd

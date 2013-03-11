@@ -13,17 +13,20 @@
 #define MAX_INT_KEY_SIZE    22
 #define MAGIC_PRIME         16777619
 
-#define HASH_TYPE_INT       0
-#define HASH_TYPE_STR       1
+#pragma pack(1)
 
 typedef unsigned long       _ulong;
 
-#pragma pack(1)
+typedef enum {
+    HASH_TYPE_INT,
+    HASH_TYPE_STR,
+    HASH_TYPE_UINT64
+} htype;
 
-typedef char htype;
 typedef union{
-    char* str_key;
-    int   int_key;
+    char*    str_key;
+    int      int_key;
+    uint64_t uint64_key;
 }hkey;
 
 typedef struct
@@ -125,12 +128,14 @@ char*    make_key(const char* key)
 }
 
 static inline
-f_hash_node*    make_node(f_hash_node* pnode, int type, const void* key, void* value)
+f_hash_node*    make_node(f_hash_node* pnode, htype type, const void* key, void* value)
 {
-    pnode->type = (htype)type;
+    pnode->type = type;
 
     if( type == HASH_TYPE_INT )
         pnode->key.int_key = *(int*)key;
+    else if( type == HASH_TYPE_UINT64 )
+        pnode->key.uint64_key = *(uint64_t*)key;
     else
         pnode->key.str_key = make_key(key);
 
@@ -144,6 +149,13 @@ static inline
 char*    f_itoa(int v, char* retbuff)
 {
     sprintf(retbuff, "%x", v);
+    return retbuff;
+}
+
+static inline
+char*    f_64itoa(uint64_t v, char* retbuff)
+{
+    sprintf(retbuff, "%lx", v);
     return retbuff;
 }
 
@@ -221,6 +233,9 @@ f_hash_node*    hash_find(f_hash* phash, int h, int type, const void* key)
         if( type == HASH_TYPE_INT ){
             if( node->key.int_key != *(int*)key )
                 continue;
+        } else if( type == HASH_TYPE_UINT64 ) {
+            if( node->key.uint64_key != *(uint64_t*)key )
+                continue;
         } else{
             if( strcmp(key, node->key.str_key) != 0 )
                 continue;
@@ -293,6 +308,10 @@ void*    hash_del(f_hash* phash, int h, int type, const void* key)
     {
         if( type == HASH_TYPE_INT ){
             if( node->key.int_key == *(int*)key ){
+                find = 1;
+            }
+        } else if( type == HASH_TYPE_UINT64 ) {
+            if( node->key.uint64_key == *(uint64_t*)key ){
                 find = 1;
             }
         } else{
@@ -376,14 +395,6 @@ void    hash_set_int(f_hash* phash, int key, void* value)
 }
 
 inline
-void    hash_set_str(f_hash* phash, const char* key, void* value)
-{
-    int h = hash_str(phash, key);
-
-    hash_set(phash, h, HASH_TYPE_STR, key, value);
-}
-
-inline
 void*    hash_get_int(f_hash* phash, int key)
 {
     char new_key[MAX_INT_KEY_SIZE];
@@ -394,13 +405,6 @@ void*    hash_get_int(f_hash* phash, int key)
 }
 
 inline
-void*    hash_get_str(f_hash* phash, const char* key)
-{
-    int h = hash_str(phash, key);
-
-    return hash_get(phash, h, HASH_TYPE_STR, key);
-}
-
 void*    hash_del_int(f_hash* phash, int key)
 {
     char new_key[MAX_INT_KEY_SIZE];
@@ -410,10 +414,57 @@ void*    hash_del_int(f_hash* phash, int key)
     return hash_del(phash, h, HASH_TYPE_INT, &key);
 }
 
+inline
+void    hash_set_str(f_hash* phash, const char* key, void* value)
+{
+    int h = hash_str(phash, key);
+
+    hash_set(phash, h, HASH_TYPE_STR, key, value);
+}
+
+inline
+void*    hash_get_str(f_hash* phash, const char* key)
+{
+    int h = hash_str(phash, key);
+
+    return hash_get(phash, h, HASH_TYPE_STR, key);
+}
+
+inline
 void*    hash_del_str(f_hash* phash, const char* key)
 {
     int h = hash_str(phash, key);
     return hash_del(phash, h, HASH_TYPE_STR, key);
+}
+
+inline
+void    hash_set_uint64(f_hash* phash, uint64_t key, void* value)
+{
+    char new_key[MAX_INT_KEY_SIZE];
+    f_64itoa(key, new_key);
+    int h = hash_str(phash, new_key);
+
+    hash_set(phash, h, HASH_TYPE_UINT64, &key, value);
+}
+
+inline
+void*    hash_get_uint64(f_hash* phash, uint64_t key)
+{
+    char new_key[MAX_INT_KEY_SIZE];
+    f_64itoa(key, new_key);
+    int h = hash_str(phash, new_key);
+
+    return hash_get(phash, h, HASH_TYPE_UINT64, &key);
+}
+
+inline
+void*    hash_del_uint64(f_hash* phash, uint64_t key)
+{
+    char new_key[MAX_INT_KEY_SIZE];
+    f_64itoa(key, new_key);
+    int h = hash_str(phash, new_key);
+
+    return hash_del(phash, h, HASH_TYPE_UINT64, &key);
 }
 
 hiter hash_iter(f_hash* phash)

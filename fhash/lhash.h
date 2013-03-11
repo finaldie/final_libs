@@ -8,6 +8,8 @@
 extern "C" {
 #endif
 
+#include <stdint.h>
+
 typedef struct _f_hash f_hash;
 
 typedef struct {
@@ -23,12 +25,15 @@ f_hash* hash_create(int size);
 void    hash_delete(f_hash*);
 
 void    hash_set_int(f_hash*, int key, void* value);
-void    hash_set_str(f_hash*, const char* key, void* value);
-
 void*   hash_get_int(f_hash*, int key);
-void*   hash_get_str(f_hash*, const char* key);
-
 void*   hash_del_int(f_hash*, int key);
+
+void    hash_set_uint64(f_hash*, uint64_t key, void* value);
+void*   hash_get_uint64(f_hash*, uint64_t key);
+void*   hash_del_uint64(f_hash*, uint64_t key);
+
+void    hash_set_str(f_hash*, const char* key, void* value);
+void*   hash_get_str(f_hash*, const char* key);
 void*   hash_del_str(f_hash*, const char* key);
 
 hiter   hash_iter(f_hash*);
