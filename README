@@ -18,6 +18,7 @@ Library contains:
     12. unit test framework
     13. fcache ( a simple cache with LRU )
     14. fco ( C coroutine support )
+    15. fpcap convertion lib
 
 [INSTALL]:
     1. make
