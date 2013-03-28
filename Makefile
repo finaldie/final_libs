@@ -14,12 +14,15 @@ TEST_UNIT = ftu
 TEST = test
 CACHE = fcache
 COROUTINE = fco
+PCAP_CONV = fpcap_conv
 
 all:
 	( test -d $(LIST) && cd $(LIST) && make )
 	( test -d $(LIST) && cd $(LIST) && make install )
 	( test -d $(HASH) && cd $(HASH) && make )
 	( test -d $(HASH) && cd $(HASH) && make install )
+	( test -d $(PCAP_CONV) && cd $(PCAP_CONV) && make )
+	( test -d $(PCAP_CONV) && cd $(PCAP_CONV) && make install )
 	( test -d $(CACHE) && cd $(CACHE) && make )
 	( test -d $(CACHE) && cd $(CACHE) && make install )
 	( test -d $(COROUTINE) && cd $(COROUTINE) && make )
@@ -52,6 +55,7 @@ run_test:
 clean:
 	-( test -d $(LIST) && cd $(LIST) && make clean )
 	-( test -d $(HASH) && cd $(HASH) && make clean )
+	-( test -d $(PCAP_CONV) && cd $(PCAP_CONV) && make clean )
 	-( test -d $(CACHE) && cd $(CACHE) && make clean )
 	-( test -d $(COROUTINE) && cd $(COROUTINE) && make clean )
 	-( test -d $(LOCK) && cd $(LOCK) && make clean )
