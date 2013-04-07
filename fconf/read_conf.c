@@ -6,8 +6,8 @@
 #include "read_conf.h"
 
 #define CONF_BUFF_LEN (1024 * 1024)
-#define READ_LINE_LEN 128
-#define READ_WORD_LEN 32
+#define READ_LINE_LEN 1024
+#define READ_WORD_LEN 512
 
 int IsTokenEqual( char pStr )
 {
@@ -40,7 +40,8 @@ int GenConfig(const char* filename, pf_on_read pfunc)
 
             if( lp > 0 ) {
                 if ( IsTokenEqual(read_word_right[0]) ) {
-                    lp = ReadWord(read_line, read_word_right, lp);
+                    //lp = ReadWord(read_line, read_word_right, lp);
+                    lp = ReadLine(read_line, lp, read_word_right);
 
                     if ( lp > 0 )
                         pfunc(read_word_left, read_word_right);

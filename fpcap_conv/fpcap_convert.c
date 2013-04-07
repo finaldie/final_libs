@@ -91,6 +91,15 @@ int fsession_add(f_hash* hash_tbl, session_t* session)
     return 0;
 }
 
+static
+void fill_app_data(fapp_data_t* app_data, struct timeval* ts,
+                   char* data, int data_len)
+{
+    app_data->ts = *ts;
+    app_data->data = data;
+    app_data->len = data_len;
+}
+
 int filter_tcpip_pkg(fopt_action_t* action, const struct pcap_pkthdr* pkg_header, const char* pkg_data)
 {
     struct ether_header* eptr;
@@ -101,6 +110,7 @@ int filter_tcpip_pkg(fopt_action_t* action, const struct pcap_pkthdr* pkg_header
     int data_len = 0;
     uint32_t caplen = (uint32_t)pkg_header->caplen;
     fconv_handler handler = action->iaction->handler;
+    uint32_t serving_type = action->iaction->type;
     void* ud = action->iaction->ud;
     f_hash* phash = action->phash;
 
@@ -111,6 +121,7 @@ int filter_tcpip_pkg(fopt_action_t* action, const struct pcap_pkthdr* pkg_header
     // validate package type
     eptr = (struct ether_header *)pkg_data;
     if( ntohs(eptr->ether_type) != ETHERTYPE_IP ) {
+        printf("!!!pkg dropped, pkg type=%d,%d\n", ntohs(eptr->ether_type), eptr->ether_type);
         return 2;
     }
 
@@ -134,16 +145,23 @@ int filter_tcpip_pkg(fopt_action_t* action, const struct pcap_pkthdr* pkg_header
     data_len   = ntohs(ipptr->tot_len) - iphdr_len - tcphdr_len;
     data       = (char*)tcpptr + tcphdr_len;
 
-    uint64_t session_id = fsession_key(ipptr->saddr, tcpptr->source);
+    uint64_t session_id = 0;
+    if( serving_type == FPCAP_CONV_CLIENT )
+        session_id = fsession_key(ipptr->saddr, tcpptr->source);
+    else
+        session_id = fsession_key(ipptr->daddr, tcpptr->dest);
+
     // create session
     if( tcpptr->syn ) {
         session_t* session = fsession_create(session_id);
         if( fsession_add(phash, session) ) {
-            printf("must be something wrong, the session(%" PRIu64 ") already exist\n", session_id);
+            debug_printf("must be something wrong, the session(%" PRIu64 ") already exist\n", session_id);
             return 6;
         }
 
-        handler(FSESSION_CREATE, session, NULL, 0, ud);
+        fapp_data_t app_data;
+        fill_app_data(&app_data, (struct timeval*)&pkg_header->ts, NULL, 0);
+        handler(FSESSION_CREATE, session, &app_data, ud);
     } else if( tcpptr->fin || tcpptr->rst ) {
         // collect one session complete
         session_t* session = fsession_find(phash, session_id);
@@ -152,21 +170,25 @@ int filter_tcpip_pkg(fopt_action_t* action, const struct pcap_pkthdr* pkg_header
         }
 
         // push the session data to output list
-        handler(FSESSION_DELETE, session, NULL, 0, ud);
+        fapp_data_t app_data;
+        fill_app_data(&app_data, (struct timeval*)&pkg_header->ts, NULL, 0);
+        handler(FSESSION_DELETE, session, &app_data, ud);
         fsession_del(phash, session_id);
     } else {
         session_t* session = fsession_find(phash, session_id);
         if( !session ) {
-            printf("we dont know this pkg where come from\n");
+            debug_printf("we dont know this pkg where come from\n");
             return 8;
         }
 
         if( data_len <= 0 ) {
-            printf("maybe this is only a ack pkg, ignore it\n");
+            debug_printf("maybe this is only a ack pkg, ignore it\n");
             return 9;
         }
 
-        handler(FSESSION_PROCESS, session, data, data_len, ud);
+        fapp_data_t app_data;
+        fill_app_data(&app_data, (struct timeval*)&pkg_header->ts, data, data_len);
+        handler(FSESSION_PROCESS, session, &app_data, ud);
     }
 
     return 0;
@@ -177,6 +199,29 @@ void dump_cb(u_char* ud, const struct pcap_pkthdr* pkg_header, const u_char* pkg
 {
     fopt_action_t* opt_action = (fopt_action_t*)ud;
     filter_tcpip_pkg(opt_action, pkg_header, (char*)pkg_data);
+}
+
+static
+void fpcap_session_foreach(fopt_action_t* action)
+{
+    int loop_handler(void* data)
+    {
+        session_t* session = (session_t*)data;
+        int ret = action->iaction->cleanup(session, action->iaction->ud);
+        fsession_del(action->phash, session->id);
+        return ret;
+    }
+
+    int final_clean(void* data)
+    {
+        session_t* session = (session_t*)data;
+        fsession_del(action->phash, session->id);
+        return 0;
+    }
+
+    f_hash* phash = action->phash;
+    hash_foreach(phash, loop_handler);
+    hash_foreach(phash, final_clean);
 }
 
 int fpcap_convert(convert_action_t action)
@@ -206,6 +251,11 @@ int fpcap_convert(convert_action_t action)
     if( st != 0 ) {
         printf("pcap_loop error\n");
         return 4;
+    }
+
+    // cleanup
+    if( action.cleanup ) {
+        fpcap_session_foreach(&opt_action);
     }
 
     hash_delete(opt_action.phash);

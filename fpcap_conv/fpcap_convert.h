@@ -29,6 +29,12 @@ typedef enum {
     FPCAP_CONV_SERVER = 0x2
 } FPCAP_CONV_TYPE;
 
+typedef struct {
+    struct timeval ts;
+    char*  data;
+    int    len;
+} fapp_data_t;
+
 typedef struct session_t {
     uint64_t id;
     void*    ud; // this ud for better to save some data, but user take the free responsibility
@@ -40,13 +46,15 @@ typedef enum {
     FSESSION_PROCESS
 } fsession_event;
 
-typedef void (*fconv_handler)(fsession_event, session_t*, const char* data, int len, void* ud);
+typedef void (*fconv_handler)(fsession_event, session_t*, fapp_data_t*, void* ud);
+typedef int (*fsession_loop)(session_t*, void* ud);
 
 typedef struct convert_action_t {
-    char*           pcap_filename;
-    char*           filter_rules;
+    const char*     pcap_filename;
+    const char*     filter_rules;
     uint32_t        type; //convertion type:CLIENT, SERVER, CLIENT|SERVER
     fconv_handler   handler;
+    fsession_loop   cleanup;
     void*           ud;
 } convert_action_t;
 
