@@ -228,20 +228,24 @@ int fpcap_convert(convert_action_t action)
 {
     char errbuf[PCAP_ERRBUF_SIZE];
     pcap_t* p = pcap_open_offline(action.pcap_filename, errbuf);
+    int ret = 0;
     if( !p ) {
         printf("cannot open offline mode:%s\n", errbuf);
-        return 1;
+        ret = 1;
+        goto cleanup;
     }
 
     struct bpf_program filter;
-    if( pcap_compile(p, &filter, action.filter_rules, 1, 0) ) {
+    if( pcap_compile(p, &filter, (char*)action.filter_rules, 1, 0) ) {
         printf("pcap_compile error:%s\n", pcap_geterr(p));
-        return 2;
+        ret = 2;
+        goto cleanup;
     }
 
     if( pcap_setfilter(p, &filter) ) {
         printf("pcap_setfilter error:%s\n", pcap_geterr(p));
-        return 3;
+        ret = 3;
+        goto cleanup;
     }
 
     fopt_action_t opt_action;
@@ -249,10 +253,12 @@ int fpcap_convert(convert_action_t action)
     opt_action.phash = hash_create(SESSION_HASH_SIZE);
     int st = pcap_loop(p, 0, dump_cb, (u_char*)&opt_action);
     if( st != 0 ) {
-        printf("pcap_loop error\n");
-        return 4;
+        printf("pcap_loop error:%s\n", pcap_geterr(p));
+        ret = 4;
+        goto cleanup;
     }
 
+cleanup:
     // cleanup
     if( action.cleanup ) {
         fpcap_session_foreach(&opt_action);
@@ -260,5 +266,5 @@ int fpcap_convert(convert_action_t action)
 
     hash_delete(opt_action.phash);
     pcap_close(p);
-    return 0;
+    return ret;
 }
