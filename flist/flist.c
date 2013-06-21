@@ -87,6 +87,49 @@ void*   flist_foreach(pl_mgr pmgr, plist_call_back pfunc)
 
     return NULL;
 }
+void* flist_sort(pl_mgr pmgr, compare pfunc)
+{
+	if ( !pfunc ) return NULL;
+	if ( flist_isempty(pmgr) ) return NULL;
+
+	pnode node_i = LIST_HEAD(pmgr)->next;
+	pnode node_j,temp;
+	while(node_i)
+	{
+		node_j = node_i->pre;
+		while(node_j->pre)
+		{
+			if(pfunc(node_j->data, node_i->data) <= 0)
+				break;
+			node_j = node_j->pre;
+		}
+		if(node_j != node_i->pre)
+		{
+			//delete node_i
+			temp = node_i;
+			temp->pre->next = temp->next;
+			if(temp->next)
+				temp->next->pre = temp->pre;
+
+			//insert temp after node_j
+			temp->next = node_j->next;
+			temp->pre = node_j;
+			node_j->next = temp;
+			temp->next->pre = temp;
+		}
+		node_i = node_i->next;
+	}
+
+	//change tail ptr
+	node_i = LIST_HEAD(pmgr)->next;
+	while(node_i->next)
+	{
+		node_i = node_i->next;
+	}
+	pmgr->tail = node_i;
+	return NULL;
+}
+
 
 inline
 liter   flist_iter(pl_mgr pmgr)
