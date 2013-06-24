@@ -33,7 +33,7 @@ void*   flist_head(pl_mgr);
 int     flist_isempty(pl_mgr);
 
 void*   flist_foreach(pl_mgr, plist_call_back);
-void* flist_sort(pl_mgr, compare );
+int flist_sort(pl_mgr, compare );
 liter   flist_iter(pl_mgr);
 void*   flist_each(liter*);
 

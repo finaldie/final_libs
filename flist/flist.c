@@ -87,10 +87,10 @@ void*   flist_foreach(pl_mgr pmgr, plist_call_back pfunc)
 
     return NULL;
 }
-void* flist_sort(pl_mgr pmgr, compare pfunc)
+int flist_sort(pl_mgr pmgr, compare pfunc)
 {
-	if ( !pfunc ) return NULL;
-	if ( flist_isempty(pmgr) ) return NULL;
+	if ( !pfunc ) return 1;
+	if ( flist_isempty(pmgr) ) return 1;
 
 	pnode node_i = LIST_HEAD(pmgr)->next;
 	pnode node_j,temp;
@@ -127,7 +127,7 @@ void* flist_sort(pl_mgr pmgr, compare pfunc)
 		node_i = node_i->next;
 	}
 	pmgr->tail = node_i;
-	return NULL;
+	return 0;
 }
 
 
