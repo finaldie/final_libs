@@ -33,6 +33,8 @@ typedef struct {
     struct timeval ts;
     char*  data;
     int    len;
+    uint32_t ack;
+    uint32_t seq;
 } fapp_data_t;
 
 typedef struct session_t {
