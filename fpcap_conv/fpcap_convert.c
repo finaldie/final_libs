@@ -93,11 +93,13 @@ int fsession_add(f_hash* hash_tbl, session_t* session)
 
 static
 void fill_app_data(fapp_data_t* app_data, struct timeval* ts,
-                   char* data, int data_len)
+                   char* data, int data_len, uint32_t ack, uint32_t seq)
 {
     app_data->ts = *ts;
     app_data->data = data;
     app_data->len = data_len;
+    app_data->ack = ack;
+    app_data->seq = seq;
 }
 
 int filter_tcpip_pkg(fopt_action_t* action, const struct pcap_pkthdr* pkg_header, const char* pkg_data)
@@ -160,7 +162,7 @@ int filter_tcpip_pkg(fopt_action_t* action, const struct pcap_pkthdr* pkg_header
         }
 
         fapp_data_t app_data;
-        fill_app_data(&app_data, (struct timeval*)&pkg_header->ts, NULL, 0);
+        fill_app_data(&app_data, (struct timeval*)&pkg_header->ts, NULL, 0, ntohl(tcpptr->ack_seq), ntohl(tcpptr->seq));
         handler(FSESSION_CREATE, session, &app_data, ud);
     } else if( tcpptr->fin || tcpptr->rst ) {
         // collect one session complete
@@ -171,7 +173,7 @@ int filter_tcpip_pkg(fopt_action_t* action, const struct pcap_pkthdr* pkg_header
 
         // push the session data to output list
         fapp_data_t app_data;
-        fill_app_data(&app_data, (struct timeval*)&pkg_header->ts, NULL, 0);
+        fill_app_data(&app_data, (struct timeval*)&pkg_header->ts, NULL, 0, ntohl(tcpptr->ack_seq), ntohl(tcpptr->seq));
         handler(FSESSION_DELETE, session, &app_data, ud);
         fsession_del(phash, session_id);
     } else {
@@ -187,7 +189,7 @@ int filter_tcpip_pkg(fopt_action_t* action, const struct pcap_pkthdr* pkg_header
         }
 
         fapp_data_t app_data;
-        fill_app_data(&app_data, (struct timeval*)&pkg_header->ts, data, data_len);
+        fill_app_data(&app_data, (struct timeval*)&pkg_header->ts, data, data_len, ntohl(tcpptr->ack_seq), ntohl(tcpptr->seq));
         handler(FSESSION_PROCESS, session, &app_data, ud);
     }
 

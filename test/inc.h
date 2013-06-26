@@ -31,6 +31,7 @@ void    test_mbuf();
 void    test_mbuf1();
 void    test_timer();
 void    test_list();
+void	test_list_sort();
 void    test_fev();
 void    test_fev_listener();
 void    test_fev_buff();
