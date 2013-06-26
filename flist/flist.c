@@ -87,24 +87,30 @@ void*   flist_foreach(pl_mgr pmgr, plist_call_back pfunc)
 
     return NULL;
 }
+//insertion sort, sort list in increasing order
 int flist_sort(pl_mgr pmgr, compare pfunc)
 {
 	if ( !pfunc ) return 1;
 	if ( flist_isempty(pmgr) ) return 1;
-
-	pnode node_i = LIST_HEAD(pmgr)->next;
+	//init node_i at 2nd data struct
+	pnode node_i = LIST_HEAD(pmgr)->next->next;
 	pnode node_j,temp;
+	//insert node_i into sorted list each time
 	while(node_i)
 	{
 		node_j = node_i->pre;
-		while(node_j->pre)
+		while(node_j != LIST_HEAD(pmgr))
 		{
+			//find 1st position which is le node_i
 			if(pfunc(node_j->data, node_i->data) <= 0)
 				break;
 			node_j = node_j->pre;
 		}
 		if(node_j != node_i->pre)
 		{
+			//update tail ptr before delete node_i
+			if(node_i == LIST_TAIL(pmgr))
+				LIST_TAIL(pmgr) = node_i->pre;
 			//delete node_i
 			temp = node_i;
 			temp->pre->next = temp->next;
@@ -119,14 +125,6 @@ int flist_sort(pl_mgr pmgr, compare pfunc)
 		}
 		node_i = node_i->next;
 	}
-
-	//change tail ptr
-	node_i = LIST_HEAD(pmgr)->next;
-	while(node_i->next)
-	{
-		node_i = node_i->next;
-	}
-	pmgr->tail = node_i;
 	return 0;
 }
 
