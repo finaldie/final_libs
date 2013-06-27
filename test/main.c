@@ -10,6 +10,7 @@
 
 void register_module(){
     tu_register_module(test_list,         "for testing flist");
+    tu_register_module(test_list_sort,    "for testing flist_sort method");
     tu_register_module(test_hash,         "for testing fhash set and get");
     tu_register_module(test_hash_del,     "for testing hash_del method");
     tu_register_module(test_mem,          "for testing mempool alloc and free");

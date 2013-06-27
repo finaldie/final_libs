@@ -22,6 +22,8 @@ typedef struct list_mgr lmgr, *pl_mgr;
 // return 0 continue iter.. else break out
 typedef int (*plist_call_back)(void* data);
 
+typedef int (*compare)(void* a, void* b);
+
 pl_mgr  flist_create();
 void    flist_delete(pl_mgr);
 
@@ -31,6 +33,7 @@ void*   flist_head(pl_mgr);
 int     flist_isempty(pl_mgr);
 
 void*   flist_foreach(pl_mgr, plist_call_back);
+int flist_sort(pl_mgr, compare );
 liter   flist_iter(pl_mgr);
 void*   flist_each(liter*);
 
