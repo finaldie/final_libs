@@ -1,3 +1,6 @@
+2013-06-27 0.3.7
+   * Add flist_sort api
+   * Enhance the pcap lib, which expose tcp syn & ack flags
 2013-03-28
    * Add pcap convertion feature
 2013-03-12
