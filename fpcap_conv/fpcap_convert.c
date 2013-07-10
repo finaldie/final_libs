@@ -233,8 +233,7 @@ int fpcap_convert(convert_action_t action)
     int ret = 0;
     if( !p ) {
         printf("cannot open offline mode:%s\n", errbuf);
-        ret = 1;
-        goto cleanup;
+        return 1;
     }
 
     struct bpf_program filter;
