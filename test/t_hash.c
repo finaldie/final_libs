@@ -8,8 +8,8 @@
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 
-#include "tu_inc.h"
-#include "lhash.h"
+#include "ftu_inc.h"
+#include "fhash.h"
 #include "inc.h"
 
 //TODO...

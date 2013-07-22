@@ -5,7 +5,7 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include "conf.h"
+#include "fconf.h"
 
 //return    0:normal 1:error
 int     ReadConfig(const char* filename, char* pBuf, unsigned int len)

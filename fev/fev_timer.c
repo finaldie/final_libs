@@ -20,8 +20,8 @@
 #include <unistd.h>
 #include <stdint.h>
 #include <errno.h>
+#include "ftimer.h"
 #include "fev_timer.h"
-#include "ltimer.h"
 
 struct fev_timer {
     int fd;

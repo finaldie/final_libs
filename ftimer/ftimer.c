@@ -7,7 +7,7 @@
 #include <string.h>
 #include <pthread.h>
 
-#include "ltimer.h"
+#include "ftimer.h"
 
 //TODO...
 static pthread_once_t init_catch = PTHREAD_ONCE_INIT;

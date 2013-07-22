@@ -31,7 +31,7 @@
 
 #include <pcap.h>
 
-#include "lhash.h"
+#include "fhash.h"
 #include "fpcap_convert.h"
 
 #ifdef DEBUG

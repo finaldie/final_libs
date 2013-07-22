@@ -3,7 +3,7 @@
 #include <string.h>
 #include <assert.h>
 #include <time.h>
-#include <sys/epoll.h>
+#include <sys/time.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <arpa/inet.h>
@@ -14,7 +14,7 @@
 #include <errno.h>
 #include <fcntl.h> 
 
-#include "net_core.h"
+#include "fnet_core.h"
 
 #define STATIC_IP_LEN    32    // compatible ipv6
 
@@ -24,11 +24,11 @@ void     net_set_keepalive(int fd, int idle_time, int interval, int count)
     int s = -1;
     s = setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &on_keep, sizeof(on_keep));
     assert(s==0);
-    s = setsockopt(fd, SOL_TCP, TCP_KEEPIDLE, &idle_time , sizeof(idle_time));
+    s = setsockopt(fd, IPPROTO_TCP, TCP_KEEPIDLE, &idle_time , sizeof(idle_time));
     assert(s==0);
-    s = setsockopt(fd, SOL_TCP, TCP_KEEPINTVL, &interval, sizeof(interval));
+    s = setsockopt(fd, IPPROTO_TCP, TCP_KEEPINTVL, &interval, sizeof(interval));
     assert(s==0);
-    s = setsockopt(fd, SOL_TCP, TCP_KEEPCNT, &count, sizeof(count));
+    s = setsockopt(fd, IPPROTO_TCP, TCP_KEEPCNT, &count, sizeof(count));
     assert(s==0);
 }
 
@@ -99,7 +99,7 @@ void    net_set_recv_timeout(int fd, int timeout)
 
 void    net_set_send_timeout(int fd, int timeout)
 {
-    struct timeval timeo = {2, 0};
+    struct timeval timeo = {2, 0L};
     socklen_t len = sizeof(timeo);
     timeo.tv_sec = timeout;
     int s = setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &timeo, len);
@@ -218,12 +218,12 @@ int     net_recv(int fd, char* data, int len)
     } while (1);
 }
 
-uint    get_lowdata(uint data)
+unsigned int get_lowdata(unsigned int data)
 {
     return data & 0xFFFF;
 }
 
-uint    get_highdata(uint data)
+unsigned int get_highdata(unsigned int data)
 {
     return ((data & 0xFFFF0000) >> 16) & 0xFFFF;
 }

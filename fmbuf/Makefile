@@ -2,19 +2,19 @@
 
 TARGET = libfmbuf.a
 
-INCLUDE_FILES = mbuf.h
+INCLUDE_FILES = fmbuf.h
 
 AR = ar -rcs
 INC = -I../common/
 LL = 
 LIBS = 
 
-SRCS = mbuf.c
+SRCS = fmbuf.c
 DEPS = $(patsubst %.c,%.d,$(SRCS))
 OBJS = $(patsubst %.c,%.o,$(SRCS))
 
 CFLAGS += $(EXT_FLAGS)
-CFLAGS += -Wall -Werror -g -O2 -std=c99
+CFLAGS += -std=c99
 
 all:$(TARGET)
 $(TARGET):$(OBJS) $(DEPS)

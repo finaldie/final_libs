@@ -36,7 +36,7 @@ DEPS = $(patsubst %.c,%.d,$(SRCS))
 OBJS = $(patsubst %.c,%.o,$(SRCS))
 
 CFLAGS += $(EXT_FLAGS)
-CFLAGS += -Wall -Werror -g
+CFLAGS +=
 
 all:$(TARGET)
 $(TARGET):$(OBJS) $(DEPS)

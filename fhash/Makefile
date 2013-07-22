@@ -2,19 +2,19 @@
 
 TARGET = libfhash.a
 
-INCLUDE_FILES = lhash.h
+INCLUDE_FILES = fhash.h
 
 AR = ar -rcs
 INC = 
 LL = 
 LIBS = 
 
-SRCS = lhash.c
+SRCS = fhash.c
 DEPS = $(patsubst %.c,%.d,$(SRCS))
 OBJS = $(patsubst %.c,%.o,$(SRCS))
 
 CFLAGS += $(EXT_FLAGS)
-CFLAGS += -Wall -Werror -g -O2 -std=c99
+CFLAGS += -std=c99
 
 all:$(TARGET)
 $(TARGET):$(OBJS) $(DEPS)

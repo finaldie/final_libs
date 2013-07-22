@@ -14,7 +14,7 @@ DEPS = $(patsubst %.c,%.d,$(SRCS))
 OBJS = $(patsubst %.c,%.o,$(SRCS))
 
 CFLAGS += $(EXT_FLAGS)
-CFLAGS += -Wall -Werror -g -O2
+CFLAGS += 
 
 all:$(TARGET)
 $(TARGET):$(OBJS) $(DEPS)
@@ -23,7 +23,7 @@ $(TARGET):$(OBJS) $(DEPS)
 %.d:%.c
 	$(CC) -MM $< > $@
 %.o:%.c
-	$(CC) $(CFLAGS) $(EXT_FLAGS) $(INC) -c $< 
+	$(CC) $(CFLAGS) $(INC) -c $< 
 
 install:
 	-(test -d $(INSTALL_PATH) || mkdir $(INSTALL_PATH) )

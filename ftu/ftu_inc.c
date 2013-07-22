@@ -6,8 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "tu_inc.h"
 #include "flist.h"
+#include "ftu_inc.h"
 
 //TODO...
 
@@ -24,7 +24,7 @@ typedef struct {
 }ftest_case;
 
 void    get_cur_time(my_time* time){
-    gettimeofday(&time->tv, &time->tz);
+    gettimeofday(&time->tv, NULL);
     //printf("curr_time:%ds %dus\n", (int)time->tv.tv_sec, (int)time->tv.tv_usec);
 }
 

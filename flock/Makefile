@@ -2,20 +2,19 @@
 
 TARGET = libflock.a
 
-INCLUDE_FILES = lmutex.h \
-	lcas.h
+INCLUDE_FILES = flock.h
 
 AR = ar -rcs
 INC = 
 LL = 
 LIBS = 
 
-SRCS = lmutex.c
+SRCS = flock.c
 DEPS = $(patsubst %.c,%.d,$(SRCS))
 OBJS = $(patsubst %.c,%.o,$(SRCS))
 
 CFLAGS += $(EXT_FLAGS)
-CFLAGS += -Wall -Werror -g -O2
+CFLAGS +=
 
 all:$(TARGET)
 $(TARGET):$(OBJS) $(DEPS)

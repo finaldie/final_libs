@@ -2,10 +2,10 @@
 #include <stdlib.h>
 #include <pthread.h>
 
-#include "thread_pool.h"
-#include "lmutex.h"
-#include "mbuf.h"
-#include "lhash.h"
+#include "flock.h"
+#include "fmbuf.h"
+#include "fhash.h"
+#include "fthread_pool.h"
 
 #define TH_QUEUE_BUF_SIZE (1024 * 10 * sizeof(th_msg_t))
 #define TH_POOL_HASH_SIZE 10

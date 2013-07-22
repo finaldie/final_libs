@@ -2,19 +2,19 @@
 
 TARGET = libftu.a
 
-INCLUDE_FILES = tu_inc.h
+INCLUDE_FILES = ftu_inc.h
 
 AR = ar -rcs
 INC = -I$(INSTALL_PATH)/$(INCLUDE_PATH)
 LL = 
 LIBS = 
 
-SRCS = tu_inc.c
+SRCS = ftu_inc.c
 DEPS = $(patsubst %.c,%.d,$(SRCS))
 OBJS = $(patsubst %.c,%.o,$(SRCS))
 
 CFLAGS += $(EXT_FLAGS)
-CFLAGS += -Wall -Werror -g -O2
+CFLAGS +=
 
 all:$(TARGET)
 $(TARGET):$(OBJS) $(DEPS)

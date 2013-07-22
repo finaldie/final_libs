@@ -2,19 +2,19 @@
 
 TARGET = libftimer.a
 
-INCLUDE_FILES = ltimer.h
+INCLUDE_FILES = ftimer.h
 
 AR = ar -rcs
 INC = 
 LL = 
 LIBS = 
 
-SRCS = ltimer.c
+SRCS = ftimer.c
 DEPS = $(patsubst %.c,%.d,$(SRCS))
 OBJS = $(patsubst %.c,%.o,$(SRCS))
 
 CFLAGS += $(EXT_FLAGS)
-CFLAGS += -Wall -Werror -g -O2
+CFLAGS +=
 
 all:$(TARGET)
 $(TARGET):$(OBJS) $(DEPS)

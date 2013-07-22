@@ -3,7 +3,7 @@
 #include <string.h>
 
 #include "compiler.h"
-#include "lhash.h"
+#include "fhash.h"
 #include "fcache_list.h"
 #include "fcache.h"
 

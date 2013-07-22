@@ -11,7 +11,7 @@
 extern "C" {
 #endif
 
-#include "log.h"
+#include "flog.h"
 
 #define LOG_LEVEL_TRACE 0
 #define LOG_LEVEL_DEBUG 1

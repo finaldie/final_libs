@@ -21,9 +21,9 @@
 #include <string.h>
 #include <errno.h>
 #include <time.h>
-#include "fev_conn.h"
-#include "net_core.h"
+#include "fnet_core.h"
 #include "fev_timer.h"
+#include "fev_conn.h"
 
 typedef struct fev_conn_info {
     int         fd;

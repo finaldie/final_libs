@@ -7,8 +7,9 @@
 #include <unistd.h>
 #include <pthread.h>
 
-#include "tu_inc.h"
-#include "log_inc.h"
+#include "ftu_inc.h"
+#include "flog_inc.h"
+#include "inc.h"
 
 static log_file_t* log_handler = NULL;
 

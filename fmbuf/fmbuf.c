@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "compiler.h"
-#include "mbuf.h"
+#include "fmbuf.h"
 
 #define MBUF_START(pbuf)    ( (char*)(pbuf->buf) )
 #define MBUF_END(pbuf)      ( pbuf->buf + pbuf->size - 1 )

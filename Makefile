@@ -60,12 +60,12 @@ else
 endif
 
 
-run_test: all32_check all64_check
+check: all32_check all64_check
 
 all32_check:
 	echo "======================Running 32bit Unit Test======================"
 	$(MAKE) -C test clean
-	$(MAKE) -C test EXT_FLAGS="$(COMMON32_CFLAGS)" $(ASSEMBLY32)
+	$(MAKE) -C test EXT_FLAGS="$(COMMON32_CFLAGS)" $(ASSEMBLY32) || exit "$$?"
 	$(MAKE) -C test $(ASSEMBLY32) run_test
 
 all64_check:

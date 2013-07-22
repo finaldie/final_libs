@@ -11,9 +11,9 @@
 #include <sys/epoll.h>
 
 #include "compiler.h"
-#include "mbuf.h"
-#include "lhash.h"
-#include "log.h"
+#include "fmbuf.h"
+#include "fhash.h"
+#include "flog.h"
 
 // BASE DEFINE
 #define LOG_OPEN_PERMISSION           0644

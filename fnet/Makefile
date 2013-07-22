@@ -2,7 +2,7 @@
 
 TARGET = libfnet.a
 
-INCLUDE_FILES = net_core.h
+INCLUDE_FILES = fnet_core.h
 INSTALL_PATH = ../final_libraries
 INCLUDE_PATH = include
 LIBS_PATH = libs
@@ -12,12 +12,12 @@ INC = -I$(INSTALL_PATH)/$(INCLUDE_PATH)
 LL = 
 LIBS = 
 
-SRCS = net_core.c
+SRCS = fnet_core.c
 DEPS = $(patsubst %.c,%.d,$(SRCS))
 OBJS = $(patsubst %.c,%.o,$(SRCS))
 
 CFLAGS += $(EXT_FLAGS)
-CFLAGS += -Wall -Werror -g -O2
+CFLAGS +=
 
 all:$(TARGET)
 $(TARGET):$(OBJS) $(DEPS)

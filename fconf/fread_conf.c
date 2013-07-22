@@ -2,19 +2,20 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "conf.h"
-#include "read_conf.h"
+#include "fconf.h"
+#include "fread_conf.h"
 
 #define CONF_BUFF_LEN (1024 * 1024)
 #define READ_LINE_LEN 1024
 #define READ_WORD_LEN 512
 
+static
 int IsTokenEqual( char pStr )
 {
     return IsToken(pStr, '=');
 }
 
-int GenConfig(const char* filename, pf_on_read pfunc)
+int load_config(const char* filename, pfload_cfg_cb pfunc)
 {
     int   read_sign = 0;
     int   read_len  = 0;

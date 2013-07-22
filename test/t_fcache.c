@@ -2,8 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "tu_inc.h"
+#include "ftu_inc.h"
 #include "fcache.h"
+#include "inc.h"
 
 void test_fcache()
 {

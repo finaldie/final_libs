@@ -18,8 +18,8 @@
 
 #include <stdlib.h>
 #include <unistd.h>
+#include "fnet_core.h"
 #include "fev_listener.h"
-#include "net_core.h"
 
 #define FEV_LISTEN_QUEUE_NUM 1024
 

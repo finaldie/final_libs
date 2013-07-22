@@ -5,8 +5,8 @@
 #include <unistd.h>
 #include <stdint.h>
 
-#include "ltimer.h"
-#include "tu_inc.h"
+#include "ftimer.h"
+#include "ftu_inc.h"
 #include "inc.h"
 
 void    test_timer()

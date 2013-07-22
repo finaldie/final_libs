@@ -55,7 +55,6 @@ void    tu_run_cases();
 
 typedef struct {
     struct timeval tv;
-    struct timezone tz;
 }my_time;
 
 void get_cur_time(my_time*);

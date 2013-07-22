@@ -2,7 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include "log_inc.h"
+#include "flog.h"
+#include "flog_inc.h"
 
 static int _f_log_level = LOG_LEVEL_INFO;
 

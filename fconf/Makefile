@@ -2,19 +2,19 @@
 
 TARGET = libfconf.a
 
-INCLUDE_FILES = read_conf.h
+INCLUDE_FILES = fread_conf.h
 
 AR = ar -rcs
 INC = 
 LL = 
 LIBS = 
 
-SRCS = conf.c read_conf.c
+SRCS = fconf.c fread_conf.c
 DEPS = $(patsubst %.c,%.d,$(SRCS))
 OBJS = $(patsubst %.c,%.o,$(SRCS))
 
 CFLAGS += $(EXT_FLAGS)
-CFLAGS += -Wall -Werror -g -O2 -std=c99
+CFLAGS += -std=c99
 
 all:$(TARGET)
 $(TARGET):$(OBJS) $(DEPS)

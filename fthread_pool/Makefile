@@ -2,19 +2,19 @@
 
 TARGET = libfthpool.a
 
-INCLUDE_FILES = thread_pool.h
+INCLUDE_FILES = fthread_pool.h
 
 AR = ar -rcs
 INC = -I$(INSTALL_PATH)/$(INCLUDE_PATH)
 LL = 
 LIBS = 
 
-SRCS = thread_pool.c
+SRCS = fthread_pool.c
 DEPS = $(patsubst %.c,%.d,$(SRCS))
 OBJS = $(patsubst %.c,%.o,$(SRCS))
 
 CFLAGS += $(EXT_FLAGS)
-CFLAGS += -Wall -Werror -g -O2
+CFLAGS +=
 
 all:$(TARGET)
 $(TARGET):$(OBJS) $(DEPS)

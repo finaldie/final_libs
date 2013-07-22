@@ -10,8 +10,7 @@
 #include <signal.h>
 #include <assert.h>
 
-#include "lmempool.h"
-#include "lmutex.h"
+#include "fmempool.h"
 
 #ifdef _USE_MEM_GC_
 #include "ltimer.h"
@@ -110,7 +109,7 @@ typedef struct {
     spin_var lock;
 #endif
 
-    spin_var center_lock[FMEM_BLOCK_TYPE_SIZE];
+    pthread_spinlock_t center_lock[FMEM_BLOCK_TYPE_SIZE];
     pthread_key_t key;
 } fmem_pool;
 
@@ -294,9 +293,9 @@ void    fth_delete(void* data)
         // move the all block into center
         free_block* fb = NULL;
         while( (fb = _f_pop(fl->pth_mgr[i])) ){
-            spin_lock(&pmem->center_lock[i]);
+            pthread_spin_lock(&pmem->center_lock[i]);
             _f_push(pmem->pcenter_mgr->pth_mgr[i], fb);
-            spin_unlock(&pmem->center_lock[i]);
+            pthread_spin_unlock(&pmem->center_lock[i]);
         }
 
         free(fl->pth_mgr[i]);
@@ -316,7 +315,7 @@ void    f_mp_create()
 #endif
     int i;
     for (i=0; i<FMEM_BLOCK_TYPE_SIZE; ++i)
-        spin_init(&pmem_t->center_lock[i]);
+        pthread_spin_init(&pmem_t->center_lock[i], 0);
 
     pthread_key_create(&pmem_t->key, fth_delete);
     pmem = pmem_t;
@@ -352,9 +351,9 @@ void    f_steal_from_center(free_list* fl, int idx)
 {
     free_list* c_fl = pmem->pcenter_mgr->pth_mgr[idx];
 
-    spin_lock(&pmem->center_lock[idx]);
+    pthread_spin_lock(&pmem->center_lock[idx]);
     if ( fl->head ) {
-        spin_unlock(&pmem->center_lock[idx]);
+        pthread_spin_unlock(&pmem->center_lock[idx]);
         return;
     }
 
@@ -373,7 +372,7 @@ void    f_steal_from_center(free_list* fl, int idx)
         tail->block_data.next = NULL;
     }
 
-    spin_unlock(&pmem->center_lock[idx]);
+    pthread_spin_unlock(&pmem->center_lock[idx]);
 
     fl->head = head;
     fl->count += i;
@@ -387,14 +386,14 @@ void    _f_do_gc(free_list* fl, int idx)
 
     f_cut_list(fl, &fc, move_count);
     free_list* c_fl = pmem->pcenter_mgr->pth_mgr[idx];
-    spin_lock(&pmem->center_lock[idx]);
+    pthread_spin_lock(&pmem->center_lock[idx]);
 
     free_block* next = c_fl->head;
     c_fl->head = fc.fb_head;
     fc.fb_tail->block_data.next = next;
     c_fl->count += move_count;
 
-    spin_unlock(&pmem->center_lock[idx]);
+    pthread_spin_unlock(&pmem->center_lock[idx]);
 }
 
 static inline
@@ -497,9 +496,9 @@ void    _f_free(void* ptr)
     if ( !flmgr ) {    // the thread unknown
         free_list* fl = pmem->pcenter_mgr->pth_mgr[idx];
 
-        spin_lock(&pmem->center_lock[idx]);
+        pthread_spin_lock(&pmem->center_lock[idx]);
         _f_push(fl, fb);
-        spin_unlock(&pmem->center_lock[idx]);
+        pthread_spin_unlock(&pmem->center_lock[idx]);
 
         return;
     }
@@ -578,9 +577,9 @@ void    f_memcpy(free_list* fl, int idx, void* des,
     if ( thread_safe )
         _f_push(fl, fb);
     else {
-        spin_lock(&pmem->center_lock[idx]);
+        pthread_spin_lock(&pmem->center_lock[idx]);
         _f_push(fl, fb);
-        spin_unlock(&pmem->center_lock[idx]);
+        pthread_spin_unlock(&pmem->center_lock[idx]);
     }
 }
 
@@ -600,11 +599,11 @@ free_block* f_get_tail(free_list* fl)
 static
 free_block* f_pop_from_center(free_list* fl, int idx, size_t size)
 {
-    spin_lock(&pmem->center_lock[idx]);
+    pthread_spin_lock(&pmem->center_lock[idx]);
 
     free_block* fb = _f_pop(fl);
     if ( fb ) {
-        spin_unlock(&pmem->center_lock[idx]);
+        pthread_spin_unlock(&pmem->center_lock[idx]);
         return fb;
     }
 
@@ -612,7 +611,7 @@ free_block* f_pop_from_center(free_list* fl, int idx, size_t size)
     size_t real_fb_size = sizeof(fb_head) + size;
     free_block* new_fb_list = f_block_create(idx, real_fb_size, real_fb_size * count);
 
-    spin_lock(&pmem->center_lock[idx]);
+    pthread_spin_lock(&pmem->center_lock[idx]);
     free_block* next = fl->head;
     fl->head = new_fb_list;
     free_block* tail = f_get_tail(fl);
@@ -620,7 +619,7 @@ free_block* f_pop_from_center(free_list* fl, int idx, size_t size)
     fl->count += count;
 
     fb = _f_pop(fl);
-    spin_unlock(&pmem->center_lock[idx]);
+    pthread_spin_unlock(&pmem->center_lock[idx]);
 
     return fb;
 }

@@ -7,7 +7,7 @@
 #include <assert.h>
 #include <inttypes.h>
 
-#include "lhash.h"
+#include "fhash.h"
 
 #define DEFAULT_SIZE        10
 #define DEFAULT_LIST_SIZE   4

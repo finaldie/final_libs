@@ -2,19 +2,19 @@
 
 TARGET = libfmempool.a
 
-INCLUDE_FILES = lmempool.h
+INCLUDE_FILES = fmempool.h
 
 AR = ar -rcs
 INC = -I$(INSTALL_PATH)/$(INCLUDE_PATH)
 LL = 
 LIBS = 
 
-SRCS = lmempool.c
+SRCS = fmempool.c
 DEPS = $(patsubst %.c,%.d,$(SRCS))
 OBJS = $(patsubst %.c,%.o,$(SRCS))
 
 CFLAGS += $(EXT_FLAGS)
-CFLAGS += -Wall -Werror -g -O2
+CFLAGS +=
 
 all:$(TARGET)
 $(TARGET):$(OBJS) $(DEPS)

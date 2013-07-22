@@ -2,19 +2,19 @@
 
 TARGET = libflog.a
 
-INCLUDE_FILES = log_inc.h log.h
+INCLUDE_FILES = flog_inc.h flog.h
 
 AR = ar -rcs
 INC = -I$(INSTALL_PATH)/$(INCLUDE_PATH) -I../common/
 LL = 
 LIBS = 
 
-SRCS = log_inc.c log.c
+SRCS = flog_inc.c flog.c
 DEPS = $(patsubst %.c,%.d,$(SRCS))
 OBJS = $(patsubst %.c,%.o,$(SRCS))
 
 CFLAGS += $(EXT_FLAGS)
-CFLAGS += -Wall -Werror -g -O2
+CFLAGS += -D_BSD_SOURCE
 
 all:$(TARGET)
 $(TARGET):$(OBJS) $(DEPS)
