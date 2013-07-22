@@ -1,14 +1,9 @@
+-include ../common/Makefile.common
+
 TARGET = test
-BIN_PATH = bin
 
-FLIB_PATH = ../final_libraries
-INCLUDE_PATH = include
-LIBS_PATH = libs
-INSTALL_PATH = $(FLIB_PATH)/$(BIN_PATH)
-
-CC = gcc
-INC = -I$(FLIB_PATH)/$(INCLUDE_PATH)
-LL = -L$(FLIB_PATH)/libs
+INC = -I$(INSTALL_PATH)/$(INCLUDE_PATH)
+LL = -L$(INSTALL_PATH)/$(LIBS_PATH)
 LIBS = -lfhash \
 	   -lfmempool \
 	   -lpthread \
@@ -40,28 +35,26 @@ COPY_FILES =
 DEPS = $(patsubst %.c,%.d,$(SRCS))
 OBJS = $(patsubst %.c,%.o,$(SRCS))
 
-CFLAGS = -Wall -Werror -g
+CFLAGS += $(EXT_FLAGS)
+CFLAGS += -Wall -Werror -g
 
 all:$(TARGET)
 $(TARGET):$(OBJS) $(DEPS)
-	$(CC) $(CFLAGS) $(INC) $(LL) -o $(TARGET) $(OBJS) $(LIBS)
+	$(CC) $(CFLAGS) $(EXT_FLAGS) $(INC) $(LL) -o $(TARGET) $(OBJS) $(LIBS)
 
 %.d:%.c
 	$(CC) $(INC) -MM $< > $@
 %.o:%.c 
 	$(CC) $(CFLAGS) $(INC) -c $< 
 
-install:
-	-(test -d $(INSTALL_PATH) || mkdir -p $(INSTALL_PATH) )
-	cp $(TARGET) $(COPY_FILES) $(INSTALL_PATH)
-
 run_test:
-	-(cd $(INSTALL_PATH) && ./$(TARGET) )
+	./$(TARGET)
 
 .PHONY:clean
 clean:
 	rm -f $(DEPS) $(OBJS) $(TARGET)
-	rm -rf $(FLIB_PATH)
+	rm -f test_async_log*
+	rm -f test_log*
 
 help:
 	@echo "The information represents in the program:"

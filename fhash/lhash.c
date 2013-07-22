@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <inttypes.h>
 
 #include "lhash.h"
 
@@ -130,6 +131,7 @@ char*    make_key(const char* key)
 static inline
 f_hash_node*    make_node(f_hash_node* pnode, htype type, const void* key, void* value)
 {
+    memset(pnode, 0, sizeof(f_hash_node));
     pnode->type = type;
 
     if( type == HASH_TYPE_INT )
@@ -146,16 +148,16 @@ f_hash_node*    make_node(f_hash_node* pnode, htype type, const void* key, void*
 
 // hex str
 static inline
-char*    f_itoa(int v, char* retbuff)
+char*    f_itoa(int v, char* retbuff, size_t bufsize)
 {
-    sprintf(retbuff, "%x", v);
+    snprintf(retbuff, bufsize, "%x", v);
     return retbuff;
 }
 
 static inline
-char*    f_64itoa(uint64_t v, char* retbuff)
+char*    f_64itoa(uint64_t v, char* retbuff, size_t bufsize)
 {
-    sprintf(retbuff, "%lx", v);
+    snprintf(retbuff, bufsize, "%"PRIx64, v);
     return retbuff;
 }
 
@@ -264,7 +266,7 @@ void    hash_add(f_hash* phash, int h, int type, const void* key, void* value)
 }
 
 static
-void     hash_set(f_hash* phash, int h, int type, const void* key, void* value)
+void     hash_set(f_hash* phash, int h, htype type, const void* key, void* value)
 {
     hash_mgr* mgr = hash_get_head(phash, h);
     f_hash_node* plist = hash_get_list(phash, h);
@@ -388,7 +390,7 @@ inline
 void    hash_set_int(f_hash* phash, int key, void* value)
 {
     char new_key[MAX_INT_KEY_SIZE];
-    f_itoa(key, new_key);
+    f_itoa(key, new_key, MAX_INT_KEY_SIZE);
     int h = hash_str(phash, new_key);
 
     hash_set(phash, h, HASH_TYPE_INT, &key, value);
@@ -398,7 +400,7 @@ inline
 void*    hash_get_int(f_hash* phash, int key)
 {
     char new_key[MAX_INT_KEY_SIZE];
-    f_itoa(key, new_key);
+    f_itoa(key, new_key, MAX_INT_KEY_SIZE);
     int h = hash_str(phash, new_key);
 
     return hash_get(phash, h, HASH_TYPE_INT, &key);
@@ -408,7 +410,7 @@ inline
 void*    hash_del_int(f_hash* phash, int key)
 {
     char new_key[MAX_INT_KEY_SIZE];
-    f_itoa(key, new_key);
+    f_itoa(key, new_key, MAX_INT_KEY_SIZE);
     int h = hash_str(phash, new_key);
 
     return hash_del(phash, h, HASH_TYPE_INT, &key);
@@ -441,7 +443,7 @@ inline
 void    hash_set_uint64(f_hash* phash, uint64_t key, void* value)
 {
     char new_key[MAX_INT_KEY_SIZE];
-    f_64itoa(key, new_key);
+    f_64itoa(key, new_key, MAX_INT_KEY_SIZE);
     int h = hash_str(phash, new_key);
 
     hash_set(phash, h, HASH_TYPE_UINT64, &key, value);
@@ -451,7 +453,7 @@ inline
 void*    hash_get_uint64(f_hash* phash, uint64_t key)
 {
     char new_key[MAX_INT_KEY_SIZE];
-    f_64itoa(key, new_key);
+    f_64itoa(key, new_key, MAX_INT_KEY_SIZE);
     int h = hash_str(phash, new_key);
 
     return hash_get(phash, h, HASH_TYPE_UINT64, &key);
@@ -461,7 +463,7 @@ inline
 void*    hash_del_uint64(f_hash* phash, uint64_t key)
 {
     char new_key[MAX_INT_KEY_SIZE];
-    f_64itoa(key, new_key);
+    f_64itoa(key, new_key, MAX_INT_KEY_SIZE);
     int h = hash_str(phash, new_key);
 
     return hash_del(phash, h, HASH_TYPE_UINT64, &key);

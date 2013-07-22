@@ -1,11 +1,9 @@
+-include ../common/Makefile.common
+
 TARGET = libfmempool.a
 
 INCLUDE_FILES = lmempool.h
-INSTALL_PATH = ../final_libraries
-INCLUDE_PATH = include
-LIBS_PATH = libs
 
-CC = gcc
 AR = ar -rcs
 INC = -I$(INSTALL_PATH)/$(INCLUDE_PATH)
 LL = 
@@ -15,7 +13,8 @@ SRCS = lmempool.c
 DEPS = $(patsubst %.c,%.d,$(SRCS))
 OBJS = $(patsubst %.c,%.o,$(SRCS))
 
-CFLAGS = -Wall -Werror -g -O2
+CFLAGS += $(EXT_FLAGS)
+CFLAGS += -Wall -Werror -g -O2
 
 all:$(TARGET)
 $(TARGET):$(OBJS) $(DEPS)

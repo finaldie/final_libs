@@ -210,17 +210,29 @@ fco* fco_create(fco* co, pfunc_co pf, int type)
     }
 }
 
+#if __WORDSIZE == 64
 static
 void co_main(uint32_t co_low32, uint32_t co_hi32)
 {
-    long long_co = (long)co_low32 | ((long)co_hi32 << 32);
-    fco* co = (fco*)long_co;
+    uintptr_t co_ptr = (uintptr_t)co_low32 | ((uintptr_t)co_hi32 << 32);
+    fco* co = (fco*)co_ptr;
     void* arg = (void*)co->owner->arg;
 
     void* ret = co->pf(co, arg);
     co->owner->arg = ret;
     co->status = FCO_STATUS_DEAD;
 }
+#else
+static
+void co_main(fco* co)
+{
+    void* arg = (void*)co->owner->arg;
+
+    void* ret = co->pf(co, arg);
+    co->owner->arg = ret;
+    co->status = FCO_STATUS_DEAD;
+}
+#endif
 
 static
 void _fco_do_swap(ucontext_t* save, ucontext_t* to)
@@ -254,9 +266,13 @@ void* fco_resume(fco* co, void* arg)
             co->ctx.uc_link = co->prev_ctx;
             co->owner->arg = arg;
             co->status = FCO_STATUS_RUNNING;
-            long lco = (long)co;
+            uintptr_t lco = (uintptr_t)co;
+#if __WORDSIZE == 64
             makecontext(&co->ctx, (void (*)(void)) co_main, 2, (uint32_t)lco,
                         (uint32_t)(lco >> 32));
+#else
+            makecontext(&co->ctx, (void (*)(void)) co_main, 1, lco);
+#endif
             _fco_call_plugin(co, 0);
             _fco_do_swap(co->prev_ctx, &co->ctx);
             _fco_call_plugin(co, 1);

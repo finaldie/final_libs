@@ -1,0 +1,7 @@
+# This is the common Makefile which be included for all sub Makefiles
+# All the global settings should set at here
+
+CC = gcc
+AR = ar -rcs
+
+CFLAGS += -Wall -g -Werror

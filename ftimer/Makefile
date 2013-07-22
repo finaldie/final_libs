@@ -1,11 +1,9 @@
+-include ../common/Makefile.common
+
 TARGET = libftimer.a
 
 INCLUDE_FILES = ltimer.h
-INSTALL_PATH = ../final_libraries
-INCLUDE_PATH = include
-LIBS_PATH = libs
 
-CC = gcc
 AR = ar -rcs
 INC = 
 LL = 
@@ -15,7 +13,8 @@ SRCS = ltimer.c
 DEPS = $(patsubst %.c,%.d,$(SRCS))
 OBJS = $(patsubst %.c,%.o,$(SRCS))
 
-CFLAGS = -Wall -Werror -g -O2
+CFLAGS += $(EXT_FLAGS)
+CFLAGS += -Wall -Werror -g -O2
 
 all:$(TARGET)
 $(TARGET):$(OBJS) $(DEPS)

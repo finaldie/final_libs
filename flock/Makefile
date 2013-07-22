@@ -1,12 +1,10 @@
+-include ../common/Makefile.common
+
 TARGET = libflock.a
 
 INCLUDE_FILES = lmutex.h \
-				lcas.h
-INSTALL_PATH = ../final_libraries
-INCLUDE_PATH = include
-LIBS_PATH = libs
+	lcas.h
 
-CC = gcc
 AR = ar -rcs
 INC = 
 LL = 
@@ -16,7 +14,8 @@ SRCS = lmutex.c
 DEPS = $(patsubst %.c,%.d,$(SRCS))
 OBJS = $(patsubst %.c,%.o,$(SRCS))
 
-CFLAGS = -Wall -Werror -g -O2
+CFLAGS += $(EXT_FLAGS)
+CFLAGS += -Wall -Werror -g -O2
 
 all:$(TARGET)
 $(TARGET):$(OBJS) $(DEPS)

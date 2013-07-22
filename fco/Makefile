@@ -1,11 +1,9 @@
+-include ../common/Makefile.common
+
 TARGET = libfco.a
 
 INCLUDE_FILES = fco.h
-INSTALL_PATH = ../final_libraries
-INCLUDE_PATH = include
-LIBS_PATH = libs
 
-CC = gcc
 AR = ar -rcs
 INC = 
 LL = 
@@ -15,7 +13,8 @@ SRCS = fco.c
 DEPS = $(patsubst %.c,%.d,$(SRCS))
 OBJS = $(patsubst %.c,%.o,$(SRCS))
 
-CFLAGS = -Wall -Werror -g -O2
+CFLAGS += $(EXT_FLAGS)
+CFLAGS += -Wall -Werror -g -O2
 
 all:$(TARGET)
 $(TARGET):$(OBJS) $(DEPS)
@@ -24,7 +23,7 @@ $(TARGET):$(OBJS) $(DEPS)
 %.d:%.c
 	$(CC) -MM $< > $@
 %.o:%.c
-	$(CC) $(CFLAGS) $(INC) -c $< 
+	$(CC) $(CFLAGS) $(EXT_FLAGS) $(INC) -c $< 
 
 install:
 	-(test -d $(INSTALL_PATH) || mkdir $(INSTALL_PATH) )

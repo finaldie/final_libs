@@ -1,11 +1,9 @@
+-include ../common/Makefile.common
+
 TARGET = libflist.a
 
 INCLUDE_FILES = flist.h
-INSTALL_PATH = ../final_libraries
-INCLUDE_PATH = include
-LIBS_PATH = libs
 
-CC = gcc
 AR = ar -rcs
 INC = 
 LL = 
@@ -15,7 +13,8 @@ SRCS = flist.c
 DEPS = $(patsubst %.c,%.d,$(SRCS))
 OBJS = $(patsubst %.c,%.o,$(SRCS))
 
-CFLAGS = -Wall -Werror -g -O2 -std=c99
+CFLAGS += $(EXT_FLAGS)
+CFLAGS += -Wall -Werror -g -O2 -std=c99
 
 all:$(TARGET)
 $(TARGET):$(OBJS) $(DEPS)
@@ -33,7 +32,7 @@ install:
 	cp $(INCLUDE_FILES) $(INSTALL_PATH)/$(INCLUDE_PATH)
 	cp $(TARGET) $(INSTALL_PATH)/$(LIBS_PATH)
 
-.PHONY:clean
+.PHONY:clean all install help depend
 clean:
 	rm -f $(DEPS) $(OBJS) $(TARGET)
 

@@ -1,5 +1,21 @@
-MAKE = make
-ASSEMBLY_FOLDER = final_libraries
+MAKE := make
+
+prefix := $(shell pwd)/final_libraries
+ASSEMBLY_INCLUDE_FOLDER := include
+ASSEMBLY_32_LIB_FOLDER := lib
+ASSEMBLY_64_LIB_FOLDER := lib64
+ASSEMBLY32 = INSTALL_PATH=$(prefix) INCLUDE_PATH=$(ASSEMBLY_INCLUDE_FOLDER) LIBS_PATH=$(ASSEMBLY_32_LIB_FOLDER)
+ASSEMBLY64 = INSTALL_PATH=$(prefix) INCLUDE_PATH=$(ASSEMBLY_INCLUDE_FOLDER) LIBS_PATH=$(ASSEMBLY_64_LIB_FOLDER)
+
+PLATFORM = $(shell uname -m)
+COMMON32_CFLAGS += -m32
+COMMON64_CFLAGS +=
+
+ifeq ($(MODE), debug)
+else
+	COMMON32_CFLAGS += -O2
+	COMMON64_CFLAGS += -O2
+endif
 
 # Build all libs by order
 LIB_FOLDERS = flist \
@@ -19,13 +35,51 @@ LIB_FOLDERS = flist \
   fco \
   fpcap_conv
 
-all:
-	for lib in $(LIB_FOLDERS); do $(MAKE) -C $$lib; $(MAKE) -C $$lib install; done;
+all: all32 all64
 
-run_test:
-	$(MAKE) -C test && $(MAKE) -C test run_test
+all32:
+	echo "========================Compiling 32bit libraries========================"; \
+	for lib in $(LIB_FOLDERS); \
+	do \
+		$(MAKE) -C $$lib $(ASSEMBLY32) clean; \
+		$(MAKE) -C $$lib $(ASSEMBLY32) EXT_FLAGS="$(COMMON32_CFLAGS)" || exit "$$?"; \
+		$(MAKE) -C $$lib $(ASSEMBLY32) install; \
+	done;
 
-.PHONY:clean
+all64:
+ifeq ($(PLATFORM),i386) 
+	exit "32 bit platform, abort to compile the 64bit library";
+else
+	echo "========================Compiling 64bit libraries========================";
+	for lib in $(LIB_FOLDERS); \
+	do \
+		$(MAKE) -C $$lib $(ASSEMBLY64) clean; \
+		$(MAKE) -C $$lib $(ASSEMBLY64) EXT_FLAGS="$(COMMON64_CFLAGS)" || exit "$$?"; \
+		$(MAKE) -C $$lib $(ASSEMBLY64) install; \
+	done;
+endif
+
+
+run_test: all32_check all64_check
+
+all32_check:
+	echo "======================Running 32bit Unit Test======================"
+	$(MAKE) -C test clean
+	$(MAKE) -C test EXT_FLAGS="$(COMMON32_CFLAGS)" $(ASSEMBLY32)
+	$(MAKE) -C test $(ASSEMBLY32) run_test
+
+all64_check:
+ifeq ($(PLATFORM),i386) 
+	exit "32 bit platform, abort to running the 64bit Unit Test";
+else
+	echo "======================Running 64bit Unit Test======================"
+	$(MAKE) -C test clean
+	$(MAKE) -C test EXT_FLAGS="$(COMMON64_CFLAGS)" $(ASSEMBLY64) || exit "$$?"
+	$(MAKE) -C test $(ASSEMBLY64) run_test
+endif
+
+.PHONY:clean all all32 all64 all32_check all64_check run_test
 clean:
-	for lib in $(LIB_FOLDERS); do $(MAKE) -C $$lib clean; done;
-	rm -rf $(ASSEMBLY_FOLDER)
+	for lib in $(LIB_FOLDERS); do $(MAKE) -C $$lib $(ASSEMBLY64) clean; done;
+	$(MAKE) -C test clean
+	rm -rf $(prefix)

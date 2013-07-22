@@ -1,11 +1,9 @@
+-include ../common/Makefile.common
+
 TARGET = libfconf.a
 
 INCLUDE_FILES = read_conf.h
-INSTALL_PATH = ../final_libraries
-INCLUDE_PATH = include
-LIBS_PATH = libs
 
-CC = gcc
 AR = ar -rcs
 INC = 
 LL = 
@@ -15,7 +13,8 @@ SRCS = conf.c read_conf.c
 DEPS = $(patsubst %.c,%.d,$(SRCS))
 OBJS = $(patsubst %.c,%.o,$(SRCS))
 
-CFLAGS = -Wall -Werror -g -O2 -std=c99
+CFLAGS += $(EXT_FLAGS)
+CFLAGS += -Wall -Werror -g -O2 -std=c99
 
 all:$(TARGET)
 $(TARGET):$(OBJS) $(DEPS)

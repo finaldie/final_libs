@@ -55,8 +55,9 @@ void test_hash(){
     printf("uint64 testing\n");
     uint64_t j = 0;
     for ( j=LOOP*10; j<LOOP*11; ++j ) {
-        char* value = (char*)malloc(10);
-        sprintf(value, "uint64_%" PRIu64 , j);
+        char* value = (char*)malloc(30);
+        memset(value, 0, 30);
+        snprintf(value, 30, "uint64_%" PRIu64 , j);
         hash_set_uint64(phash, j, value);
         char* res = (char*)hash_get_uint64(phash, j);
         assert(res);
@@ -74,7 +75,7 @@ void test_hash(){
         //printf("iter data = %s\n", (char*)data);
         iter_count++;
     }
-    printf("hash iter totoal=%d\n", iter_count);
+    printf("hash iter total=%d\n", iter_count);
     FTU_ASSERT_EQUAL_INT((4*LOOP), iter_count);
 
     int total_count = 0;
@@ -85,7 +86,7 @@ void test_hash(){
     }
 
     hash_foreach(phash, test_print);
-    printf("hashforeach totoal=%d\n", total_count);
+    printf("hashforeach total=%d\n", total_count);
     FTU_ASSERT_EQUAL_INT((4*LOOP), total_count);
 
     hash_delete(phash);
