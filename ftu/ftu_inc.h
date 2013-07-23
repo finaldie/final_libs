@@ -44,10 +44,10 @@ extern "C" {
         }                                               \
     }while(0);
 
-typedef void (*pfunc_init)();
+typedef void (*ftu_init)();
 
 void    tu_register_init();
-void    _tu_register_module(pfunc_init pfunc, char* case_name, char* describe);
+void    _tu_register_module(ftu_init pfunc, char* case_name, char* describe);
 #define tu_register_module(pfunc, describe) \
     _tu_register_module(pfunc, #pfunc, describe);
     
@@ -55,7 +55,7 @@ void    tu_run_cases();
 
 typedef struct {
     struct timeval tv;
-}my_time;
+} my_time;
 
 void get_cur_time(my_time*);
 int  get_diff_time(my_time* time1, my_time* time2);

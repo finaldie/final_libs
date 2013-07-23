@@ -18,10 +18,10 @@ int curr_failed_assert = 0;
 int curr_total_assert = 0;
 
 typedef struct {
-    pfunc_init pfunc;
+    ftu_init   pfunc;
     char*      case_name;
     char*      describe;
-}ftest_case;
+} ftest_case;
 
 void    get_cur_time(my_time* time){
     gettimeofday(&time->tv, NULL);
@@ -46,7 +46,7 @@ void    tu_register_init(){
     curr_total_assert = 0;
 }
 
-void    _tu_register_module(pfunc_init pfunc, char* case_name, char* describe){
+void    _tu_register_module(ftu_init pfunc, char* case_name, char* describe){
     tu_case_num++;
 
     ftest_case* ftc = malloc(sizeof(ftest_case));
@@ -58,7 +58,7 @@ void    _tu_register_module(pfunc_init pfunc, char* case_name, char* describe){
 }
 
 static
-int     tu_each_case(pfunc_init pfunc)
+int     tu_each_case(ftu_init pfunc)
 {
     curr_failed_assert = 0;
     curr_total_assert = 0;
