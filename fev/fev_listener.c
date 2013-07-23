@@ -34,7 +34,7 @@ static void on_listen_port(fev_state* fev, int fd, int mask, void* arg)
     fev_listen_info* listen_info = (fev_listen_info*)arg;
 
     while(1) {
-        int new_fd = net_accept(listen_info->fd);
+        int new_fd = fnet_accept(listen_info->fd);
         if( new_fd < 0 ) return;
 
         if ( listen_info->accept_cb )
@@ -50,7 +50,7 @@ fev_listen_info* fev_add_listener(fev_state* fev,
     fev_listen_info* listen_info = (fev_listen_info*)malloc(sizeof(fev_listen_info)); 
     if( !listen_info ) return NULL;
 
-    int listen_fd = net_create_listen(NULL, port, FEV_LISTEN_QUEUE_NUM, 0);
+    int listen_fd = fnet_create_listen(NULL, port, FEV_LISTEN_QUEUE_NUM, 0);
     if( listen_fd < 0 ) {
         free(listen_info);
         return NULL;

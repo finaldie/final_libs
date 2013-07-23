@@ -73,7 +73,7 @@ void test_fev()
     fake_fev_state* fake_fev = (fake_fev_state*)fev;
     FTU_ASSERT_EQUAL_INT(0, fake_fev->fire_num);
 
-    int fd = net_create_listen(NULL, 17758, 100, 0);
+    int fd = fnet_create_listen(NULL, 17758, 100, 0);
     FTU_ASSERT_GREATER_THAN_INT(0, fd);
 
     int ret = fev_reg_event(NULL, fd, 0, NULL, NULL, NULL);
@@ -182,7 +182,7 @@ void test_fev_listener()
         if( start ) break;
     }
 
-    int conn_fd = net_conn("127.0.0.1", 17759, 1);
+    int conn_fd = fnet_conn("127.0.0.1", 17759, 1);
     FTU_ASSERT_GREATER_THAN_INT(0, conn_fd);
 
     pthread_join(tid, NULL);
@@ -290,17 +290,17 @@ void test_fev_buff()
         if( start ) break;
     }
 
-    int conn_fd = net_conn("127.0.0.1", 17759, 1);
+    int conn_fd = fnet_conn("127.0.0.1", 17759, 1);
     FTU_ASSERT_GREATER_THAN_INT(0, conn_fd);
 
     char* send_str = "hello final";
-    int send_num = net_send_safe(conn_fd, send_str, strlen(send_str)+1);
+    int send_num = fnet_send_safe(conn_fd, send_str, strlen(send_str)+1);
     FTU_ASSERT_EQUAL_INT(12, send_num);
 
     // recv a string
     char recv_buf[20];
     memset(recv_buf, 0, 20);
-    int recv_size = net_recv(conn_fd, recv_buf, 20);
+    int recv_size = fnet_recv(conn_fd, recv_buf, 20);
     FTU_ASSERT_EQUAL_INT(9, recv_size);
     printf("main recv str=%s\n", recv_buf);
     close(conn_fd);

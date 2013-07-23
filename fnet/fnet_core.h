@@ -12,51 +12,50 @@ extern "C" {
 #define SOCKET_CLOSE    0
 
 // host struct
-typedef struct{
+typedef struct {
     int    alias_count;
     int    ip_count;
     char*  official_name;
     char** alias_names;
     char** ips;
-}host_info_t;
+} host_info_t;
 
 // use it avoid gcc throw error 'break strict-aliasing rules'
-typedef union{
+typedef union {
     struct sockaddr_storage storage;
     struct sockaddr_in      in;
     struct sockaddr_in6     in6;
     struct sockaddr         sa;
-}sockaddr_u_t;
+} sockaddr_u_t;
 
-unsigned int get_lowdata(unsigned int data);
-unsigned int get_highdata(unsigned int data);
+unsigned int fnet_get_lowdata(unsigned int data);
+unsigned int fnet_get_highdata(unsigned int data);
 
-void    net_set_keepalive(int fd, int idle_time, int interval, int count);
-void    net_set_nonblocking(int fd);
-int     net_set_nodely(int fd);
-void    net_set_recv_buffsize(int fd, int size);
-void    net_set_send_buffsize(int fd, int size);
-void    net_set_recv_timeout(int fd, int timeout);
-void    net_set_send_timeout(int fd, int timeout);
-void    net_set_linger(int fd);
-void    net_set_reuse_addr(int fd);
-void    net_set_reuse_port(int fd);
+void    fnet_set_keepalive(int fd, int idle_time, int interval, int count);
+void    fnet_set_nonblocking(int fd);
+int     fnet_set_nodelay(int fd);
+void    fnet_set_recv_buffsize(int fd, int size);
+void    fnet_set_send_buffsize(int fd, int size);
+void    fnet_set_recv_timeout(int fd, int timeout);
+void    fnet_set_send_timeout(int fd, int timeout);
+void    fnet_set_linger(int fd);
+void    fnet_set_reuse_addr(int fd);
+void    fnet_set_reuse_port(int fd);
 
-int     net_create_listen(char* ip, int port, int max_link, int isblock);
-int     net_accept(int listen_fd);
-void    net_close(int fd);
-int     net_send(int fd, const void* data, int len);
-int     net_recv(int fd, char* data, int len);
-int     net_conn(const char* ip, int port, int isblock);
-int     net_conn_a(const char* ip, int port, int* outfd);
-int     net_send_safe(int fd, const void* data, int len);
+int     fnet_create_listen(const char* ip, int port, int max_link, int isblock);
+int     fnet_accept(int listen_fd);
+int     fnet_send(int fd, const void* data, int len);
+int     fnet_recv(int fd, char* data, int len);
+int     fnet_conn(const char* ip, int port, int isblock);
+int     fnet_conn_async(const char* ip, int port, int* outfd);
+int     fnet_send_safe(int fd, const void* data, int len);
 
-char*   net_get_localip(int fd);
-char*   net_get_peerip(int fd);
+char*   fnet_get_localip(int fd);
+char*   fnet_get_peerip(int fd);
 
 // dns , after use must call net_free_host
-int     net_get_host(const char* host_name, host_info_t* hinfo);
-void    net_free_host(host_info_t* hinfo);
+int     fnet_get_host(const char* host_name, host_info_t* hinfo);
+void    fnet_free_host(host_info_t* hinfo);
 
 #ifdef __cplusplus
 }

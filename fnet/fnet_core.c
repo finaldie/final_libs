@@ -18,7 +18,7 @@
 
 #define STATIC_IP_LEN    32    // compatible ipv6
 
-void     net_set_keepalive(int fd, int idle_time, int interval, int count)
+void     fnet_set_keepalive(int fd, int idle_time, int interval, int count)
 {
     int on_keep = 1;
     int s = -1;
@@ -34,7 +34,7 @@ void     net_set_keepalive(int fd, int idle_time, int interval, int count)
 
 //set SO_LINGER option(respond CLOSE_WAIT hold all socket)
 inline
-void     net_set_linger(int fd)
+void     fnet_set_linger(int fd)
 {
     struct linger            optval;
     optval.l_onoff  = 0;  // src 1  
@@ -44,7 +44,7 @@ void     net_set_linger(int fd)
 
 //set SO_REUSEADDR option(the server can reboot fast)
 inline
-void    net_set_reuse_addr(int fd)
+void    fnet_set_reuse_addr(int fd)
 {
     int optval = 0x1;
     setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(int));
@@ -56,7 +56,7 @@ void    net_set_reuse_addr(int fd)
 //before start program, run the command as below:
 //sysctl net.core.allow_reuseport=1
 inline
-void    net_set_reuse_port(int fd)
+void    fnet_set_reuse_port(int fd)
 {
 #ifdef SO_REUSEPORT
     int optval = 0x1;
@@ -67,37 +67,37 @@ void    net_set_reuse_port(int fd)
 }
 
 inline
-void     net_set_nonblocking(int fd)
+void     fnet_set_nonblocking(int fd)
 {
     fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, 0) | O_NONBLOCK);
 }
 
 inline
-void    net_set_recv_buffsize(int fd, int size)
+void    fnet_set_recv_buffsize(int fd, int size)
 {
     setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (char*)&size, sizeof(int));
 }
 
 inline
-void    net_set_send_buffsize(int fd, int size)
+void    fnet_set_send_buffsize(int fd, int size)
 {
     setsockopt(fd, SOL_SOCKET, SO_SNDBUF, (char*)&size, sizeof(int));
 }
 
 // return -1 has error
 inline
-int        net_set_nodely(int fd){
+int        fnet_set_nodely(int fd){
     int flag = 1;
     return setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (char*)&flag, sizeof(flag));
 }
 
 inline
-void    net_set_recv_timeout(int fd, int timeout)
+void    fnet_set_recv_timeout(int fd, int timeout)
 {
       setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout));
 }
 
-void    net_set_send_timeout(int fd, int timeout)
+void    fnet_set_send_timeout(int fd, int timeout)
 {
     struct timeval timeo = {2, 0L};
     socklen_t len = sizeof(timeo);
@@ -106,7 +106,7 @@ void    net_set_send_timeout(int fd, int timeout)
     assert(s == 0);
 }
 
-int     net_create_listen(char* ip, int port, int max_link, int isblock)
+int     fnet_create_listen(const char* ip, int port, int max_link, int isblock)
 {
     int listen_fd;
     struct sockaddr_in addr;
@@ -123,12 +123,12 @@ int     net_create_listen(char* ip, int port, int max_link, int isblock)
     listen_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (0 > listen_fd) return -1;
 
-    net_set_reuse_addr(listen_fd);
-    net_set_reuse_port(listen_fd);
-    net_set_linger(listen_fd);
+    fnet_set_reuse_addr(listen_fd);
+    fnet_set_reuse_port(listen_fd);
+    fnet_set_linger(listen_fd);
 
     if ( !isblock )
-        net_set_nonblocking(listen_fd);
+        fnet_set_nonblocking(listen_fd);
 
     if (0 > bind(listen_fd, (struct sockaddr *)&addr, sizeof(addr))) {
         close(listen_fd);
@@ -143,16 +143,9 @@ int     net_create_listen(char* ip, int port, int max_link, int isblock)
     return listen_fd;
 }
 
-inline
-void    net_close(int fd)
-{
-    //shutdown(fd, SHUT_RDWR);
-    close(fd);
-}
-
 // send data util data all send complete
 // when write return EAGAIN stop
-int     net_send_safe(int fd, const void* data, int len)
+int     fnet_send_safe(int fd, const void* data, int len)
 {
     int totalnum = 0;
     int sendnum = 0;
@@ -180,7 +173,7 @@ int     net_send_safe(int fd, const void* data, int len)
 
 // return real send num
 inline
-int     net_send(int fd, const void* data, int len)
+int     fnet_send(int fd, const void* data, int len)
 {
     do {
         int send_num = send(fd, data, len, MSG_NOSIGNAL);
@@ -200,7 +193,7 @@ int     net_send(int fd, const void* data, int len)
 
 // return <=0 the peer has quit, >0 can read
 inline
-int     net_recv(int fd, char* data, int len)
+int     fnet_recv(int fd, char* data, int len)
 {
     do {
         int recv_size = recv(fd, data, len, MSG_NOSIGNAL);
@@ -218,17 +211,17 @@ int     net_recv(int fd, char* data, int len)
     } while (1);
 }
 
-unsigned int get_lowdata(unsigned int data)
+unsigned int fnet_get_lowdata(unsigned int data)
 {
     return data & 0xFFFF;
 }
 
-unsigned int get_highdata(unsigned int data)
+unsigned int fnet_get_highdata(unsigned int data)
 {
     return ((data & 0xFFFF0000) >> 16) & 0xFFFF;
 }
 
-int     net_accept(int listen_fd)
+int     fnet_accept(int listen_fd)
 {
     struct sockaddr addr;
     socklen_t addrlen = sizeof(struct sockaddr_in); 
@@ -248,14 +241,14 @@ int     net_accept(int listen_fd)
         } else break;
     } while (0);
 
-    net_set_recv_timeout(sock_fd, 2);
+    fnet_set_recv_timeout(sock_fd, 2);
 
     return sock_fd;
 }
 
 // Sync method for connect
 // note: Whether or not set block type after connect sucess
-int     net_conn(const char* ip, int port, int isblock)
+int     fnet_conn(const char* ip, int port, int isblock)
 {
     int sockfd;
     struct sockaddr_in server_addr;
@@ -277,7 +270,7 @@ int     net_conn(const char* ip, int port, int isblock)
     }
 
     if ( !isblock )
-        net_set_nonblocking(sockfd);
+        fnet_set_nonblocking(sockfd);
 
     printf("net_conn:connect sucess fd = %d\n", sockfd);
 
@@ -289,7 +282,7 @@ int     net_conn(const char* ip, int port, int isblock)
 // 0: sucess, you can use outfd
 // -1: error
 // 1: connect has in process
-int     net_conn_a(const char* ip, int port, int* outfd)
+int     fnet_conn_async(const char* ip, int port, int* outfd)
 {
     int sockfd; 
     struct sockaddr_in server_addr;
@@ -300,7 +293,7 @@ int     net_conn_a(const char* ip, int port, int* outfd)
     }
 
     *outfd = sockfd;
-    net_set_nonblocking(sockfd);
+    fnet_set_nonblocking(sockfd);
 
     memset(&server_addr, 0, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
@@ -322,7 +315,7 @@ int     net_conn_a(const char* ip, int port, int* outfd)
     return    0;
 }
 
-char*   net_get_localip(int fd)
+char*   fnet_get_localip(int fd)
 {
     sockaddr_u_t u_addr;
     socklen_t addr_len;
@@ -331,7 +324,7 @@ char*   net_get_localip(int fd)
     return inet_ntoa( u_addr.in.sin_addr );
 }
 
-char*   net_get_peerip(int fd)
+char*   fnet_get_peerip(int fd)
 {
     sockaddr_u_t u_addr;
     socklen_t addr_len;
@@ -340,7 +333,7 @@ char*   net_get_peerip(int fd)
     return inet_ntoa( u_addr.in.sin_addr );
 }
 
-int     net_get_host(const char* host_name, host_info_t* hinfo)
+int     fnet_get_host(const char* host_name, host_info_t* hinfo)
 {
     if ( !host_name ) return 1;
     hinfo->alias_count = 0;
@@ -399,7 +392,7 @@ int     net_get_host(const char* host_name, host_info_t* hinfo)
     return 0;
 }
 
-void    net_free_host(host_info_t* hinfo)
+void    fnet_free_host(host_info_t* hinfo)
 {
     int i;
     free(hinfo->official_name);

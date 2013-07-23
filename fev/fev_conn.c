@@ -83,7 +83,7 @@ int    fev_conn(fev_state* fev,
             conn_arg_t arg)
 {
     int sockfd = -1;
-    int s = net_conn_a(ip, port, &sockfd);
+    int s = fnet_conn_async(ip, port, &sockfd);
 
     if ( !pfunc ) abort();
 
