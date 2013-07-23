@@ -18,7 +18,7 @@ typedef enum {
 typedef struct {
     int      tid;
     cond_var cond;
-    mbuf*    pbuf;
+    fmbuf*    pbuf;
     void*    parg;
 } thread_data;
 
@@ -45,7 +45,7 @@ L:
     cond_wait(&th_data->cond);
 
     do {
-        int ret = mbuf_pop(th_data->pbuf, &msg, sizeof(th_msg_t));
+        int ret = fmbuf_pop(th_data->pbuf, &msg, sizeof(th_msg_t));
         if ( ret ) break;
 
         switch ( msg.ev ) {
@@ -76,14 +76,14 @@ int     fthpool_add_thread(void* pri_arg)
 {
     thread_data* th_data = malloc(sizeof(thread_data));
     th_data->tid = th_id++;
-    th_data->pbuf = mbuf_create(TH_QUEUE_BUF_SIZE);
+    th_data->pbuf = fmbuf_create(TH_QUEUE_BUF_SIZE);
     th_data->parg = pri_arg;
     cond_init(&th_data->cond);
 
     pthread_t t;
     int rc = pthread_create(&t, 0, base_work, th_data);
     if ( 0 != rc ) {
-        mbuf_delete(th_data->pbuf);
+        fmbuf_delete(th_data->pbuf);
         free(th_data);
         return -1;
     }
@@ -108,7 +108,7 @@ int     fthpool_post_task(fth_task pf, void* arg)
     ++curr_post;
     curr_post = curr_post < max_num ? curr_post : 0;
     thread_data* pdata = pth_pool[curr_post];
-    if ( mbuf_push(pdata->pbuf, &tmsg, sizeof(th_msg_t)) )
+    if ( fmbuf_push(pdata->pbuf, &tmsg, sizeof(th_msg_t)) )
         return 1;
 
     cond_wakeup(&pdata->cond);

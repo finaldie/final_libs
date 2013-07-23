@@ -64,7 +64,7 @@ typedef struct {
 // every thread have a private thread_data for containing logbuf
 // when we write log messages, data will fill into this buffer
 typedef struct _thread_data_t {
-    mbuf*        plog_buf;
+    fmbuf*        plog_buf;
     int          efd;       // eventfd
     time_t       last_time;
     char         last_time_str[LOG_TIME_STR_LEN + 1];
@@ -241,7 +241,7 @@ thread_data_t* _log_create_thread_data()
         return NULL;
     }
 
-    mbuf* pbuf = mbuf_create(g_log->buffer_size);
+    fmbuf* pbuf = fmbuf_create(g_log->buffer_size);
     if ( !pbuf ) {
         printError("cannot alloc memory for thread data");
         free(th_data);
@@ -318,7 +318,7 @@ size_t _log_async_write(log_file_t* f, const char* file_sig, size_t sig_len,
     size_t msg_body_len = LOG_TIME_STR_LEN + sig_len + len + 1;
     size_t total_msg_len = sizeof(log_fetch_msg_head_t) + msg_body_len +
                             LOG_PTO_RESERVE_SIZE;
-    if ( mbuf_free(th_data->plog_buf) < (int)total_msg_len ) {
+    if ( fmbuf_free(th_data->plog_buf) < (int)total_msg_len ) {
         _log_event_notice(LOG_EVENT_BUFF_FULL);
         return 0;
     }
@@ -328,7 +328,7 @@ size_t _log_async_write(log_file_t* f, const char* file_sig, size_t sig_len,
     header.id = LOG_PTO_FETCH_MSG;
     header.msgh.f = f;
     header.msgh.len = (unsigned short)msg_body_len;
-    if ( mbuf_push(th_data->plog_buf, &header, sizeof(log_fetch_msg_head_t)) ) {
+    if ( fmbuf_push(th_data->plog_buf, &header, sizeof(log_fetch_msg_head_t)) ) {
         return 0;
     }
 
@@ -338,17 +338,17 @@ size_t _log_async_write(log_file_t* f, const char* file_sig, size_t sig_len,
         th_data->last_time = now;
     }
 
-    if( mbuf_push(th_data->plog_buf, th_data->last_time_str, LOG_TIME_STR_LEN) ) {
+    if( fmbuf_push(th_data->plog_buf, th_data->last_time_str, LOG_TIME_STR_LEN) ) {
         return 0;
     }
 
-    if ( file_sig && sig_len && mbuf_push(th_data->plog_buf, file_sig, sig_len) ) {}
+    if ( file_sig && sig_len && fmbuf_push(th_data->plog_buf, file_sig, sig_len) ) {}
 
-    if( mbuf_push(th_data->plog_buf, log, len) ) {
+    if( fmbuf_push(th_data->plog_buf, log, len) ) {
         return 0;
     }
 
-    if( mbuf_push(th_data->plog_buf, "\n", 1) ) {
+    if( fmbuf_push(th_data->plog_buf, "\n", 1) ) {
         return 0;
     }
 
@@ -423,28 +423,28 @@ void _log_async_write_f(log_file_t* f, const char* file_sig, size_t sig_len,
 
     size_t max_msg_len = sizeof(log_fetch_msg_head_t) + LOG_MAX_LEN_PER_MSG +
                         LOG_PTO_RESERVE_SIZE;
-    size_t total_free = mbuf_free(th_data->plog_buf);
+    size_t total_free = fmbuf_free(th_data->plog_buf);
     if ( total_free < max_msg_len ) {
         _log_event_notice(LOG_EVENT_BUFF_FULL);
         return;
     }
 
-    char* head = mbuf_get_head(th_data->plog_buf);
-    char* tail = mbuf_get_tail(th_data->plog_buf);
+    char* head = fmbuf_get_head(th_data->plog_buf);
+    char* tail = fmbuf_get_tail(th_data->plog_buf);
     int tail_free_size = tail < head ? total_free :
-                                  mbuf_tail_free(th_data->plog_buf);
+                                  fmbuf_tail_free(th_data->plog_buf);
     if ( tail_free_size >= (int)max_msg_len ) {
         // fill log message in mbuf directly
-        char* buf = mbuf_get_tail(th_data->plog_buf);
+        char* buf = fmbuf_get_tail(th_data->plog_buf);
         int buff_size = _log_fill_async_msg(f, th_data, buf, file_sig, sig_len,
                                             fmt, ap);
-        mbuf_tail_seek(th_data->plog_buf, buff_size);
+        fmbuf_tail_seek(th_data->plog_buf, buff_size);
     } else {
         // fill log message in tmp buffer
         char* buf = th_data->tmp_buf;
         int buff_size = _log_fill_async_msg(f, th_data, buf, file_sig, sig_len,
                                             fmt, ap);
-        mbuf_push(th_data->plog_buf, buf, buff_size);
+        fmbuf_push(th_data->plog_buf, buf, buff_size);
     }
 
     // notice fetcher to write log
@@ -559,16 +559,16 @@ void _log_sync_write_f(log_file_t* f, const char* file_sig, size_t sig_len,
 inline
 void _log_pto_fetch_msg(thread_data_t* th_data)
 {
-    mbuf* pbuf = th_data->plog_buf;
+    fmbuf* pbuf = th_data->plog_buf;
     char tmp_buf[LOG_MAX_LEN_PER_MSG];
     char* tmsg = NULL;
     log_msg_head_t header;
 
-    if ( mbuf_pop(pbuf, &header, LOG_MSG_HEAD_SIZE) ) {
+    if ( fmbuf_pop(pbuf, &header, LOG_MSG_HEAD_SIZE) ) {
         return;
     }
 
-    tmsg = mbuf_getraw(pbuf, tmp_buf, (size_t)header.len);
+    tmsg = fmbuf_getraw(pbuf, tmp_buf, (size_t)header.len);
     if ( !tmsg ) {
         return;
     }
@@ -578,14 +578,14 @@ void _log_pto_fetch_msg(thread_data_t* th_data)
         _log_event_notice(LOG_EVENT_ERROR_WRITE);
     }
 
-    mbuf_head_move(pbuf, (size_t)header.len);
+    fmbuf_head_move(pbuf, (size_t)header.len);
 }
 
 inline
 void _log_pto_thread_quit(thread_data_t* th_data)
 {
     if ( th_data->plog_buf )
-        mbuf_delete(th_data->plog_buf);
+        fmbuf_delete(th_data->plog_buf);
     close(th_data->efd);
     free(th_data);
     _log_event_notice(LOG_EVENT_USER_BUFFER_RELEASED);
@@ -598,7 +598,7 @@ void _log_async_process(thread_data_t* th_data, unsigned int process_num)
     for (i=0; i<process_num; i++) {
         // first, pop protocol id
         pto_id_t id = 0;
-        if ( mbuf_pop(th_data->plog_buf, &id, LOG_PTO_ID_SIZE) ) {
+        if ( fmbuf_pop(th_data->plog_buf, &id, LOG_PTO_ID_SIZE) ) {
             break;
         }
 
@@ -676,17 +676,17 @@ void _user_thread_destroy(void* arg)
     thread_data_t* th_data = (thread_data_t*)arg;
     if ( !th_data ) return;
 
-    if ( mbuf_used(th_data->plog_buf) == 0 ) {
+    if ( fmbuf_used(th_data->plog_buf) == 0 ) {
         // thread buffer is empty
         if ( th_data->plog_buf )
-            mbuf_delete(th_data->plog_buf);
+            fmbuf_delete(th_data->plog_buf);
         close(th_data->efd);
         free(th_data);
         _log_event_notice(LOG_EVENT_USER_BUFFER_RELEASED);
     } else {
         // thread buffer is no empty, notice fetcher to release th_data
         pto_id_t id = LOG_PTO_THREAD_QUIT;
-        mbuf_push(th_data->plog_buf, &id, LOG_PTO_ID_SIZE);
+        fmbuf_push(th_data->plog_buf, &id, LOG_PTO_ID_SIZE);
 
         // notice fetcher to fetch this exit message
         eventfd_write(th_data->efd, 1);

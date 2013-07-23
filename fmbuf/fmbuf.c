@@ -21,10 +21,10 @@ struct _mbuf {
     char  buf[1];
 };
 
-mbuf*    mbuf_create(size_t size)
+fmbuf*    fmbuf_create(size_t size)
 {
     if ( size > 0 ) {
-        mbuf* pmbuf = malloc(sizeof(mbuf) + size);
+        fmbuf* pmbuf = malloc(sizeof(fmbuf) + size);
 
         if ( !pmbuf ) return NULL;
         pmbuf->size = size;
@@ -35,12 +35,12 @@ mbuf*    mbuf_create(size_t size)
     return NULL;
 }
 
-void    mbuf_delete(mbuf* pbuf)
+void    fmbuf_delete(fmbuf* pbuf)
 {
     free(pbuf);
 }
 
-int     mbuf_push( mbuf* pbuf, const void* data, size_t size)
+int     fmbuf_push( fmbuf* pbuf, const void* data, size_t size)
 {
     if ( pbuf && data && size > 0 && ((uint)MBUF_FREE(pbuf) -1) >= size ) {
         uint tail_free = MBUF_END(pbuf) - MBUF_TAIL(pbuf) + 1;
@@ -66,7 +66,7 @@ int     mbuf_push( mbuf* pbuf, const void* data, size_t size)
 
 //pop data from head
 //if head to end space is less than size then go on to pop from start
-int        mbuf_pop( mbuf* pbuf, void* data, size_t size)
+int        fmbuf_pop( fmbuf* pbuf, void* data, size_t size)
 {
     if ( pbuf && data && size > 0 && size <= (uint)MBUF_USED(pbuf) ) {
         uint tail_use = MBUF_END(pbuf) - MBUF_HEAD(pbuf) + 1;
@@ -91,7 +91,7 @@ int        mbuf_pop( mbuf* pbuf, void* data, size_t size)
 }
 
 // ensure you use the return value , that's safe
-void*    mbuf_vpop(mbuf* pbuf, void* data, size_t size)
+void*    fmbuf_vpop(fmbuf* pbuf, void* data, size_t size)
 {
     if ( pbuf && data && size > 0 && size <= (uint)MBUF_USED(pbuf) ) {
         uint tail_use = MBUF_END(pbuf) - MBUF_HEAD(pbuf) + 1;
@@ -116,7 +116,7 @@ void*    mbuf_vpop(mbuf* pbuf, void* data, size_t size)
 }
 
 // only use to move the head ptr forward tail for sometime optimizating performance
-void    mbuf_head_move(mbuf* pbuf, size_t size)
+void    fmbuf_head_move(fmbuf* pbuf, size_t size)
 {
     if ( pbuf && size > 0 && size <= (uint)MBUF_USED(pbuf) ) {
         uint tail_use = MBUF_END(pbuf) - MBUF_HEAD(pbuf) + 1;
@@ -133,7 +133,7 @@ void    mbuf_head_move(mbuf* pbuf, size_t size)
     }
 }
 
-void*   mbuf_getraw(mbuf* pbuf, void* data, size_t size)
+void*   fmbuf_getraw(fmbuf* pbuf, void* data, size_t size)
 {
     if ( pbuf && data && size > 0 && size <= (uint)MBUF_USED(pbuf) ) {
         uint tail_use = MBUF_END(pbuf) - MBUF_HEAD(pbuf) + 1;
@@ -152,12 +152,12 @@ void*   mbuf_getraw(mbuf* pbuf, void* data, size_t size)
     return    NULL;        //get failed
 }
 
-void*   mbuf_alloc(mbuf* pbuf, size_t size)
+void*   fmbuf_alloc(fmbuf* pbuf, size_t size)
 {
-    if ( mbuf_tail_free(pbuf) < (int)size )
-        mbuf_rewind(pbuf);
+    if ( fmbuf_tail_free(pbuf) < (int)size )
+        fmbuf_rewind(pbuf);
 
-    if ( mbuf_tail_free(pbuf) >= (int)size ) {
+    if ( fmbuf_tail_free(pbuf) >= (int)size ) {
         char* ptr = MBUF_TAIL(pbuf);
         MBUF_TAIL(pbuf) += size;
 
@@ -167,60 +167,60 @@ void*   mbuf_alloc(mbuf* pbuf, size_t size)
     return NULL;
 }
 
-void    mbuf_rewind(mbuf* pbuf)
+void    fmbuf_rewind(fmbuf* pbuf)
 {
-    int head_free = mbuf_head_free(pbuf);
+    int head_free = fmbuf_head_free(pbuf);
 
     if (head_free == 0)
         return;
 
     memmove(MBUF_START(pbuf), MBUF_HEAD(pbuf), MBUF_USED(pbuf));
 
-    mbuf_head_seek(pbuf, -head_free);
-    mbuf_tail_seek(pbuf, -head_free);
+    fmbuf_head_seek(pbuf, -head_free);
+    fmbuf_tail_seek(pbuf, -head_free);
 }
 
-void    mbuf_clear(mbuf* pbuf)
+void    fmbuf_clear(fmbuf* pbuf)
 {
     MBUF_HEAD(pbuf) = MBUF_TAIL(pbuf) = MBUF_START(pbuf);
 }
 
-void    mbuf_head_seek(mbuf* pbuf, int offset)
+void    fmbuf_head_seek(fmbuf* pbuf, int offset)
 {
     MBUF_HEAD(pbuf) += offset;
 }
 
-void    mbuf_tail_seek(mbuf* pbuf, int offset)
+void    fmbuf_tail_seek(fmbuf* pbuf, int offset)
 {
     MBUF_TAIL(pbuf) += offset;
 }
 
-int     mbuf_used(mbuf* pbuf)
+int     fmbuf_used(fmbuf* pbuf)
 {
     return MBUF_USED(pbuf);
 }
 
-int     mbuf_total_free(mbuf* pbuf)
+int     fmbuf_total_free(fmbuf* pbuf)
 {
     return MBUF_FREE(pbuf);
 }
 
-int     mbuf_free(mbuf* pbuf)
+int     fmbuf_free(fmbuf* pbuf)
 {
-    return mbuf_total_free(pbuf) - 1;
+    return fmbuf_total_free(pbuf) - 1;
 }
 
-int     mbuf_tail_free(mbuf* pbuf)
+int     fmbuf_tail_free(fmbuf* pbuf)
 {
     return MBUF_END(pbuf) - MBUF_TAIL(pbuf) + 1;
 }
 
-int     mbuf_head_free(mbuf* pbuf)
+int     fmbuf_head_free(fmbuf* pbuf)
 {
     return MBUF_HEAD(pbuf) - MBUF_START(pbuf);
 }
 
-mbuf*   mbuf_realloc(mbuf* pbuf, size_t size)
+fmbuf*   fmbuf_realloc(fmbuf* pbuf, size_t size)
 {
     uint total_size = MBUF_SIZE(pbuf);
     if ( total_size == size )
@@ -228,13 +228,13 @@ mbuf*   mbuf_realloc(mbuf* pbuf, size_t size)
 
     uint tail_pos = MBUF_TAIL(pbuf) - MBUF_START(pbuf);
     if ( tail_pos > size ) {
-        mbuf_rewind(pbuf);
+        fmbuf_rewind(pbuf);
         tail_pos = MBUF_TAIL(pbuf) - MBUF_START(pbuf);
         size = tail_pos > size ? tail_pos : size;
     }
 
     uint head_pos = MBUF_HEAD(pbuf) - MBUF_START(pbuf);
-    mbuf* new_buf = realloc(pbuf, sizeof(mbuf) + size);
+    fmbuf* new_buf = realloc(pbuf, sizeof(fmbuf) + size);
 
     MBUF_SIZE(new_buf) = size;
     MBUF_HEAD(new_buf) = MBUF_START(new_buf) + head_pos;
@@ -243,17 +243,17 @@ mbuf*   mbuf_realloc(mbuf* pbuf, size_t size)
     return new_buf;
 }
 
-void*   mbuf_get_head(mbuf* pbuf)
+void*   fmbuf_get_head(fmbuf* pbuf)
 {
     return MBUF_HEAD(pbuf);
 }
 
-void*   mbuf_get_tail(mbuf* pbuf)
+void*   fmbuf_get_tail(fmbuf* pbuf)
 {
     return MBUF_TAIL(pbuf);
 }
 
-int     mbuf_size(mbuf* pbuf)
+int     fmbuf_size(fmbuf* pbuf)
 {
     return MBUF_SIZE(pbuf);
 }

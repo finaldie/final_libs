@@ -5,40 +5,40 @@
 extern "C" {
 #endif
 
-typedef struct _mbuf mbuf;
+typedef struct _mbuf fmbuf;
 
-mbuf*   mbuf_create(size_t size);
-void    mbuf_delete(mbuf* pbuf);
+fmbuf*  fmbuf_create(size_t size);
+void    fmbuf_delete(fmbuf* pbuf);
 
 // public interface 
-int     mbuf_size(mbuf* pbuf);
-int     mbuf_used(mbuf* pbuf);
-void    mbuf_clear(mbuf* pbuf);
-void*   mbuf_get_head(mbuf* pbuf);
-void*   mbuf_get_tail(mbuf* pbuf);
+int     fmbuf_size(fmbuf* pbuf);
+int     fmbuf_used(fmbuf* pbuf);
+void    fmbuf_clear(fmbuf* pbuf);
+void*   fmbuf_get_head(fmbuf* pbuf);
+void*   fmbuf_get_tail(fmbuf* pbuf);
 
 // ----------------As a Loop Buff------------------------
 //push data into mbuf : if tail free space not enough that continue write from start
 //return 0/1 : 0-> sucess 1->fail
-int     mbuf_push(mbuf* pbuf, const void* data, size_t size);
-int     mbuf_pop(mbuf* pbuf, void* data, size_t size);
-void*   mbuf_vpop(mbuf* pbuf, void* data, size_t size);
-void*   mbuf_getraw(mbuf* pbuf, void* data, size_t size);
-void    mbuf_head_move(mbuf* pbuf, size_t size);
-int     mbuf_free(mbuf* pbuf);
+int     fmbuf_push(fmbuf* pbuf, const void* data, size_t size);
+int     fmbuf_pop(fmbuf* pbuf, void* data, size_t size);
+void*   fmbuf_vpop(fmbuf* pbuf, void* data, size_t size);
+void*   fmbuf_getraw(fmbuf* pbuf, void* data, size_t size);
+void    fmbuf_head_move(fmbuf* pbuf, size_t size);
+int     fmbuf_free(fmbuf* pbuf);
 
 //-----------------As a Array-----------------------------
 //alloc a buf from mbuf
 //return NULL : alloc failed
-int     mbuf_head_free(mbuf* pbuf);
-int     mbuf_tail_free(mbuf* pbuf);
-int     mbuf_total_free(mbuf* pbuf);
+int     fmbuf_head_free(fmbuf* pbuf);
+int     fmbuf_tail_free(fmbuf* pbuf);
+int     fmbuf_total_free(fmbuf* pbuf);
 
-void*   mbuf_alloc(mbuf* pbuf, size_t size);
-void    mbuf_head_seek(mbuf* pbuf, int offset);
-void    mbuf_tail_seek(mbuf* pbuf, int offset);
-void    mbuf_rewind(mbuf* pbuf);
-mbuf*   mbuf_realloc(mbuf* pbuf, size_t size);
+void*   fmbuf_alloc(fmbuf* pbuf, size_t size);
+void    fmbuf_head_seek(fmbuf* pbuf, int offset);
+void    fmbuf_tail_seek(fmbuf* pbuf, int offset);
+void    fmbuf_rewind(fmbuf* pbuf);
+fmbuf*  fmbuf_realloc(fmbuf* pbuf, size_t size);
 
 #ifdef __cplusplus
 }
