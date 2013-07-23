@@ -10,7 +10,7 @@
 #define FCACHE_BALANCE_INTERVAL 2000
 
 struct _fcache {
-    f_hash*  phash_node_index;
+    fhash*   phash_node_index;
     fc_list* pactive_list;
     fc_list* pinactive_list;
     cache_obj_free obj_free;
@@ -27,7 +27,7 @@ fcache_t* fcache_create(size_t max_size, cache_obj_free obj_free)
     if ( !pcache ) return NULL;
     memset(pcache, 0, sizeof(fcache_t));
 
-    pcache->phash_node_index = hash_create(max_size * 1.5);
+    pcache->phash_node_index = fhash_create(max_size * 1.5);
     if ( !pcache->phash_node_index ) {
         fcache_destroy(pcache);
         return NULL;
@@ -70,7 +70,7 @@ void      _fcache_destroy_list(fc_list* plist, cache_obj_free obj_free)
 void      fcache_destroy(fcache_t* pcache)
 {
     if ( !pcache ) return;
-    hash_delete(pcache->phash_node_index);
+    fhash_delete(pcache->phash_node_index);
     _fcache_destroy_list(pcache->pactive_list, pcache->obj_free);
     _fcache_destroy_list(pcache->pinactive_list, pcache->obj_free);
     free(pcache);
@@ -88,9 +88,9 @@ int       _fcache_add_node(fcache_t* pcache, const char* key, size_t key_size,
     // for a new node
     // 1. add into hash table
     // 2. add into inactive node
-    hash_set_str(pcache->phash_node_index, key, add_node);
+    fhash_set_str(pcache->phash_node_index, key, add_node);
     if ( fcache_list_push(pcache->pinactive_list, add_node, value_size) ) {
-        hash_del_str(pcache->phash_node_index, key);
+        fhash_del_str(pcache->phash_node_index, key);
         fcache_list_destroy_node(add_node);
     }
 
@@ -123,7 +123,7 @@ void      _fcache_del_node(fcache_t* pcache, fcache_node_t* node)
         fprintf(stderr, "[WARNING]: data delete may cause memory leak, key = %s\n", key);
     }
 
-    hash_del_str(pcache->phash_node_index, key);
+    fhash_del_str(pcache->phash_node_index, key);
     fcache_list_delete_node(node);
     fcache_list_destroy_node(node);
 }
@@ -235,7 +235,7 @@ int       fcache_set_obj(fcache_t* pcache, const char* key, size_t key_size,
     if ( value && !value_size ) return 1;
     if ( value_size > pcache->max_size ) return 1;
 
-    fcache_node_t* node = hash_get_str(pcache->phash_node_index, key);
+    fcache_node_t* node = fhash_get_str(pcache->phash_node_index, key);
     if ( _fcache_check_and_drop_nodes(pcache, node, value_size) ) {
         return 1;
     }
@@ -281,7 +281,7 @@ void*     fcache_get_obj(fcache_t* pcache, const char* key)
         }
     }
 
-    fcache_node_t* node = hash_get_str(pcache->phash_node_index, key);
+    fcache_node_t* node = fhash_get_str(pcache->phash_node_index, key);
     if ( unlikely(!node) )
         return NULL;
 

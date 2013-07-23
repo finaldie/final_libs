@@ -75,7 +75,7 @@ typedef void (*ptofunc)(thread_data_t*);
 
 // global log system data
 typedef struct _log_t {
-    f_hash*         phash;       // mapping filename <--> log_file structure
+    fhash*          phash;       // mapping filename <--> log_file structure
     pthread_mutex_t lock;        // protect some scences resource competion
     pthread_key_t   key;
     plog_event_func event_cb;    // event callback
@@ -633,7 +633,7 @@ LOG_LOOP:
     // timeout
     if ( unlikely(nums == 0) ) {
         pthread_mutex_lock(&g_log->lock);
-        hash_foreach(g_log->phash, _log_process_timeout);
+        fhash_foreach(g_log->phash, _log_process_timeout);
         pthread_mutex_unlock(&g_log->lock);
     }
 
@@ -709,7 +709,7 @@ void _log_init()
     }
 
     t_log->epfd = epfd;
-    t_log->phash = hash_create(0);
+    t_log->phash = fhash_create(0);
     pthread_mutex_init(&t_log->lock, NULL);
     pthread_key_create(&t_log->key, _user_thread_destroy);
     t_log->event_cb = NULL;
@@ -736,7 +736,7 @@ log_file_t* log_create(const char* filename){
     {
         // check whether log file data has been created
         // if not, create it, or return its pointer
-        log_file_t* created_file = hash_get_str(g_log->phash, filename);
+        log_file_t* created_file = fhash_get_str(g_log->phash, filename);
         if ( created_file ) {
             created_file->ref_count++;
             pthread_mutex_unlock(&g_log->lock);
@@ -765,7 +765,7 @@ log_file_t* log_create(const char* filename){
         f->file_size = 0;
         f->last_flush_time = time(NULL);
         snprintf(f->pfilename, LOG_MAX_FILE_NAME, "%s", filename);
-        hash_set_str(g_log->phash, filename, f);
+        fhash_set_str(g_log->phash, filename, f);
         f->ref_count = 1;
     }
     pthread_mutex_unlock(&g_log->lock);
@@ -781,7 +781,7 @@ void log_destroy(log_file_t* lf)
 
         if ( lf->ref_count == 0 ) {
             fclose(lf->pf);
-            hash_del_str(g_log->phash, lf->pfilename);
+            fhash_del_str(g_log->phash, lf->pfilename);
             free(lf);
         }
     }

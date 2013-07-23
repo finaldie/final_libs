@@ -109,13 +109,13 @@ int     base_int_hash(int key)
 }
 
 static inline
-int        hash_str(f_hash* phash, const char* key)
+int        hash_str(fhash* phash, const char* key)
 {
     return base_str_hash(key) % phash->size;
 }
 
 static inline
-int        hash_int(f_hash* phash, int key)
+int        hash_int(fhash* phash, int key)
 {
     return base_int_hash(key) % phash->size;
 }
@@ -155,54 +155,54 @@ char*    f_itoa(int v, char* retbuff, size_t bufsize)
 }
 
 static inline
-char*    f_64itoa(uint64_t v, char* retbuff, size_t bufsize)
+char*     f_64itoa(uint64_t v, char* retbuff, size_t bufsize)
 {
     snprintf(retbuff, bufsize, "%"PRIx64, v);
     return retbuff;
 }
 
-char*     hash_itoa(int v, char* retbuff)
+char*     fhash_itoa(int v, char* retbuff)
 {
     sprintf(retbuff, "%d", v);
     return retbuff;
 }
 
 static inline
-int        f_atoi(char* v){
+int       f_atoi(char* v){
     return (int)strtol(v, (char**)NULL, 16);
 }
 
 inline
-int        hash_atoi(char* v){
+int       fhash_atoi(char* v){
     return f_atoi(v);
 }
 
 static inline
-hash_mgr* hash_get_head(f_hash* phash, int h)
+hash_mgr* hash_get_head(fhash* phash, int h)
 {
     return &phash->ph_mgr[h];
 }
 
 static inline
-f_hash_node* hash_get_list(f_hash* phash, int h)
+f_hash_node* hash_get_list(fhash* phash, int h)
 {
     return hash_get_head(phash, h)->hash_list;
 }
 
 static inline
-void    hash_set_list(f_hash* phash, int h, f_hash_node* plist)
+void    hash_set_list(fhash* phash, int h, f_hash_node* plist)
 {
     hash_get_head(phash, h)->hash_list = plist;
 }
 
 static inline
-int        hash_get_size(f_hash* phash, int h)
+int        hash_get_size(fhash* phash, int h)
 {
     return hash_get_head(phash, h)->size;
 }
 
 static inline
-int        hash_get_maxsize(f_hash* phash, int h)
+int        hash_get_maxsize(fhash* phash, int h)
 {
     return hash_get_head(phash, h)->max_size;
 }
@@ -224,7 +224,7 @@ void    hash_inc_list(hash_mgr* pmgr)
 }
 
 static
-f_hash_node*    hash_find(f_hash* phash, int h, int type, const void* key)
+f_hash_node*    hash_find(fhash* phash, int h, int type, const void* key)
 {
     f_hash_node* node = hash_get_list(phash, h);
     int size = hash_get_size(phash, h);
@@ -250,7 +250,7 @@ f_hash_node*    hash_find(f_hash* phash, int h, int type, const void* key)
 }
 
 static
-void    hash_add(f_hash* phash, int h, int type, const void* key, void* value)
+void    hash_add(fhash* phash, int h, int type, const void* key, void* value)
 {
     hash_mgr* pmgr = hash_get_head(phash, h);
     int size = pmgr->size;
@@ -266,7 +266,7 @@ void    hash_add(f_hash* phash, int h, int type, const void* key, void* value)
 }
 
 static
-void     hash_set(f_hash* phash, int h, htype type, const void* key, void* value)
+void     hash_set(fhash* phash, int h, htype type, const void* key, void* value)
 {
     hash_mgr* mgr = hash_get_head(phash, h);
     f_hash_node* plist = hash_get_list(phash, h);
@@ -287,7 +287,7 @@ void     hash_set(f_hash* phash, int h, htype type, const void* key, void* value
 }
 
 static inline
-void*    hash_get(f_hash* phash, int h, int type, const void* key)
+void*    hash_get(fhash* phash, int h, int type, const void* key)
 {
     f_hash_node* pnode = hash_find(phash, h, type, key);
     if( pnode ){
@@ -298,7 +298,7 @@ void*    hash_get(f_hash* phash, int h, int type, const void* key)
 }
 
 static inline
-void*    hash_del(f_hash* phash, int h, int type, const void* key)
+void*    hash_del(fhash* phash, int h, int type, const void* key)
 {
     f_hash_node* node = hash_get_list(phash, h);
     if( !node ) return NULL;
@@ -340,7 +340,7 @@ void*    hash_del(f_hash* phash, int h, int type, const void* key)
 }
 
 //-------------------open api-----------------------------------
-f_hash*    hash_create(int size)
+fhash*    fhash_create(int size)
 {
     int f_size = 0;
     if( size <= 0 )
@@ -348,7 +348,7 @@ f_hash*    hash_create(int size)
     else
         f_size = size;
 
-    f_hash* phash = (f_hash*)malloc(sizeof(f_hash) + sizeof(hash_mgr) * f_size);
+    fhash* phash = (fhash*)malloc(sizeof(fhash) + sizeof(hash_mgr) * f_size);
 
     phash->size = f_size;
     phash->value_count = 0;
@@ -363,7 +363,7 @@ f_hash*    hash_create(int size)
     return phash;
 }
 
-void    hash_delete(f_hash* phash)
+void     fhash_delete(fhash* phash)
 {
     if ( !phash ) return;
     int i, size = phash->size;
@@ -387,7 +387,7 @@ void    hash_delete(f_hash* phash)
 }
 
 inline
-void    hash_set_int(f_hash* phash, int key, void* value)
+void     fhash_set_int(fhash* phash, int key, void* value)
 {
     char new_key[MAX_INT_KEY_SIZE];
     f_itoa(key, new_key, MAX_INT_KEY_SIZE);
@@ -397,7 +397,7 @@ void    hash_set_int(f_hash* phash, int key, void* value)
 }
 
 inline
-void*    hash_get_int(f_hash* phash, int key)
+void*    fhash_get_int(fhash* phash, int key)
 {
     char new_key[MAX_INT_KEY_SIZE];
     f_itoa(key, new_key, MAX_INT_KEY_SIZE);
@@ -407,7 +407,7 @@ void*    hash_get_int(f_hash* phash, int key)
 }
 
 inline
-void*    hash_del_int(f_hash* phash, int key)
+void*    fhash_del_int(fhash* phash, int key)
 {
     char new_key[MAX_INT_KEY_SIZE];
     f_itoa(key, new_key, MAX_INT_KEY_SIZE);
@@ -417,7 +417,7 @@ void*    hash_del_int(f_hash* phash, int key)
 }
 
 inline
-void    hash_set_str(f_hash* phash, const char* key, void* value)
+void     fhash_set_str(fhash* phash, const char* key, void* value)
 {
     int h = hash_str(phash, key);
 
@@ -425,7 +425,7 @@ void    hash_set_str(f_hash* phash, const char* key, void* value)
 }
 
 inline
-void*    hash_get_str(f_hash* phash, const char* key)
+void*    fhash_get_str(fhash* phash, const char* key)
 {
     int h = hash_str(phash, key);
 
@@ -433,14 +433,14 @@ void*    hash_get_str(f_hash* phash, const char* key)
 }
 
 inline
-void*    hash_del_str(f_hash* phash, const char* key)
+void*    fhash_del_str(fhash* phash, const char* key)
 {
     int h = hash_str(phash, key);
     return hash_del(phash, h, HASH_TYPE_STR, key);
 }
 
 inline
-void    hash_set_uint64(f_hash* phash, uint64_t key, void* value)
+void     fhash_set_uint64(fhash* phash, uint64_t key, void* value)
 {
     char new_key[MAX_INT_KEY_SIZE];
     f_64itoa(key, new_key, MAX_INT_KEY_SIZE);
@@ -450,7 +450,7 @@ void    hash_set_uint64(f_hash* phash, uint64_t key, void* value)
 }
 
 inline
-void*    hash_get_uint64(f_hash* phash, uint64_t key)
+void*    fhash_get_uint64(fhash* phash, uint64_t key)
 {
     char new_key[MAX_INT_KEY_SIZE];
     f_64itoa(key, new_key, MAX_INT_KEY_SIZE);
@@ -460,7 +460,7 @@ void*    hash_get_uint64(f_hash* phash, uint64_t key)
 }
 
 inline
-void*    hash_del_uint64(f_hash* phash, uint64_t key)
+void*    fhash_del_uint64(fhash* phash, uint64_t key)
 {
     char new_key[MAX_INT_KEY_SIZE];
     f_64itoa(key, new_key, MAX_INT_KEY_SIZE);
@@ -469,9 +469,9 @@ void*    hash_del_uint64(f_hash* phash, uint64_t key)
     return hash_del(phash, h, HASH_TYPE_UINT64, &key);
 }
 
-hiter hash_iter(f_hash* phash)
+fhash_iter fhash_new_iter(fhash* phash)
 {
-    hiter iter;
+    fhash_iter iter;
 
     iter.phash = phash;
     iter.offset = 0;
@@ -480,9 +480,9 @@ hiter hash_iter(f_hash* phash)
     return iter;
 }
 
-void*     hash_next(hiter* iter)
+void*     fhash_next(fhash_iter* iter)
 {
-    f_hash* phash = iter->phash;
+    fhash* phash = iter->phash;
     int size = phash->size;
     if( iter->offset >= size ) return NULL;
 
@@ -501,11 +501,11 @@ void*     hash_next(hiter* iter)
         if( iter->offset >= size )
             return NULL;
         else
-            return hash_next(iter);
+            return fhash_next(iter);
     }
 }
 
-void    hash_foreach(f_hash* phash, pfunc_iter pfunc){
+void    fhash_foreach(fhash* phash, fhash_each_cb pfunc){
     int i, j, size = phash->size;
 
     for(i=0; i<size; ++i){
@@ -532,12 +532,12 @@ void    hash_foreach(f_hash* phash, pfunc_iter pfunc){
     }
 }
 
-int        hash_get_count(f_hash* phash)
+int        fhash_get_count(fhash* phash)
 {
     return phash->value_count;
 }
 
-void    hash_statistics(f_hash* phash){
+void    fhash_statistics(fhash* phash){
     int i = 0, count = 0, use = 0, max = 0;
     for( i=0; i<phash->size; ++i )
     {

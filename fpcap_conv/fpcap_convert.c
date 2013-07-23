@@ -45,7 +45,7 @@
 
 typedef struct fopt_action_t {
     convert_action_t* iaction;
-    f_hash* phash;
+    fhash*  phash;
 } fopt_action_t;
 
 static inline
@@ -58,9 +58,9 @@ uint64_t fsession_key(uint32_t ip, uint16_t port)
 }
 
 static inline
-session_t* fsession_find(f_hash* hash_tbl, uint64_t id)
+session_t* fsession_find(fhash* hash_tbl, uint64_t id)
 {
-    return hash_get_uint64(hash_tbl, id);
+    return fhash_get_uint64(hash_tbl, id);
 }
 
 static
@@ -74,20 +74,20 @@ session_t* fsession_create(uint64_t session_id)
 }
 
 static
-void fsession_del(f_hash* hash_tbl, uint64_t session_id)
+void fsession_del(fhash* hash_tbl, uint64_t session_id)
 {
-    void* session = hash_del_uint64(hash_tbl, session_id);
+    void* session = fhash_del_uint64(hash_tbl, session_id);
     free(session);
 }
 
 static
-int fsession_add(f_hash* hash_tbl, session_t* session)
+int fsession_add(fhash* hash_tbl, session_t* session)
 {
     if( fsession_find(hash_tbl, session->id) ) {
         return 1;
     }
 
-    hash_set_uint64(hash_tbl, session->id, session);
+    fhash_set_uint64(hash_tbl, session->id, session);
     return 0;
 }
 
@@ -114,7 +114,7 @@ int filter_tcpip_pkg(fopt_action_t* action, const struct pcap_pkthdr* pkg_header
     fconv_handler handler = action->iaction->handler;
     uint32_t serving_type = action->iaction->type;
     void* ud = action->iaction->ud;
-    f_hash* phash = action->phash;
+    fhash* phash = action->phash;
 
     if( caplen < sizeof(struct ether_header) ) {
         return 1;
@@ -221,9 +221,9 @@ void fpcap_session_foreach(fopt_action_t* action)
         return 0;
     }
 
-    f_hash* phash = action->phash;
-    hash_foreach(phash, loop_handler);
-    hash_foreach(phash, final_clean);
+    fhash* phash = action->phash;
+    fhash_foreach(phash, loop_handler);
+    fhash_foreach(phash, final_clean);
 }
 
 int fpcap_convert(convert_action_t action)
@@ -251,7 +251,7 @@ int fpcap_convert(convert_action_t action)
 
     fopt_action_t opt_action;
     opt_action.iaction = &action;
-    opt_action.phash = hash_create(SESSION_HASH_SIZE);
+    opt_action.phash = fhash_create(SESSION_HASH_SIZE);
     int st = pcap_loop(p, 0, dump_cb, (u_char*)&opt_action);
     if( st != 0 ) {
         printf("pcap_loop error:%s\n", pcap_geterr(p));
@@ -265,7 +265,7 @@ cleanup:
         fpcap_session_foreach(&opt_action);
     }
 
-    hash_delete(opt_action.phash);
+    fhash_delete(opt_action.phash);
     pcap_close(p);
     return ret;
 }

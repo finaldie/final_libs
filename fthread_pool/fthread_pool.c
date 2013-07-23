@@ -32,7 +32,7 @@ static int th_id = 0;
 static int max_num = 0;
 static int curr_post = 0;
 static int curr_num = 0;
-static f_hash* g_th_pool = NULL;
+static fhash* g_th_pool = NULL;
 static thread_data** pth_pool = NULL;
 
 static
@@ -69,7 +69,7 @@ void    thpool_init(int num)
     if ( g_th_pool ) return;
     if ( num <= 0 ) return;
 
-    g_th_pool = hash_create(TH_POOL_HASH_SIZE);
+    g_th_pool = fhash_create(TH_POOL_HASH_SIZE);
     pth_pool = (thread_data**)malloc( sizeof(thread_data*) * num );
 
     max_num = num;
@@ -92,7 +92,7 @@ int     thpool_add_thread(void* pri_arg)
         return -1;
     }
 
-    hash_set_int(g_th_pool, th_data->tid, th_data);
+    fhash_set_int(g_th_pool, th_data->tid, th_data);
     pth_pool[curr_num++] = th_data;
 
     return th_data->tid;
