@@ -18,29 +18,21 @@ typedef struct {
     char*  official_name;
     char** alias_names;
     char** ips;
-} host_info_t;
-
-// use it avoid gcc throw error 'break strict-aliasing rules'
-typedef union {
-    struct sockaddr_storage storage;
-    struct sockaddr_in      in;
-    struct sockaddr_in6     in6;
-    struct sockaddr         sa;
-} sockaddr_u_t;
+} fhost_info_t;
 
 unsigned int fnet_get_lowdata(unsigned int data);
 unsigned int fnet_get_highdata(unsigned int data);
 
-void    fnet_set_keepalive(int fd, int idle_time, int interval, int count);
-void    fnet_set_nonblocking(int fd);
+int     fnet_set_keepalive(int fd, int idle_time, int interval, int count);
+int     fnet_set_nonblocking(int fd);
 int     fnet_set_nodelay(int fd);
-void    fnet_set_recv_buffsize(int fd, int size);
-void    fnet_set_send_buffsize(int fd, int size);
-void    fnet_set_recv_timeout(int fd, int timeout);
-void    fnet_set_send_timeout(int fd, int timeout);
-void    fnet_set_linger(int fd);
-void    fnet_set_reuse_addr(int fd);
-void    fnet_set_reuse_port(int fd);
+int     fnet_set_recv_buffsize(int fd, int size);
+int     fnet_set_send_buffsize(int fd, int size);
+int     fnet_set_recv_timeout(int fd, int timeout);
+int     fnet_set_send_timeout(int fd, int timeout);
+int     fnet_set_linger(int fd);
+int     fnet_set_reuse_addr(int fd);
+int     fnet_set_reuse_port(int fd);
 
 int     fnet_create_listen(const char* ip, int port, int max_link, int isblock);
 int     fnet_accept(int listen_fd);
@@ -54,8 +46,8 @@ char*   fnet_get_localip(int fd);
 char*   fnet_get_peerip(int fd);
 
 // dns , after use must call net_free_host
-int     fnet_get_host(const char* host_name, host_info_t* hinfo);
-void    fnet_free_host(host_info_t* hinfo);
+int     fnet_get_host(const char* host_name, fhost_info_t* hinfo);
+void    fnet_free_host(fhost_info_t* hinfo);
 
 #ifdef __cplusplus
 }

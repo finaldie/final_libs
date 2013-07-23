@@ -18,36 +18,46 @@
 
 #define STATIC_IP_LEN    32    // compatible ipv6
 
-void     fnet_set_keepalive(int fd, int idle_time, int interval, int count)
+// use it avoid gcc throw error 'break strict-aliasing rules'
+typedef union {
+    struct sockaddr_storage storage;
+    struct sockaddr_in      in;
+    struct sockaddr_in6     in6;
+    struct sockaddr         sa;
+} sockaddr_u_t;
+
+int     fnet_set_keepalive(int fd, int idle_time, int interval, int count)
 {
     int on_keep = 1;
     int s = -1;
     s = setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &on_keep, sizeof(on_keep));
-    assert(s==0);
+    if( s ) return s;
+
     s = setsockopt(fd, IPPROTO_TCP, TCP_KEEPIDLE, &idle_time , sizeof(idle_time));
-    assert(s==0);
+    if( s ) return s;
+
     s = setsockopt(fd, IPPROTO_TCP, TCP_KEEPINTVL, &interval, sizeof(interval));
-    assert(s==0);
-    s = setsockopt(fd, IPPROTO_TCP, TCP_KEEPCNT, &count, sizeof(count));
-    assert(s==0);
+    if( s ) return s;
+
+    return setsockopt(fd, IPPROTO_TCP, TCP_KEEPCNT, &count, sizeof(count));
 }
 
 //set SO_LINGER option(respond CLOSE_WAIT hold all socket)
 inline
-void     fnet_set_linger(int fd)
+int     fnet_set_linger(int fd)
 {
     struct linger            optval;
     optval.l_onoff  = 0;  // src 1  
     optval.l_linger = 0;  // src 60
-    setsockopt(fd, SOL_SOCKET, SO_LINGER, &optval, sizeof(struct linger));
+    return setsockopt(fd, SOL_SOCKET, SO_LINGER, &optval, sizeof(struct linger));
 }
 
 //set SO_REUSEADDR option(the server can reboot fast)
 inline
-void    fnet_set_reuse_addr(int fd)
+int    fnet_set_reuse_addr(int fd)
 {
     int optval = 0x1;
-    setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(int));
+    return setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(int));
 }
 
 //set SO_REUSEPORT option(different fds can bind on the same address and same port)
@@ -56,54 +66,53 @@ void    fnet_set_reuse_addr(int fd)
 //before start program, run the command as below:
 //sysctl net.core.allow_reuseport=1
 inline
-void    fnet_set_reuse_port(int fd)
+int    fnet_set_reuse_port(int fd)
 {
 #ifdef SO_REUSEPORT
     int optval = 0x1;
-    if ( setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(int)) ) {
-        printf("setsocket SO_REUSEPORT failed, detail:%s\n", strerror(errno));
-    }
+    return setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(int)) ) {
+#else
+    return 0;
 #endif
 }
 
 inline
-void     fnet_set_nonblocking(int fd)
+int     fnet_set_nonblocking(int fd)
 {
-    fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, 0) | O_NONBLOCK);
+    return fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, 0) | O_NONBLOCK);
 }
 
 inline
-void    fnet_set_recv_buffsize(int fd, int size)
+int     fnet_set_recv_buffsize(int fd, int size)
 {
-    setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (char*)&size, sizeof(int));
+    return setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (char*)&size, sizeof(int));
 }
 
 inline
-void    fnet_set_send_buffsize(int fd, int size)
+int     fnet_set_send_buffsize(int fd, int size)
 {
-    setsockopt(fd, SOL_SOCKET, SO_SNDBUF, (char*)&size, sizeof(int));
+    return setsockopt(fd, SOL_SOCKET, SO_SNDBUF, (char*)&size, sizeof(int));
 }
 
 // return -1 has error
 inline
-int        fnet_set_nodely(int fd){
+int     fnet_set_nodely(int fd){
     int flag = 1;
     return setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (char*)&flag, sizeof(flag));
 }
 
 inline
-void    fnet_set_recv_timeout(int fd, int timeout)
+int     fnet_set_recv_timeout(int fd, int timeout)
 {
-      setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout));
+    return setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout));
 }
 
-void    fnet_set_send_timeout(int fd, int timeout)
+int     fnet_set_send_timeout(int fd, int timeout)
 {
     struct timeval timeo = {2, 0L};
     socklen_t len = sizeof(timeo);
     timeo.tv_sec = timeout;
-    int s = setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &timeo, len);
-    assert(s == 0);
+    return setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &timeo, len);
 }
 
 int     fnet_create_listen(const char* ip, int port, int max_link, int isblock)
@@ -162,7 +171,6 @@ int     fnet_send_safe(int fd, const void* data, int len)
             else if ( errno == EINTR || errno == EWOULDBLOCK )
                 continue;
             else {
-                printf("errno = %d fd = %d\n reason=%s\n", errno, fd, strerror(errno));
                 return -1;    // send error | that receiver has closed
             }
         }
@@ -254,7 +262,6 @@ int     fnet_conn(const char* ip, int port, int isblock)
     struct sockaddr_in server_addr;
 
     if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-        printf("net_conn error:%s\a\n", strerror(errno));
         return -1;
     }
 
@@ -265,14 +272,11 @@ int     fnet_conn(const char* ip, int port, int isblock)
 
     if ( connect(sockfd, (struct sockaddr *)(&server_addr),
         sizeof(struct sockaddr)) == -1 ) {
-        printf("net_conn:Connect Error:%s\a\n", strerror(errno));
         return -1;
     }
 
     if ( !isblock )
         fnet_set_nonblocking(sockfd);
-
-    printf("net_conn:connect sucess fd = %d\n", sockfd);
 
     return sockfd;
 }
@@ -288,7 +292,6 @@ int     fnet_conn_async(const char* ip, int port, int* outfd)
     struct sockaddr_in server_addr;
 
     if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-        printf("net_conn_a error:%s\a\n", strerror(errno));
         return -1; 
     }
 
@@ -306,13 +309,11 @@ int     fnet_conn_async(const char* ip, int port, int* outfd)
         if( errno == EINPROGRESS )
             return 1;
         else {
-            printf("lnet_conn:Connect Error:%s\a\n", strerror(errno));
             return -1;
         }
     }
-    printf("lnet_conn:connect sucess fd = %d\n", sockfd);
 
-    return    0;
+    return 0;
 }
 
 char*   fnet_get_localip(int fd)
@@ -333,7 +334,7 @@ char*   fnet_get_peerip(int fd)
     return inet_ntoa( u_addr.in.sin_addr );
 }
 
-int     fnet_get_host(const char* host_name, host_info_t* hinfo)
+int     fnet_get_host(const char* host_name, fhost_info_t* hinfo)
 {
     if ( !host_name ) return 1;
     hinfo->alias_count = 0;
@@ -385,14 +386,13 @@ int     fnet_get_host(const char* host_name, host_info_t* hinfo)
 
             break;
         default:
-            printf("unknown address type\n");
             return 3;
     }
 
     return 0;
 }
 
-void    fnet_free_host(host_info_t* hinfo)
+void    fnet_free_host(fhost_info_t* hinfo)
 {
     int i;
     free(hinfo->official_name);
