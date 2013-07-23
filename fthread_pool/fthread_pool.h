@@ -5,15 +5,15 @@
 extern "C" {
 #endif
 
-typedef void* (*pfunc)(void* thread_data, void* arg);
+typedef void* (*fth_task)(void* thread_data, void* arg);
 
 /* new version use the follow methods */
-void    thpool_init(int num);
+void    fthpool_init(int num);
 // the arg is the every task arg
-int     thpool_post_task(pfunc, void* arg);
+int     fthpool_post_task(fth_task, void* arg);
 // the thread_data arg is this thread fixed arg every callback will push it
-int     thpool_add_thread(void* thread_data);
-int     thpool_del_thread(int tid);
+int     fthpool_add_thread(void* thread_data);
+int     fthpool_del_thread(int tid);
 
 #ifdef __cplusplus
 }

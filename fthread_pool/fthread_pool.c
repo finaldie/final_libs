@@ -24,7 +24,7 @@ typedef struct {
 
 typedef struct {
     int      ev;
-    pfunc    pf;
+    fth_task pf;
     void*    arg;
 } th_msg_t;
 
@@ -39,11 +39,9 @@ static
 void*    base_work(void* arg)
 {
     thread_data* th_data = (thread_data*)arg;
-    int tid = th_data->tid;
     th_msg_t msg;
 
 L:
-    printf("thread tid=%d wait task\n", tid);
     cond_wait(&th_data->cond);
 
     do {
@@ -55,7 +53,6 @@ L:
                 msg.pf( th_data->parg, msg.arg );
                 break;
             case TH_RELEASE:
-                printf("thread tid=%d has quit\n", th_data->tid);
                 return NULL;
         }
     }while(1);
@@ -64,7 +61,7 @@ L:
     return NULL;
 }
 
-void    thpool_init(int num)
+void    fthpool_init(int num)
 {
     if ( g_th_pool ) return;
     if ( num <= 0 ) return;
@@ -75,7 +72,7 @@ void    thpool_init(int num)
     max_num = num;
 }
 
-int     thpool_add_thread(void* pri_arg)
+int     fthpool_add_thread(void* pri_arg)
 {
     thread_data* th_data = malloc(sizeof(thread_data));
     th_data->tid = th_id++;
@@ -86,7 +83,6 @@ int     thpool_add_thread(void* pri_arg)
     pthread_t t;
     int rc = pthread_create(&t, 0, base_work, th_data);
     if ( 0 != rc ) {
-        fprintf(stderr, "thpool: create thread error\n");
         mbuf_delete(th_data->pbuf);
         free(th_data);
         return -1;
@@ -100,7 +96,7 @@ int     thpool_add_thread(void* pri_arg)
 
 // return 0 : post sucess
 // return 1 : post failed .. queue full
-int     thpool_post_task(pfunc pf, void* arg)
+int     fthpool_post_task(fth_task pf, void* arg)
 {
     if ( !pf ) return 1;
 
