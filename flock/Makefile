@@ -26,8 +26,8 @@ $(TARGET):$(OBJS) $(DEPS)
 	$(CC) $(CFLAGS) $(INC) -c $< 
 
 install:
-	-(test -d $(INSTALL_PATH) || mkdir $(INSTALL_PATH) )
-	-(test -d $(INSTALL_PATH)/$(INCLUDE_PATH) || mkdir $(INSTALL_PATH)/$(INCLUDE_PATH) )
+	-(test -d $(INSTALL_PATH) || mkdir -p $(INSTALL_PATH) )
+	-(test -d $(INSTALL_PATH)/$(INCLUDE_PATH) || mkdir -p $(INSTALL_PATH)/$(INCLUDE_PATH) )
 	-(test -d $(INSTALL_PATH)/$(LIBS_PATH) || mkdir $(INSTALL_PATH)/$(LIBS_PATH) )
 	cp $(INCLUDE_FILES) $(INSTALL_PATH)/$(INCLUDE_PATH)
 	cp $(TARGET) $(INSTALL_PATH)/$(LIBS_PATH)
