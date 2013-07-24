@@ -22,9 +22,9 @@ struct list_mgr {
     struct list_node* tail;
 };
 
-pl_mgr  flist_create()
+flist*  flist_create()
 {
-    pl_mgr pmgr = (pl_mgr)malloc(sizeof(lmgr));
+    flist* pmgr = (flist*)malloc(sizeof(lmgr));
     pnode  node = (pnode)malloc(sizeof(lnode));
     node->pre = node->next = NULL;
     pmgr->head = pmgr->tail = node;
@@ -32,7 +32,7 @@ pl_mgr  flist_create()
     return pmgr;
 }
 
-void    flist_delete(pl_mgr pmgr)
+void    flist_delete(flist* pmgr)
 {
     if ( !pmgr ) return;
     while( flist_pop(pmgr) );
@@ -40,7 +40,7 @@ void    flist_delete(pl_mgr pmgr)
     free(pmgr);
 }
 
-int     flist_push(pl_mgr pmgr, void* data)
+int     flist_push(flist* pmgr, void* data)
 {
     if ( !data )
         return 1;
@@ -55,7 +55,7 @@ int     flist_push(pl_mgr pmgr, void* data)
     return 0;
 }
 
-void*   flist_pop(pl_mgr pmgr)
+void*   flist_pop(flist* pmgr)
 {
     if ( !pmgr || flist_isempty(pmgr) )
         return NULL;
@@ -65,14 +65,14 @@ void*   flist_pop(pl_mgr pmgr)
     return pmgr->head->data;
 }
 
-int     flist_isempty(pl_mgr pmgr)
+int     flist_isempty(flist* pmgr)
 {
     if (pmgr->head == pmgr->tail)
         return 1;
     return 0;
 }
 
-void*   flist_foreach(pl_mgr pmgr, plist_call_back pfunc)
+void*   flist_foreach(flist* pmgr, flist_each_cb pfunc)
 {
     if ( !pfunc ) return NULL;
     if ( flist_isempty(pmgr) ) return NULL;
@@ -88,7 +88,7 @@ void*   flist_foreach(pl_mgr pmgr, plist_call_back pfunc)
     return NULL;
 }
 //insertion sort, sort list in increasing order
-int flist_sort(pl_mgr pmgr, compare pfunc)
+int flist_sort(flist* pmgr, flist_compare pfunc)
 {
     if ( !pfunc ) return 1;
     if ( flist_isempty(pmgr) ) return 1;
@@ -133,9 +133,9 @@ int flist_sort(pl_mgr pmgr, compare pfunc)
 }
 
 inline
-liter   flist_iter(pl_mgr pmgr)
+flist_iter   flist_new_iter(flist* pmgr)
 {
-    liter iter;
+    flist_iter iter;
 
     iter.begin = (void*)pmgr->head;
     iter.end = (void*)pmgr->tail;
@@ -143,9 +143,9 @@ liter   flist_iter(pl_mgr pmgr)
     return iter;
 }
 
-void*   flist_each(liter* iter)
+void*   flist_each(flist_iter* iter)
 {
-    pl_mgr pmgr = (pl_mgr)iter;
+    flist* pmgr = (flist*)iter;
     if ( flist_isempty(pmgr) ) return NULL;
 
     pnode node = LIST_HEAD(pmgr)->next;
@@ -158,8 +158,14 @@ void*   flist_each(liter* iter)
     return data;
 }
 
-void*   flist_head(pl_mgr pmgr){
+void*   flist_head(flist* pmgr){
     if ( flist_isempty(pmgr) ) return NULL;
 
     return LIST_HEAD(pmgr)->next->data;
+}
+
+void*   flist_tail(flist* pmgr){
+    if ( flist_isempty(pmgr) ) return NULL;
+
+    return LIST_TAIL(pmgr)->data;
 }

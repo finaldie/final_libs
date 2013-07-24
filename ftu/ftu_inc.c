@@ -11,7 +11,7 @@
 
 //TODO...
 
-static pl_mgr plist = NULL;
+static flist* plist = NULL;
 static int failed_cases = 0;
 static int tu_case_num = 0;
 int curr_failed_assert = 0;

@@ -40,31 +40,33 @@ int test_list_foreach(void* data)
 }
 void test_list_sort()
 {
-	pl_mgr plist = flist_create();
-	int input[] = {2,6,5,3,1,7,8,10,8,9,4};
-	int output[] = {1,2,3,4,5,6,7,8,8,9,10};
-	int i;
-	for(i=0; i<sizeof(input)/sizeof(int); ++i)
-	{
-		flist_push(plist, &input[i]);
-	}
-	int cmp(void *a, void *b)
-	{
-		return *(int*)a - *(int*)b;
-	}
-	flist_sort(plist, cmp);
-	liter it = flist_iter(plist);
-	for(i=0; i<sizeof(input)/sizeof(int); ++i)
-	{
-		int x = *(int*)flist_each(&it);
-		FTU_ASSERT_EQUAL_INT(x, output[i]);
-	}
-	FTU_ASSERT_EQUAL_INT(output[i-1], *(int *)plist->tail->data);
-	flist_delete(plist);
+    flist* plist = flist_create();
+    int input[] = {2,6,5,3,1,7,8,10,8,9,4};
+    int output[] = {1,2,3,4,5,6,7,8,8,9,10};
+    int i;
+    for(i=0; i<sizeof(input)/sizeof(int); ++i)
+    {
+        flist_push(plist, &input[i]);
+    }
+
+    int cmp(void *a, void *b)
+    {
+        return *(int*)a - *(int*)b;
+    }
+
+    flist_sort(plist, cmp);
+    flist_iter it = flist_new_iter(plist);
+    for(i=0; i<sizeof(input)/sizeof(int); ++i)
+    {
+        int x = *(int*)flist_each(&it);
+        FTU_ASSERT_EQUAL_INT(x, output[i]);
+    }
+    FTU_ASSERT_EQUAL_INT(output[i-1], *(int *)plist->tail->data);
+    flist_delete(plist);
 }
 void test_list()
 {
-    pl_mgr plist = flist_create();
+    flist* plist = flist_create();
     FTU_ASSERT_EXPRESS(plist!=NULL);
     int is_empty = flist_isempty(plist);
     FTU_ASSERT_EQUAL_INT(1, is_empty);
@@ -83,12 +85,15 @@ void test_list()
 
         is_empty = flist_isempty(plist);
         FTU_ASSERT_EQUAL_INT(0, is_empty);
-        
+
         ret = flist_push(plist, tn1);
         FTU_ASSERT_EQUAL_INT(0, ret);
 
         thead = (tnode*)flist_head(plist);
         FTU_ASSERT_EQUAL_INT(100, thead->i);
+
+        thead = (tnode*)flist_tail(plist);
+        FTU_ASSERT_EQUAL_INT(200, thead->i);
 
         tnode* tp = (tnode*)flist_pop(plist);
         FTU_ASSERT_EQUAL_INT(100, tp->i);
@@ -99,9 +104,9 @@ void test_list()
         is_empty = flist_isempty(plist);
         FTU_ASSERT_EQUAL_INT(1, is_empty);
     }
-    
+
     {
-        liter it = flist_iter(plist);
+        flist_iter it = flist_new_iter(plist);
 
         int ret = flist_push(plist, tn);
         FTU_ASSERT_EQUAL_INT(0, ret);

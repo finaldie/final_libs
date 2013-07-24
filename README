@@ -12,8 +12,8 @@ Library contains:
     6.  fconf         -- A simple format config system
     7.  ftimer        -- Easy to create system timer
     8.  fmempool      -- Thread cache memory pool
-    9.  fthread_pool
-    10. fnet          --
+    9.  fthread_pool  -- Simple thread pool, which easy to use
+    10. fnet          -- Wrap the system api, easy to use the network api
     11. fev           -- Event framework, which have internal support of evbuff & socket listen & async connect & timer
     12. ftu           -- Unit test framework
     13. fcache        -- A simple cache with LRU
@@ -27,6 +27,9 @@ Library contains:
     note: After run as above, you can find the libraries have been installed in current folder, which named as "final_libraries"
 
 [ChangeLog]
+2013-07-25 0.4.1
+   * Refine flist, remove the pl_mgr declare, instead of using flist*
+   * Add a new api for flist -- flist_tail()
 2013-07-24 0.4.0
    * Refine all filenames and api names
    * Refine all Makefiles

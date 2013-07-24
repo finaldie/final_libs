@@ -1,12 +1,9 @@
 //base info: create by hyz
 /*effect: lockfree fifo list
-*
-*
 */
 
-
-#ifndef _LIST_H_
-#define _LIST_H_
+#ifndef _FLIST_H_
+#define _FLIST_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -15,27 +12,30 @@ extern "C" {
 typedef struct {
     void* begin;
     void* end;
-} liter;
+} flist_iter;
 
-typedef struct list_mgr lmgr, *pl_mgr;
+typedef struct list_mgr lmgr, flist;
 
 // return 0 continue iter.. else break out
-typedef int (*plist_call_back)(void* data);
+typedef int (*flist_each_cb)(void* data);
 
-typedef int (*compare)(void* a, void* b);
+// return <=0 : swap the node
+// return > 0 : continue to scan
+typedef int (*flist_compare)(void* left, void* right);
 
-pl_mgr  flist_create();
-void    flist_delete(pl_mgr);
+flist*     flist_create();
+void       flist_delete(flist*);
 
-int     flist_push(pl_mgr, void* data);
-void*   flist_pop(pl_mgr);
-void*   flist_head(pl_mgr);
-int     flist_isempty(pl_mgr);
+int        flist_push(flist*, void* data);
+void*      flist_pop(flist*);
+void*      flist_head(flist*);
+void*      flist_tail(flist*);
+int        flist_isempty(flist*);
 
-void*   flist_foreach(pl_mgr, plist_call_back);
-int     flist_sort(pl_mgr, compare );
-liter   flist_iter(pl_mgr);
-void*   flist_each(liter*);
+void*      flist_foreach(flist*, flist_each_cb);
+int        flist_sort(flist*, flist_compare);
+flist_iter flist_new_iter(flist*);
+void*      flist_each(flist_iter*);
 
 #ifdef __cplusplus
 }
