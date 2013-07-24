@@ -27,6 +27,10 @@ Library contains:
     note: After run as above, you can find the libraries have been installed in current folder, which named as "final_libraries"
 
 [ChangeLog]
+2013-07-24 0.4.0
+   * Refine all filenames and api names
+   * Refine all Makefiles
+   * Support both 32 & 64 bit libs
 2013-07-10 0.3.8
    * Refine flist's code
    * Fix coredump when open pcap file failed
