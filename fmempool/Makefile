@@ -5,7 +5,7 @@ TARGET = libfmempool.a
 INCLUDE_FILES = fmempool.h
 
 AR = ar -rcs
-INC = -I$(INSTALL_PATH)/$(INCLUDE_PATH)
+INC = -I../
 LL = 
 LIBS = 
 

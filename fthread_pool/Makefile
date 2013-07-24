@@ -5,7 +5,7 @@ TARGET = libfthpool.a
 INCLUDE_FILES = fthread_pool.h
 
 AR = ar -rcs
-INC = -I$(INSTALL_PATH)/$(INCLUDE_PATH)
+INC = -I../
 LL = 
 LIBS = 
 

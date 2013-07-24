@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "compiler.h"
-#include "fhash.h"
+#include "common/compiler.h"
+#include "fhash/fhash.h"
 #include "fcache_list.h"
 #include "fcache.h"
 

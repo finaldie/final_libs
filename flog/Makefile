@@ -5,7 +5,7 @@ TARGET = libflog.a
 INCLUDE_FILES = flog_inc.h flog.h
 
 AR = ar -rcs
-INC = -I$(INSTALL_PATH)/$(INCLUDE_PATH) -I../common/
+INC = -I../
 LL = 
 LIBS = 
 

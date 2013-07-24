@@ -10,9 +10,9 @@
 #include <sys/eventfd.h>
 #include <sys/epoll.h>
 
-#include "compiler.h"
-#include "fmbuf.h"
-#include "fhash.h"
+#include "common/compiler.h"
+#include "fmbuf/fmbuf.h"
+#include "fhash/fhash.h"
 #include "flog.h"
 
 // BASE DEFINE

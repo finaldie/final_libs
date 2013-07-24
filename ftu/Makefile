@@ -5,7 +5,7 @@ TARGET = libftu.a
 INCLUDE_FILES = ftu_inc.h
 
 AR = ar -rcs
-INC = -I$(INSTALL_PATH)/$(INCLUDE_PATH)
+INC = -I../
 LL = 
 LIBS = 
 

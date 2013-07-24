@@ -1,11 +1,15 @@
 MAKE := make
 
-prefix := $(shell pwd)/final_libraries
+ifeq ($(prefix),)
+need_install := false
+endif
+
+ASSEMBLY_LOCAL_FOLDER = $(shell pwd)/final_libraries
 ASSEMBLY_INCLUDE_FOLDER := include
 ASSEMBLY_32_LIB_FOLDER := lib
 ASSEMBLY_64_LIB_FOLDER := lib64
-ASSEMBLY32 = INSTALL_PATH=$(prefix) INCLUDE_PATH=$(ASSEMBLY_INCLUDE_FOLDER) LIBS_PATH=$(ASSEMBLY_32_LIB_FOLDER)
-ASSEMBLY64 = INSTALL_PATH=$(prefix) INCLUDE_PATH=$(ASSEMBLY_INCLUDE_FOLDER) LIBS_PATH=$(ASSEMBLY_64_LIB_FOLDER)
+ASSEMBLY32 = INSTALL_PATH=$(ASSEMBLY_LOCAL_FOLDER) INCLUDE_PATH=$(ASSEMBLY_INCLUDE_FOLDER) LIBS_PATH=$(ASSEMBLY_32_LIB_FOLDER)
+ASSEMBLY64 = INSTALL_PATH=$(ASSEMBLY_LOCAL_FOLDER) INCLUDE_PATH=$(ASSEMBLY_INCLUDE_FOLDER) LIBS_PATH=$(ASSEMBLY_64_LIB_FOLDER)
 
 PLATFORM = $(shell uname -m)
 COMMON32_CFLAGS += -m32
@@ -47,6 +51,11 @@ all32:
 		$(MAKE) -C $$lib $(ASSEMBLY32) EXT_FLAGS="$(COMMON32_CFLAGS)" || exit "$$?"; \
 		$(MAKE) -C $$lib $(ASSEMBLY32) install; \
 	done;
+ifneq ($(need_install),false)
+	test -d $(prefix) || mkdir -p $(prefix)
+	cp -R $(ASSEMBLY_LOCAL_FOLDER)/$(ASSEMBLY_INCLUDE_FOLDER) $(prefix)/$(ASSEMBLY_INCLUDE_FOLDER)
+	cp -R $(ASSEMBLY_LOCAL_FOLDER)/$(ASSEMBLY_32_LIB_FOLDER) $(prefix)/$(ASSEMBLY_32_LIB_FOLDER)
+endif
 
 all64:
 ifeq ($(PLATFORM),i386) 
@@ -59,6 +68,11 @@ else
 		$(MAKE) -C $$lib $(ASSEMBLY64) EXT_FLAGS="$(COMMON64_CFLAGS)" || exit "$$?"; \
 		$(MAKE) -C $$lib $(ASSEMBLY64) install; \
 	done;
+ifneq ($(need_install),false)
+		test -d $(prefix) || mkdir -p $(prefix)
+		cp -R $(ASSEMBLY_LOCAL_FOLDER)/$(ASSEMBLY_INCLUDE_FOLDER) $(prefix)/$(ASSEMBLY_INCLUDE_FOLDER)
+		cp -R $(ASSEMBLY_LOCAL_FOLDER)/$(ASSEMBLY_64_LIB_FOLDER) $(prefix)/$(ASSEMBLY_64_LIB_FOLDER)
+endif
 endif
 
 
@@ -84,4 +98,4 @@ endif
 clean:
 	for lib in $(LIB_FOLDERS); do $(MAKE) -C $$lib $(ASSEMBLY64) clean; done;
 	$(MAKE) -C $(TEST_FOLDERS) clean
-	rm -rf $(prefix)
+	rm -rf $(ASSEMBLY_LOCAL_FOLDER)

@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "flist.h"
+#include "flist/flist.h"
 #include "ftu_inc.h"
 
 //TODO...

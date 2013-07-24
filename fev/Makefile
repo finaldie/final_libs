@@ -9,7 +9,7 @@ INCLUDE_FILES = fev.h \
 		fev_listener.h
 
 AR = ar -rcs
-INC = -I$(INSTALL_PATH)/$(INCLUDE_PATH)
+INC = -I../
 LL = 
 LIBS = 
 

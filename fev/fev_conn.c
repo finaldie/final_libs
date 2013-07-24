@@ -21,7 +21,7 @@
 #include <string.h>
 #include <errno.h>
 #include <time.h>
-#include "fnet_core.h"
+#include "fnet/fnet_core.h"
 #include "fev_timer.h"
 #include "fev_conn.h"
 

@@ -20,7 +20,7 @@
 #include <unistd.h>
 #include <stdint.h>
 #include <errno.h>
-#include "ftimer.h"
+#include "ftimer/ftimer.h"
 #include "fev_timer.h"
 
 struct fev_timer {

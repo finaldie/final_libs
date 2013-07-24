@@ -5,7 +5,7 @@ TARGET = libflist.a
 INCLUDE_FILES = flist.h
 
 AR = ar -rcs
-INC = 
+INC =
 LL = 
 LIBS = 
 

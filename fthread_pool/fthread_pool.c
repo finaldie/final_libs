@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <pthread.h>
 
-#include "flock.h"
-#include "fmbuf.h"
-#include "fhash.h"
+#include "flock/flock.h"
+#include "fmbuf/fmbuf.h"
+#include "fhash/fhash.h"
 #include "fthread_pool.h"
 
 #define TH_QUEUE_BUF_SIZE (1024 * 10 * sizeof(th_msg_t))

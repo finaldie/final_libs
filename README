@@ -1,27 +1,43 @@
-Final's common libraries (linux platform)
+Final's common libraries (linux platform, support both 32 & 64bit libs)
 Email: hyzwowtools@gmail.com
 
 [Describe]:
 
 Library contains:
-    1. a fifo list ( lockfree in one production one consumer )
-    2. hash table
-    3. mutex ( wrap system lock )
-    4. log ( A High Performance Log System -- Thread-Caching Log System )
-    5. memory buff ( a light-weight buff )
-    6. read conf
-    7. timer
-    8. thread cache memory pool
-    9. thread pool
-    10. network 
-    11. event framework ( a simple event framework, which have internal support of evbuff & socket listen & async connect & timer)
-    12. unit test framework
-    13. fcache ( a simple cache with LRU )
-    14. fco ( C coroutine support )
-    15. fpcap convertion lib
+    1.  flist         -- Lockfree list in one production one consumer
+    2.  fhash         -- Hash table
+    3.  flock         -- Easy to use condition
+    4.  flog          -- A High Performance Log System: Thread-Caching Log System
+    5.  fmbuf         -- A light-weight buffer
+    6.  fconf         -- A simple format config system
+    7.  ftimer        -- Easy to create system timer
+    8.  fmempool      -- Thread cache memory pool
+    9.  fthread_pool
+    10. fnet          --
+    11. fev           -- Event framework, which have internal support of evbuff & socket listen & async connect & timer
+    12. ftu           -- Unit test framework
+    13. fcache        -- A simple cache with LRU
+    14. fco           -- C coroutine support
+    15. fpcap         -- pcap convertion lib
 
 [INSTALL]:
-    1. make
-    2. make run_test (optional)
+    1. make or make prefix=/usr/
+    2. make check
 
     note: After run as above, you can find the libraries have been installed in current folder, which named as "final_libraries"
+
+[ChangeLog]
+2013-07-10 0.3.8
+   * Refine flist's code
+   * Fix coredump when open pcap file failed
+2013-06-27 0.3.7
+   * Add flist_sort api
+   * Enhance the pcap lib, which expose tcp syn & ack flags
+2013-03-28 0.3.6
+   * Add pcap convertion feature
+2013-03-12 0.3.5
+   * Add hash set/get/del for uint64 api
+2012-12-06 0.3.3
+   * Issue 11: fix dead loop when no space on disk
+2012-11-28 0.3.2
+   * Add new interface -- fev_add_listener_byfd
