@@ -6,7 +6,7 @@ Email: hyzwowtools@gmail.com
 +--------+--------------------+------------+-----------------------------------------+
 | Branch | Lastest Stable Tag |  Released  | Description                             |
 +--------+--------------------+------------+-----------------------------------------+
-|  0.4   | 0.4.2              | 2013-07-25 | Refine all api and filename, 32 & 64bit |
+|  0.4   | 0.4.3              | 2013-07-25 | Refine all api and filename, 32 & 64bit |
 +--------+--------------------+------------+-----------------------------------------+
 |  0.3   | 0.3.8              | 2013-07-10 | Full libs support, 64bit                |
 +--------+--------------------+------------+-----------------------------------------+
@@ -37,6 +37,8 @@ Library contains:
     note: After run as above, you can find the libraries have been installed in current folder, which named as "final_libraries"
 
 [ChangeLog]
+2013-07-25 0.4.3
+   * Add a sub folder for headers in include folder, which used for easy to maintain the headers
 2013-07-25 0.4.2
    * Refine the return code of fpcap_convert
 2013-07-25 0.4.1
