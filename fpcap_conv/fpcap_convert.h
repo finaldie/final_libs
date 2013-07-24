@@ -25,6 +25,14 @@ extern "C" {
 #endif
 
 typedef enum {
+    FPCAP_SUCCESS = 0,
+    FPCAP_OP_OFFLINE_FAILED,
+    FPCAP_COMPILE_ERROR,
+    FPCAP_SET_FILTER_ERROR,
+    FPCAP_LOOP_ERROR
+} FPCAP_STATUS;
+
+typedef enum {
     FPCAP_CONV_CLIENT = 0x1,
     FPCAP_CONV_SERVER = 0x2
 } FPCAP_CONV_TYPE;
@@ -60,7 +68,7 @@ typedef struct convert_action_t {
     void*           ud;
 } convert_action_t;
 
-int fpcap_convert(convert_action_t);
+FPCAP_STATUS fpcap_convert(convert_action_t);
 
 #ifdef __cplusplus
 }

@@ -27,6 +27,8 @@ Library contains:
     note: After run as above, you can find the libraries have been installed in current folder, which named as "final_libraries"
 
 [ChangeLog]
+2013-07-25 0.4.2
+   * Refine the return code of fpcap_convert
 2013-07-25 0.4.1
    * Refine flist, remove the pl_mgr declare, instead of using flist*
    * Add a new api for flist -- flist_tail()

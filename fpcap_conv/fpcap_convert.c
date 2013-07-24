@@ -43,6 +43,18 @@
 
 #define SESSION_HASH_SIZE 65535
 
+typedef enum {
+    FPCAP_FILTER_SUCCESS = 0,
+    FPCAP_FILTER_INVALID_ETH_HDR,
+    FPCAP_FILTER_INVALID_ETH_TYPE,
+    FPCAP_FILTER_INVALID_IP_HDR,
+    FPCAP_FILTER_INVALID_IP_PKGLEN,
+    FPCAP_FILTER_INVALID_IP_PROTOCOL,
+    FPCAP_FILTER_SESSION_ALREAY_EXIST,
+    FPCAP_FILTER_SESSION_NOT_FOUND,
+    FPCAP_FILTER_USELESS_PKG
+} FPCAP_FILTER_STATUS;
+
 typedef struct fopt_action_t {
     convert_action_t* iaction;
     fhash*  phash;
@@ -102,7 +114,8 @@ void fill_app_data(fapp_data_t* app_data, struct timeval* ts,
     app_data->seq = seq;
 }
 
-int filter_tcpip_pkg(fopt_action_t* action, const struct pcap_pkthdr* pkg_header, const char* pkg_data)
+static
+FPCAP_FILTER_STATUS filter_tcpip_pkg(fopt_action_t* action, const struct pcap_pkthdr* pkg_header, const char* pkg_data)
 {
     struct ether_header* eptr;
     struct iphdr* ipptr;
@@ -117,28 +130,28 @@ int filter_tcpip_pkg(fopt_action_t* action, const struct pcap_pkthdr* pkg_header
     fhash* phash = action->phash;
 
     if( caplen < sizeof(struct ether_header) ) {
-        return 1;
+        return FPCAP_FILTER_INVALID_ETH_HDR;
     }
 
     // validate package type
     eptr = (struct ether_header *)pkg_data;
     if( ntohs(eptr->ether_type) != ETHERTYPE_IP ) {
-        printf("!!!pkg dropped, pkg type=%d,%d\n", ntohs(eptr->ether_type), eptr->ether_type);
-        return 2;
+        debug_printf("!!!pkg dropped, pkg type=%d,%d\n", ntohs(eptr->ether_type), eptr->ether_type);
+        return FPCAP_FILTER_INVALID_ETH_TYPE;
     }
 
     caplen -= sizeof(struct ether_header);
     if( caplen < sizeof(struct iphdr) ) {
-        return 3;
+        return FPCAP_FILTER_INVALID_IP_HDR;
     }
 
     ipptr = (struct iphdr *)(pkg_data + sizeof(struct ether_header));
     if( caplen != ntohs(ipptr->tot_len) ) {
-        return 4;
+        return FPCAP_FILTER_INVALID_IP_PKGLEN;
     }
 
     if( ipptr->protocol != 0x06 ) {
-        return 5;
+        return FPCAP_FILTER_INVALID_IP_PROTOCOL;
     }
 
     int iphdr_len = ipptr->ihl << 2;
@@ -158,7 +171,7 @@ int filter_tcpip_pkg(fopt_action_t* action, const struct pcap_pkthdr* pkg_header
         session_t* session = fsession_create(session_id);
         if( fsession_add(phash, session) ) {
             debug_printf("must be something wrong, the session(%" PRIu64 ") already exist\n", session_id);
-            return 6;
+            return FPCAP_FILTER_SESSION_ALREAY_EXIST;
         }
 
         fapp_data_t app_data;
@@ -168,7 +181,7 @@ int filter_tcpip_pkg(fopt_action_t* action, const struct pcap_pkthdr* pkg_header
         // collect one session complete
         session_t* session = fsession_find(phash, session_id);
         if( !session) {
-            return 7;
+            return FPCAP_FILTER_SESSION_NOT_FOUND;
         }
 
         // push the session data to output list
@@ -176,16 +189,16 @@ int filter_tcpip_pkg(fopt_action_t* action, const struct pcap_pkthdr* pkg_header
         fill_app_data(&app_data, (struct timeval*)&pkg_header->ts, NULL, 0, ntohl(tcpptr->ack_seq), ntohl(tcpptr->seq));
         handler(FSESSION_DELETE, session, &app_data, ud);
         fsession_del(phash, session_id);
-    } else {
+    } else { // processing data
         session_t* session = fsession_find(phash, session_id);
         if( !session ) {
             debug_printf("we dont know this pkg where come from\n");
-            return 8;
+            return FPCAP_FILTER_SESSION_NOT_FOUND;
         }
 
         if( data_len <= 0 ) {
             debug_printf("maybe this is only a ack pkg, ignore it\n");
-            return 9;
+            return FPCAP_FILTER_USELESS_PKG;
         }
 
         fapp_data_t app_data;
@@ -193,10 +206,11 @@ int filter_tcpip_pkg(fopt_action_t* action, const struct pcap_pkthdr* pkg_header
         handler(FSESSION_PROCESS, session, &app_data, ud);
     }
 
-    return 0;
+    return FPCAP_FILTER_SUCCESS;
 }
 
 // currently we only support ip and tcp protocol
+static
 void dump_cb(u_char* ud, const struct pcap_pkthdr* pkg_header, const u_char* pkg_data)
 {
     fopt_action_t* opt_action = (fopt_action_t*)ud;
@@ -226,26 +240,26 @@ void fpcap_session_foreach(fopt_action_t* action)
     fhash_foreach(phash, final_clean);
 }
 
-int fpcap_convert(convert_action_t action)
+FPCAP_STATUS fpcap_convert(convert_action_t action)
 {
     char errbuf[PCAP_ERRBUF_SIZE];
     pcap_t* p = pcap_open_offline(action.pcap_filename, errbuf);
-    int ret = 0;
+    FPCAP_STATUS ret = FPCAP_SUCCESS;
     if( !p ) {
-        printf("cannot open offline mode:%s\n", errbuf);
-        return 1;
+        debug_printf("cannot open offline mode:%s\n", errbuf);
+        return FPCAP_OP_OFFLINE_FAILED;
     }
 
     struct bpf_program filter;
     if( pcap_compile(p, &filter, (char*)action.filter_rules, 1, 0) ) {
-        printf("pcap_compile error:%s\n", pcap_geterr(p));
-        ret = 2;
+        debug_printf("pcap_compile error:%s\n", pcap_geterr(p));
+        ret = FPCAP_COMPILE_ERROR;
         goto cleanup;
     }
 
     if( pcap_setfilter(p, &filter) ) {
-        printf("pcap_setfilter error:%s\n", pcap_geterr(p));
-        ret = 3;
+        debug_printf("pcap_setfilter error:%s\n", pcap_geterr(p));
+        ret = FPCAP_SET_FILTER_ERROR;
         goto cleanup;
     }
 
@@ -254,8 +268,8 @@ int fpcap_convert(convert_action_t action)
     opt_action.phash = fhash_create(SESSION_HASH_SIZE);
     int st = pcap_loop(p, 0, dump_cb, (u_char*)&opt_action);
     if( st != 0 ) {
-        printf("pcap_loop error:%s\n", pcap_geterr(p));
-        ret = 4;
+        debug_printf("pcap_loop error:%s\n", pcap_geterr(p));
+        ret = FPCAP_LOOP_ERROR;
         goto cleanup;
     }
 
