@@ -1,6 +1,16 @@
 Final's common libraries (linux platform, support both 32 & 64bit libs)
 Email: hyzwowtools@gmail.com
 
+[Lastest Versions]:
+
++--------+--------------------+------------+-----------------------------+
+| Branch | Lastest Stable Tag |  Released  | Description                 |
++--------+--------------------+------------+-----------------------------+
+|  0.4   | 0.4.2              | 2013-07-25 | Refine all api and filename |
++--------+--------------------+------------+-----------------------------+
+|  0.3   | 0.3.8              | 2013-07-10 | Full libs support           |
++--------+--------------------+------------+-----------------------------+
+
 [Describe]:
 
 Library contains:
