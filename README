@@ -1,4 +1,4 @@
-Final's common libraries (linux platform),  libs)
+Final's common libraries (linux platform)
 Email: hyzwowtools@gmail.com
 
 [Lastest Versions]:
@@ -24,7 +24,7 @@ Library contains:
     8.  fmempool      -- Thread cache memory pool
     9.  fthread_pool  -- Simple thread pool, which easy to use
     10. fnet          -- Wrap the system api, easy to use the network api
-    11. fev           -- Event framework, which have internal support of evbuff & socket listen & async connect & timer
+    11. fev           -- Event framework, additional support buffer, network, timer service
     12. ftu           -- Unit test framework
     13. fcache        -- A simple cache with LRU
     14. fco           -- C coroutine support
