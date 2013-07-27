@@ -67,12 +67,21 @@ int      fdlist_empty(fdlist* plist)
     }
 }
 
-fdlist_node_t* fdlist_make_node()
+fdlist_node_t* fdlist_make_node(void* data, size_t data_size)
 {
+    if( !data || !data_size ) {
+        return NULL;
+    }
+
     fdlist_orig_node_t* orig_node = malloc(sizeof(fdlist_orig_node_t));
     if ( !orig_node ) return NULL;
-
     memset(orig_node, 0, sizeof(fdlist_orig_node_t));
+
+    if( fdlist_set_nodedata(&orig_node->node, data, data_size) ) {
+        free(orig_node);
+        return NULL;
+    }
+
     return &orig_node->node;
 }
 
@@ -81,14 +90,13 @@ void     fdlist_destroy_node(fdlist_node_t* node)
     free(FN_HEAD(node));
 }
 
-int      fdlist_push(fdlist* plist, fdlist_node_t* node, size_t data_size)
+int      fdlist_push(fdlist* plist, fdlist_node_t* node)
 {
     if ( !plist || !node ) return 1;
 
     FN_NEXT(node) = NULL;
     FN_PREV(node) = plist->tail;
     FN_OWNER(node) = plist;
-    FN_DATASIZE(node) = data_size;
 
     if ( fdlist_empty(plist) ) {
         plist->head = plist->tail = FN_HEAD(node);
@@ -157,7 +165,7 @@ int      fdlist_move_node(fdlist_node_t* node, fdlist* to)
 
     fdlist_delete_node(node);
     if ( to ) {
-        return fdlist_push(to, node, FN_DATASIZE(node));
+        return fdlist_push(to, node);
     } else {
         return 0;
     }
@@ -203,11 +211,12 @@ fdlist* fdlist_node_owner(fdlist_node_t* node)
     }
 }
 
-void     fdlist_set_nodedata(fdlist_node_t* node, void* data, size_t data_size)
+int      fdlist_set_nodedata(fdlist_node_t* node, void* data, size_t data_size)
 {
-    if ( !node || !data ) return;
+    if ( !node || !data ) return 1;
     node->data = data;
     fdlist_update_node(node, data_size);
+    return 0;
 }
 
 void*    fdlist_get_nodedata(fdlist_node_t* node)

@@ -34,9 +34,9 @@ typedef int (*fdlist_each_cb)(fdlist_node_t*);
 fdlist*         fdlist_create();
 void            fdlist_destroy(fdlist* plist);
 int             fdlist_empty(fdlist* plist);
-fdlist_node_t*  fdlist_make_node();
+fdlist_node_t*  fdlist_make_node(void* data, size_t data_size);
 void            fdlist_destroy_node(fdlist_node_t* node);
-int             fdlist_push(fdlist* plist, fdlist_node_t* node, size_t size);
+int             fdlist_push(fdlist* plist, fdlist_node_t* node);
 fdlist_node_t*  fdlist_pop(fdlist* plist);
 fdlist_node_t*  fdlist_delete_node(fdlist_node_t* node);
 int             fdlist_move_node(fdlist_node_t* node, fdlist* to);
@@ -45,7 +45,7 @@ size_t          fdlist_size(fdlist* plist);
 size_t          fdlist_data_size(fdlist* plist);
 size_t          fdlist_node_size(fdlist_node_t* node);
 fdlist*         fdlist_node_owner(fdlist_node_t* node);
-void            fdlist_set_nodedata(fdlist_node_t*, void* data, size_t size);
+int             fdlist_set_nodedata(fdlist_node_t*, void* data, size_t size);
 void*           fdlist_get_nodedata(fdlist_node_t*);
 
 #ifdef __cplusplus

@@ -59,7 +59,7 @@ void fev_on_timer(fev_state* fev, int fd, int mask, void* arg)
 // return > 0(fd) : sucess
 fev_timer*  fev_add_timer_event(fev_state* fev, long long nsec, long long alter, fev_timer_cb callback, void* arg)
 {
-    if ( !fev ) return NULL;
+    if ( !fev || !callback ) return NULL;
 
     int fd = ftimerfd_create();
     if ( fd == -1 ) return NULL;
@@ -94,8 +94,8 @@ fev_timer*  fev_add_timer_event(fev_state* fev, long long nsec, long long alter,
 // return 0 : sucess
 int     fev_del_timer_event(fev_state* fev, fev_timer* evt)
 {
+    if ( !fev || !evt ) return -1;
     int mask = FEV_READ | FEV_WRITE;
-    if ( !fev ) return -1;
 
     if ( ftimerfd_stop(evt->fd) )
         return -2;
