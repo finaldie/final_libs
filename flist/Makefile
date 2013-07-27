@@ -2,14 +2,16 @@
 
 TARGET = libflist.a
 
-INCLUDE_FILES = flist.h
+INCLUDE_FILES = flist.h fdlist.h
 
 AR = ar -rcs
 INC =
 LL = 
 LIBS = 
 
-SRCS = flist.c
+SRCS = flist.c \
+	fdlist.c
+
 DEPS = $(patsubst %.c,%.d,$(SRCS))
 OBJS = $(patsubst %.c,%.o,$(SRCS))
 
