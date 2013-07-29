@@ -21,6 +21,7 @@
 #include <unistd.h>
 
 #include "ftu_inc.h"
+#include "fhash.h"
 #include "fev.h"
 #include "fnet_core.h"
 #include "fev_buff.h"
@@ -36,18 +37,20 @@ typedef struct {
 
 typedef struct fake_fev_event {
     int         mask;   //READ OR WRITE
+    int         fire_idx;
     pfev_read   pread;
     pfev_write  pwrite;
     void*       arg;
-    int         fire_idx;
 }fake_fev_event;
 
 typedef struct fake_fev_state{
     void*           state;
     fake_fev_event* fevents;
     char*           firelist;
+    fhash*          module_tbl;
     int             max_ev_size;
     int             fire_num;
+    int             in_processing;
 }fake_fev_state;
 
 typedef struct fake_fev_conn_info {
@@ -335,8 +338,9 @@ static void test_for_conn(int fd, conn_arg_t arg)
 static void* fake_listener1(void* arg)
 {
     g_fev = fev_create(1024);
+    FTU_ASSERT( fev_conn_module_init(g_fev) == 0 );
     fli = fev_add_listener(g_fev, 17759, fake_accept1, NULL);
-    FTU_ASSERT_EXPRESS(fli!=NULL);
+    FTU_ASSERT_EXPRESS(fli != NULL);
 
     printf("wait for poll\n");
     start = 1;

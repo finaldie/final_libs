@@ -44,6 +44,15 @@ int  fev_del_event(fev_state*, int fd, int mask);
 int  fev_get_mask(fev_state*, int fd);
 int  fev_get_fd(fev_state*);
 
+typedef struct fev_module_t {
+    const char* name;
+    void  (*fev_module_unload)(fev_state*, void* ud);
+    void* ud;
+} fev_module_t;
+
+int   fev_register_module(fev_state*, fev_module_t*);
+void* fev_get_module_data(fev_state*, const char* module_name);
+
 #ifdef __cplusplus
 }
 #endif

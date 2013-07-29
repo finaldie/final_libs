@@ -12,8 +12,8 @@ LIBS = -lfhash \
 	   -lfmbuf \
 	   -lftimer \
 	   -lrt \
-	   -lflist \
 	   -lfev \
+	   -lflist \
 	   -lfnet \
 	   -lfcache \
 	   -lfco \

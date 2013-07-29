@@ -22,14 +22,17 @@
 #include <errno.h>
 #include <time.h>
 #include "fnet/fnet_core.h"
-#include "fev_timer.h"
+#include "fev_timer_service.h"
 #include "fev_conn.h"
 
+#define FEV_CONN_MODULE_NAME "__fev_connection_module__"
+#define FEV_CONN_TIME_SERVICE_INTERVAL 1
+
 typedef struct fev_conn_info {
-    int         fd;
-    fev_timer*  timer;
-    pfev_conn   conn_cb;
-    conn_arg_t  arg;
+    int          fd;
+    ftimer_node* timer;
+    pfev_conn    conn_cb;
+    conn_arg_t   arg;
 } fev_conn_info;
 
 static
@@ -37,7 +40,6 @@ void    on_connect(fev_state* fev, int fd, int mask, void* arg)
 {
     fev_conn_info* conn_info = (fev_conn_info*)arg;
     fev_del_event(fev, conn_info->fd, FEV_READ | FEV_WRITE);
-    fev_del_timer_event(fev, conn_info->timer);
 
     if ( mask & FEV_ERROR ) {
         goto CONN_ERROR;
@@ -75,11 +77,11 @@ void    on_timer(fev_state* fev, void* arg)
     free(conn_info);
 }
 
-int    fev_conn(fev_state* fev, 
-            const char* ip, 
-            int port, 
-            int timeout, 
-            pfev_conn pfunc, 
+int    fev_conn(fev_state* fev,
+            const char* ip,
+            int port,
+            int timeout, /* unit ms */
+            pfev_conn pfunc,
             conn_arg_t arg)
 {
     int sockfd = -1;
@@ -100,10 +102,13 @@ int    fev_conn(fev_state* fev,
         }
 
         conn_info->fd = sockfd;
-        conn_info->timer = fev_add_timer_event(fev, (long)timeout * 1000000l,
-                                                0, on_timer, conn_info);
+
+        fev_timer_svc* timer_svc = (fev_timer_svc*)fev_get_module_data(fev,
+                                        FEV_CONN_MODULE_NAME);
+        conn_info->timer = fev_tmsvc_add_timer(timer_svc, (uint32_t)timeout,
+                                                on_timer, conn_info);
         if ( !conn_info->timer ) {
-            printf("fev_conn init timer failed sockfd=%d\n", sockfd);
+            fprintf(stderr, "fev_conn init timer failed sockfd=%d\n", sockfd);
             close(sockfd);
             free(conn_info);
             return -1;
@@ -116,7 +121,7 @@ int    fev_conn(fev_state* fev,
                                 on_connect, conn_info);
         if ( ret != 0 ) {
             printf("fev_conn reg_event failed sockfd=%d ret=%d\n", sockfd, ret);
-            fev_del_timer_event(fev, conn_info->timer);
+            fev_tmsvc_del_timer(timer_svc, conn_info->timer);
             close(sockfd);
             free(conn_info);
             return -1;
@@ -124,4 +129,25 @@ int    fev_conn(fev_state* fev,
 
         return 0;
     }
+}
+
+void fev_conn_module_unload(fev_state* fev, void* ud)
+{
+    fev_timer_svc* svc = (fev_timer_svc*)ud;
+    fev_delete_timer_service(svc);
+}
+
+int fev_conn_module_init(fev_state* fev)
+{
+    if( !fev ) return 1;
+
+    fev_module_t module;
+    module.name = FEV_CONN_MODULE_NAME;
+    module.fev_module_unload = fev_conn_module_unload;
+    module.ud = fev_create_timer_service(fev, FEV_CONN_TIME_SERVICE_INTERVAL);
+    if( !module.ud ) {
+        return 1;
+    }
+
+    return fev_register_module(fev, &module);
 }

@@ -51,7 +51,7 @@ int is_trigger_timer(struct timespec* start, struct timespec* now, uint32_t expi
     long int start_time_ns = start->tv_sec * NS_PER_SECOND + start->tv_nsec;
     long int now_time_ns = now->tv_sec * NS_PER_SECOND + now->tv_nsec;
 
-    if( (start_time_ns + expire * NS_PER_MS ) >= now_time_ns ) {
+    if( (start_time_ns + expire * NS_PER_MS) <= now_time_ns ) {
         return 1;
     } else {
         return 0;
@@ -84,7 +84,7 @@ void timer_svc_callback(fev_state* fev, void* arg)
         ftimer_node* node = (ftimer_node*)fdlist_get_nodedata(timer_node);
         if( node && node->isvalid && node->cb ) {
             if( is_trigger_timer(&node->start, &now, node->expire) ) {
-                node->cb(node->arg);
+                node->cb(fev, node->arg);
                 fev_tmsvc_destroy_timer(svc, timer_node);
             } else {
                 fdlist_push(svc->backup_list, timer_node);

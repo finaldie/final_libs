@@ -40,7 +40,7 @@ fhash_iter fhash_new_iter(fhash*);
 void*      fhash_next(fhash_iter*);
 
 void       fhash_foreach(fhash*, fhash_each_cb);
-int        fhash_atoi(char* key);
+int        fhash_atoi(const char* key);
 char*      fhash_itoa(int v, char* retbuff);
 
 // return total value count

@@ -28,7 +28,7 @@ extern "C" {
 
 typedef struct _fev_timer_svc fev_timer_svc;
 typedef struct _ftimer_node   ftimer_node;
-typedef void (*ftimer_cb)(void* arg);
+typedef void (*ftimer_cb)(fev_state*, void* arg);
 
 fev_timer_svc* fev_create_timer_service(
                 fev_state*,
@@ -43,6 +43,7 @@ ftimer_node*   fev_tmsvc_add_timer(
                 ftimer_cb,
                 void* arg);
 
+// call this when user want to cancel it
 int  fev_tmsvc_del_timer(fev_timer_svc*, ftimer_node*);
 
 #ifdef __cplusplus

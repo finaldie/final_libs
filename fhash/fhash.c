@@ -168,12 +168,12 @@ char*     fhash_itoa(int v, char* retbuff)
 }
 
 static inline
-int       f_atoi(char* v){
+int       f_atoi(const char* v){
     return (int)strtol(v, (char**)NULL, 16);
 }
 
 inline
-int       fhash_atoi(char* v){
+int       fhash_atoi(const char* v){
     return f_atoi(v);
 }
 

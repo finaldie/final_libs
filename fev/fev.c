@@ -26,21 +26,23 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include "fev.h"
+#include "fhash/fhash.h"
 
 #define FEV_MAX_EVENT_NUM   (1024 * 10)
 
 typedef struct fev_event {
     int         mask;       //READ OR WRITE
+    int         fire_idx;   //we set the idx when the event has been disabled in one loop
     pfev_read   pread;
     pfev_write  pwrite;
     void*       arg;
-    int         fire_idx;   //we set the idx when the event has been disabled in one loop
-}fev_event;
+} fev_event;
 
-struct fev_state{
+struct fev_state {
     void*       state;
     fev_event*  fevents;
     int*        firelist;
+    fhash*      module_tbl;
     int         max_ev_size;
     int         fire_num;
     int         in_processing;
@@ -70,6 +72,8 @@ static void fev_clear_firelist(fev_state* fev)
 #error "only support linux os now!"
 #endif
 
+#define FEV_DEFAULT_MODULE_CNT 10
+
 fev_state*    fev_create(int max_ev_size)
 {
     if( max_ev_size <= 0 ) max_ev_size = FEV_MAX_EVENT_NUM;
@@ -88,11 +92,13 @@ fev_state*    fev_create(int max_ev_size)
 
     fev->fevents = (fev_event*)malloc( sizeof(fev_event) * max_ev_size );
     fev->firelist = (int*)malloc( sizeof(int) * max_ev_size );
-    if( !fev->fevents || !fev->firelist ) {
+    fev->module_tbl = fhash_create(FEV_DEFAULT_MODULE_CNT);
+    if( !fev->fevents || !fev->firelist || !fev->module_tbl ) {
         perror("fev create events pool failed");
         fev_state_destroy(fev);
         free(fev->fevents);
         free(fev->firelist);
+        fhash_delete(fev->module_tbl);
         free(fev);
         return NULL;
     }
@@ -116,6 +122,20 @@ fev_state*    fev_create(int max_ev_size)
 void    fev_destroy(fev_state* fev)
 {
     if( !fev ) return;
+
+    int module_unload(void* arg)
+    {
+        if( !arg ) return 0;
+
+        fev_module_t* module = (fev_module_t*)arg;
+        if( !module->fev_module_unload ) return 0;
+
+        module->fev_module_unload(fev, module->ud);
+        return 0;
+    }
+
+    fhash_foreach(fev->module_tbl, module_unload);
+    fhash_delete(fev->module_tbl);
 
     fev_state_destroy(fev);
     free(fev->fevents);
@@ -218,4 +238,23 @@ int  fev_get_fd(fev_state* fev)
 {
     if( !fev ) return -1;
     return fev_state_getfd(fev);
+}
+
+int  fev_register_module(fev_state* fev, fev_module_t* module)
+{
+    fev_module_t* new_module = malloc(sizeof(fev_module_t));
+    memcpy(new_module, module, sizeof(fev_module_t));
+
+    fhash_set_str(fev->module_tbl, new_module->name, new_module);
+    return 0;
+}
+
+void* fev_get_module_data(fev_state* fev, const char* module_name)
+{
+    fev_module_t* module = fhash_get_str(fev->module_tbl, module_name);
+    if( !module ) {
+        return NULL;
+    }
+
+    return module->ud;
 }

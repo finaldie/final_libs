@@ -30,6 +30,9 @@ typedef union conn_arg_t {
     void*    ptr;
 }conn_arg_t;
 
+// should call fev_conn() after this
+int fev_conn_module_init(fev_state*);
+
 // fd > 0 : sucess
 // fd == -1 : error or timeout
 typedef void (*pfev_conn)(int fd, conn_arg_t arg);

@@ -22,7 +22,7 @@ typedef struct fdlist_priv_t {
 } fdlist_priv_t;
 
 struct _fdlist_node_t {
-    void* data;
+    void*  data;
 };
 
 typedef struct fdlist_orig_node_t {
@@ -172,13 +172,16 @@ int      fdlist_move_node(fdlist_node_t* node, fdlist* to)
 }
 
 static inline
-void     fdlist_update_node(fdlist_node_t* node, size_t size)
+void     fdlist_update_node_size(fdlist_node_t* node, size_t size)
 {
     if ( !node ) return;
+    FN_DATASIZE(node) = size;
 
     fdlist* plist = FN_OWNER(node);
-    plist->total_data_size -= FN_DATASIZE(node);
-    plist->total_data_size += size;
+    if( plist ) {
+        plist->total_data_size -= FN_DATASIZE(node);
+        plist->total_data_size += size;
+    }
 }
 
 size_t   fdlist_size(fdlist* plist)
@@ -215,7 +218,7 @@ int      fdlist_set_nodedata(fdlist_node_t* node, void* data, size_t data_size)
 {
     if ( !node || !data ) return 1;
     node->data = data;
-    fdlist_update_node(node, data_size);
+    fdlist_update_node_size(node, data_size);
     return 0;
 }
 
