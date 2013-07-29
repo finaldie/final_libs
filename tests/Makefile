@@ -47,8 +47,17 @@ $(TARGET):$(OBJS) $(DEPS)
 %.o:%.c 
 	$(CC) $(CFLAGS) $(INC) -c $< 
 
-run_test:
+check:
 	./$(TARGET)
+
+valgrind-check:
+ifeq ($(PLATFORM),i386)
+	valgrind --tool=memcheck --leak-check=full --suppressions=./valgrind.suppress ./$(TARGET)
+else ifeq ($(PLATFORM), x86_64)
+	valgrind --tool=memcheck --leak-check=full --suppressions=./valgrind.suppress ./$(TARGET)
+else
+	echo "only support i386 and x86_64 platform"
+endif
 
 .PHONY:clean
 clean:

@@ -84,16 +84,34 @@ all32_check:
 	echo "======================Running 32bit Unit Test======================"
 	$(MAKE) -C $(TEST_FOLDERS) $(ASSEMBLY32) clean
 	$(MAKE) -C $(TEST_FOLDERS) EXT_FLAGS="$(COMMON32_CFLAGS)" $(ASSEMBLY32) || exit "$$?"
-	$(MAKE) -C $(TEST_FOLDERS) $(ASSEMBLY32) run_test
+	$(MAKE) -C $(TEST_FOLDERS) $(ASSEMBLY32) check
 
 all64_check:
-ifeq ($(PLATFORM),i386) 
+ifeq ($(PLATFORM),i386)
 	exit "32 bit platform, abort to running the 64bit Unit Test";
 else
 	echo "======================Running 64bit Unit Test======================"
 	$(MAKE) -C $(TEST_FOLDERS) $(ASSEMBLY64) clean
 	$(MAKE) -C $(TEST_FOLDERS) EXT_FLAGS="$(COMMON64_CFLAGS)" $(ASSEMBLY64) || exit "$$?"
-	$(MAKE) -C $(TEST_FOLDERS) $(ASSEMBLY64) run_test
+	$(MAKE) -C $(TEST_FOLDERS) $(ASSEMBLY64) check
+endif
+
+valgrind-check: all32_valgrind_check all64_valgrind_check
+
+all32_valgrind_check:
+	echo "======================Running 32bit Valgrind Check======================"
+	$(MAKE) -C $(TEST_FOLDERS) $(ASSEMBLY32) clean
+	$(MAKE) -C $(TEST_FOLDERS) EXT_FLAGS="$(COMMON32_CFLAGS)" $(ASSEMBLY32) || exit "$$?"
+	$(MAKE) -C $(TEST_FOLDERS) $(ASSEMBLY32) PLATFORM=$(PLATFORM) valgrind-check
+
+all64_valgrind_check:
+ifeq ($(PLATFORM),i386)
+	exit "32 bit platform, abort to running the 64bit Valgrind Check";
+else
+	echo "======================Running 64bit Valgrind Check======================"
+	$(MAKE) -C $(TEST_FOLDERS) $(ASSEMBLY64) clean
+	$(MAKE) -C $(TEST_FOLDERS) EXT_FLAGS="$(COMMON64_CFLAGS)" $(ASSEMBLY64) || exit "$$?"
+	$(MAKE) -C $(TEST_FOLDERS) $(ASSEMBLY64) PLATFORM=$(PLATFORM) valgrind-check
 endif
 
 .PHONY:clean all all32 all64 all32_check all64_check run_test
