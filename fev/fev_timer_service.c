@@ -36,7 +36,7 @@ struct _ftimer_node {
     struct timespec start;
     ftimer_cb       cb;
     void*           arg;
-    fdlist_node_t*  owner;
+    fev_timer_svc*  owner;
     uint32_t        expire;
     int             isvalid;
 };
@@ -196,7 +196,7 @@ ftimer_node* fev_tmsvc_add_timer(
 
     node->cb = timer_cb;
     node->arg = arg;
-    node->owner = fdlist_make_node(node, sizeof(ftimer_node));
+    node->owner = svc;
     node->expire = expire;
     node->isvalid = 1;
     if( !node->owner ) {
@@ -204,7 +204,8 @@ ftimer_node* fev_tmsvc_add_timer(
         return NULL;
     }
 
-    fdlist_push(svc->timer_list, node->owner);
+    fdlist_node_t* timer_node = fdlist_make_node(node, sizeof(ftimer_node));
+    fdlist_push(svc->timer_list, timer_node);
 
     return node;
 }
@@ -217,6 +218,19 @@ int  fev_tmsvc_del_timer(fev_timer_svc* svc, ftimer_node* node)
 
     // only set the owner node as invalid,
     node->isvalid = 0;
+
+    return 0;
+}
+
+int fev_tmsvc_reset_timer(fev_timer_svc* svc, ftimer_node* node)
+{
+    if( !svc || !node ) {
+        return 1;
+    }
+
+    if( clock_gettime(svc->clockid, &node->start) ) {
+        return 1;
+    }
 
     return 0;
 }

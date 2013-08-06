@@ -44,7 +44,13 @@ ftimer_node*   fev_tmsvc_add_timer(
                 void* arg);
 
 // call this when user want to cancel it
-int  fev_tmsvc_del_timer(fev_timer_svc*, ftimer_node*);
+int fev_tmsvc_del_timer(fev_timer_svc*, ftimer_node*);
+
+// reset a timer, the timer start time will be set to
+// the current time, you also can use del_timer and add_timer
+// to achieve that, but it will cost more memory and may have
+// the performance impact
+int fev_tmsvc_reset_timer(fev_timer_svc*, ftimer_node*);
 
 #ifdef __cplusplus
 }
