@@ -15,7 +15,7 @@ int IsTokenEqual( char pStr )
     return IsToken(pStr, '=');
 }
 
-int load_config(const char* filename, pfload_cfg_cb pfunc)
+int fload_config(const char* filename, pfload_cfg_cb pfunc)
 {
     int   read_sign = 0;
     int   read_len  = 0;
