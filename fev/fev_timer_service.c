@@ -25,6 +25,10 @@
 #include "flist/fdlist.h"
 #include "fev_timer_service.h"
 
+#ifndef CLOCK_MONOTONIC_COARSE
+#define CLOCK_MONOTONIC_COARSE 6
+#endif
+
 #define NS_PER_SECOND 1000000000L
 #define NS_PER_MS     1000000L
 
@@ -43,6 +47,7 @@ struct _fev_timer_svc {
     fdlist*    timer_list;
     fdlist*    backup_list;
     uint32_t   interval;
+    clockid_t  clockid;
 };
 
 static
@@ -74,7 +79,7 @@ void timer_svc_callback(fev_state* fev, void* arg)
 
     // get current timestamp
     struct timespec now;
-    if( clock_gettime(CLOCK_MONOTONIC_COARSE, &now) ) {
+    if( clock_gettime(svc->clockid, &now) ) {
         fprintf(stderr, "FATAL ERROR! timer service cannot get current timestamp:%s\n", strerror(errno));
         abort();
     }
@@ -133,6 +138,13 @@ fev_timer_svc* fev_create_timer_service(
         return NULL;
     }
 
+    struct timespec resolution;
+    if( 0 == clock_getres(CLOCK_MONOTONIC_COARSE, &resolution) ) {
+        timer_svc->clockid = CLOCK_MONOTONIC_COARSE;
+    } else {
+        timer_svc->clockid = CLOCK_MONOTONIC;
+    }
+
     return timer_svc;
 }
 
@@ -165,7 +177,7 @@ ftimer_node* fev_tmsvc_add_timer(
     ftimer_node* node = malloc(sizeof(ftimer_node));
     memset(node, 0, sizeof(ftimer_node));
 
-    if( clock_gettime(CLOCK_MONOTONIC_COARSE, &node->start) ) {
+    if( clock_gettime(svc->clockid, &node->start) ) {
         free(node);
         return NULL;
     }
