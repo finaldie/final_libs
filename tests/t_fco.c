@@ -26,7 +26,7 @@ void* test2(fco* co, void* arg)
     return NULL;
 }
 
-    static
+static
 void* test(fco* co, void* arg)
 {
     FTU_ASSERT( co != NULL );

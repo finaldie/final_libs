@@ -1,0 +1,270 @@
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Addr8
+    fun:swapcontext
+    obj:*
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Addr8
+    fun:co_main
+    obj:*
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Addr4
+    fun:co_main
+    obj:*
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Value8
+    fun:_fco_do_swap
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Value8
+    fun:_fco_call_plugin
+    fun:fco_resume
+    fun:test
+    fun:co_main
+    obj:*
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Value8
+    fun:fco_resume
+    fun:test
+    fun:co_main
+    obj:*
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Cond
+    fun:fco_resume
+    fun:test
+    fun:co_main
+    obj:*
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Cond
+    fun:free
+    fun:fco_resume
+    fun:test
+    fun:co_main
+    obj:*
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Value8
+    fun:fco_resume
+    obj:*
+    obj:*
+    fun:co_main
+    obj:*
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Value8
+    fun:test
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Value8
+    fun:co_main
+    obj:*
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Value8
+    fun:co_main
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Value8
+    fun:setcontext
+    fun:__start_context
+    ...
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Value8
+    fun:__start_context
+    obj:*
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Cond
+    fun:__start_context
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Param
+    rt_sigprocmask(set)
+    fun:setcontext
+    fun:__start_context
+    ...
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Addr4
+    fun:swapcontext
+    obj:*
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Value4
+    fun:_fco_do_swap
+    fun:test
+    fun:co_main
+    fun:makecontext
+    fun:test_fco
+    fun:tu_run_cases
+    fun:main
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Value4
+    fun:_fco_call_plugin
+    fun:fco_resume
+    fun:test
+    fun:co_main
+    fun:makecontext
+    fun:test_fco
+    fun:tu_run_cases
+    fun:main
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Value4
+    fun:fco_resume
+    fun:test
+    fun:co_main
+    fun:makecontext
+    fun:test_fco
+    fun:tu_run_cases
+    fun:main
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Value4
+    fun:fco_resume
+    fun:co_main
+    fun:makecontext
+    fun:test_fco
+    fun:tu_run_cases
+    fun:main
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Value4
+    fun:test
+    fun:makecontext
+    fun:test_fco
+    fun:tu_run_cases
+    fun:main
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Value4
+    fun:co_main
+    fun:makecontext
+    fun:test_fco
+    fun:tu_run_cases
+    fun:main
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Value4
+    fun:co_main
+    fun:test_fco
+    fun:tu_run_cases
+    fun:main
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Value4
+    fun:makecontext
+    fun:test_fco
+    fun:tu_run_cases
+    fun:main
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Cond
+    fun:makecontext
+    fun:test_fco
+    fun:tu_run_cases
+    fun:main
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Param
+    sigprocmask(set)
+    fun:setcontext
+    fun:test_fco
+    fun:tu_run_cases
+    fun:main
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Value4
+    fun:setcontext
+    fun:test_fco
+    fun:tu_run_cases
+    fun:main
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Leak
+    fun:calloc
+    fun:_dl_allocate_tls
+    fun:pthread_create@@GLIBC_2.2.5
+    fun:test_mem
+    fun:tu_run_cases
+    fun:main
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Leak
+    fun:malloc
+    fun:f_block_create
+    fun:flmgr_create
+    fun:f_mp_create
+    fun:pthread_once
+    fun:f_alloc
+    fun:alloc_test
+    fun:_test_mem
+    fun:start_thread
+    obj:*
+}

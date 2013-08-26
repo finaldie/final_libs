@@ -19,6 +19,10 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <errno.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #include "ftu_inc.h"
 #include "fhash.h"
@@ -328,7 +332,10 @@ static void fake_accept1(fev_state* fev, int fd, void* ud)
 
 static void test_for_conn(int fd, conn_arg_t arg)
 {
-    printf("tid=%lu\n", pthread_self());
+    printf("tid=%lu, in async connection callback\n", pthread_self());
+    if( fd <= 0 ) {
+        printf("%s\n", strerror(errno));
+    }
     FTU_ASSERT_GREATER_THAN_INT(0, fd);
     FTU_ASSERT_EQUAL_INT(FEV_NIL, fev_get_mask(g_fev, fd));
     close(fd);

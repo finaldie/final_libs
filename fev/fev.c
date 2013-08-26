@@ -131,6 +131,7 @@ void    fev_destroy(fev_state* fev)
         if( !module->fev_module_unload ) return 0;
 
         module->fev_module_unload(fev, module->ud);
+        free(module);
         return 0;
     }
 

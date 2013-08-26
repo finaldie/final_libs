@@ -10,7 +10,6 @@ ASSEMBLY_32_LIB_FOLDER := lib
 ASSEMBLY_64_LIB_FOLDER := lib64
 ASSEMBLY32 := INSTALL_PATH=$(ASSEMBLY_LOCAL_FOLDER) INCLUDE_PATH=$(ASSEMBLY_INCLUDE_FOLDER) LIBS_PATH=$(ASSEMBLY_32_LIB_FOLDER)
 ASSEMBLY64 := INSTALL_PATH=$(ASSEMBLY_LOCAL_FOLDER) INCLUDE_PATH=$(ASSEMBLY_INCLUDE_FOLDER) LIBS_PATH=$(ASSEMBLY_64_LIB_FOLDER)
-
 ASSEMBLY_FOLDERS := $(prefix)/$(ASSEMBLY_INCLUDE_FOLDER) $(prefix)/$(ASSEMBLY_32_LIB_FOLDER) $(prefix)/$(ASSEMBLY_64_LIB_FOLDER)
 
 PLATFORM = $(shell uname -m)
@@ -96,23 +95,18 @@ else
 	$(MAKE) -C $(TEST_FOLDERS) $(ASSEMBLY64) check
 endif
 
-valgrind-check: all32_valgrind_check all64_valgrind_check
+valgrind-check: valgrind-check32 valgrind-check64
 
-all32_valgrind_check:
-	echo "======================Running 32bit Valgrind Check======================"
+valgrind-check32:
 	$(MAKE) -C $(TEST_FOLDERS) $(ASSEMBLY32) clean
 	$(MAKE) -C $(TEST_FOLDERS) EXT_FLAGS="$(COMMON32_CFLAGS)" $(ASSEMBLY32) || exit "$$?"
-	$(MAKE) -C $(TEST_FOLDERS) $(ASSEMBLY32) PLATFORM=$(PLATFORM) valgrind-check
+	$(MAKE) -C $(TEST_FOLDERS) valgrind-check
 
-all64_valgrind_check:
-ifeq ($(PLATFORM),i386)
-	exit "32 bit platform, abort to running the 64bit Valgrind Check";
-else
-	echo "======================Running 64bit Valgrind Check======================"
+valgrind-check64:
 	$(MAKE) -C $(TEST_FOLDERS) $(ASSEMBLY64) clean
 	$(MAKE) -C $(TEST_FOLDERS) EXT_FLAGS="$(COMMON64_CFLAGS)" $(ASSEMBLY64) || exit "$$?"
-	$(MAKE) -C $(TEST_FOLDERS) $(ASSEMBLY64) PLATFORM=$(PLATFORM) valgrind-check
-endif
+	$(MAKE) -C $(TEST_FOLDERS) valgrind-check
+
 
 .PHONY:clean all all32 all64 all32_check all64_check run_test
 clean:

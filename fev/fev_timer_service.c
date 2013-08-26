@@ -64,11 +64,23 @@ int is_trigger_timer(struct timespec* start, struct timespec* now, uint32_t expi
 }
 
 static
-int fev_tmsvc_destroy_timer(fev_timer_svc* svc, fdlist_node_t* timer_node)
+int fev_tmsvc_destroy_timer(fdlist_node_t* timer_node)
 {
     ftimer_node* node = (ftimer_node*)fdlist_get_nodedata(timer_node);
     free(node);
     fdlist_destroy_node(timer_node);
+    return 0;
+}
+
+static
+int fev_tmsvc_destroy_timerlist(fdlist* timer_list)
+{
+    fdlist_node_t* timer_node = NULL;
+    while( (timer_node = fdlist_pop(timer_list) ) ) {
+        fev_tmsvc_destroy_timer(timer_node);
+    }
+
+    fdlist_destroy(timer_list);
     return 0;
 }
 
@@ -90,12 +102,12 @@ void timer_svc_callback(fev_state* fev, void* arg)
         if( node && node->isvalid && node->cb ) {
             if( is_trigger_timer(&node->start, &now, node->expire) ) {
                 node->cb(fev, node->arg);
-                fev_tmsvc_destroy_timer(svc, timer_node);
+                fev_tmsvc_destroy_timer(timer_node);
             } else {
                 fdlist_push(svc->backup_list, timer_node);
             }
         } else {
-            fev_tmsvc_destroy_timer(svc, timer_node);
+            fev_tmsvc_destroy_timer(timer_node);
         }
     }
 
@@ -157,8 +169,8 @@ int fev_delete_timer_service(fev_timer_svc* svc)
     // must delete the timer event at first, then we
     // can delete all the other structures safety
     fev_del_timer_event(svc->fev, svc->ftimer);
-    fdlist_destroy(svc->timer_list);
-    fdlist_destroy(svc->backup_list);
+    fev_tmsvc_destroy_timerlist(svc->timer_list);
+    fev_tmsvc_destroy_timerlist(svc->backup_list);
     free(svc);
 
     return 0;
