@@ -37,6 +37,9 @@ Library contains:
     note: After run as above, you can find the libraries have been installed in current folder, which named as "final_libraries"
 
 [ChangeLog]
+2013-08-26 0.4.4
+   * Fully support valgrind-check
+   * Add timer service and integrate it into async_conn
 2013-07-25 0.4.3
    * Add a sub folder for headers in include folder, which used for easy to maintain the headers
 2013-07-25 0.4.2
