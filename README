@@ -14,7 +14,7 @@ Email: hyzwowtools@gmail.com
 [Describe]:
 
 Library contains:
-    1.  flist         -- Lockfree list in one production one consumer
+    1.  flist         -- Lockfree list in one producer one consumer
     2.  fhash         -- Hash table
     3.  flock         -- Easy to use condition
     4.  flog          -- A High Performance Log System: Thread-Caching Log System
@@ -30,11 +30,22 @@ Library contains:
     14. fco           -- C coroutine support
     15. fpcap         -- pcap convertion lib
 
-[INSTALL]:
+[INSTALL Fat]:
     1. make or make prefix=/usr/
     2. make check
+    3. make valgrind-check
 
-    note: After run as above, you can find the libraries have been installed in current folder, which named as "final_libraries"
+    note: After run as above, you can find the libraries have been installed in the specified folder or current folder, which named as "final_libraries"
+
+[INSTALL 32bit only]
+    1. make all32 or make prefix=/usr/ all32
+    2. make check32
+    3. make valgrind-check32
+
+[INSTALL 64bit only]
+    1. make all64 or make prefix=/usr/ all64
+    2. make check64
+    3. make valgrind-check64
 
 [ChangeLog]
 2013-08-26 0.4.4
