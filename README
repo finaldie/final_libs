@@ -48,6 +48,8 @@ Library contains:
     3. make valgrind-check64
 
 [ChangeLog]
+2013-09-04 0.4.5
+   * Refine Makefile and README
 2013-08-26 0.4.4
    * Fully support valgrind-check
    * Add timer service and integrate it into async_conn
