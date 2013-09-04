@@ -28,7 +28,7 @@ Library contains:
     12. ftu           -- Unit test framework
     13. fcache        -- A simple cache with LRU
     14. fco           -- C coroutine support
-    15. fpcap         -- pcap convertion lib
+    15. fpcap         -- Pcap file convertion lib
 
 [INSTALL Fat]:
     1. make or make prefix=/usr/

@@ -77,15 +77,15 @@ endif
 endif
 
 
-check: all32_check all64_check
+check: check32 check64
 
-all32_check:
+check32:
 	echo "======================Running 32bit Unit Test======================"
 	$(MAKE) -C $(TEST_FOLDERS) $(ASSEMBLY32) clean
 	$(MAKE) -C $(TEST_FOLDERS) EXT_FLAGS="$(COMMON32_CFLAGS)" $(ASSEMBLY32) || exit "$$?"
 	$(MAKE) -C $(TEST_FOLDERS) $(ASSEMBLY32) check
 
-all64_check:
+check64:
 ifeq ($(PLATFORM),i386)
 	exit "32 bit platform, abort to running the 64bit Unit Test";
 else
@@ -107,9 +107,9 @@ valgrind-check64:
 	$(MAKE) -C $(TEST_FOLDERS) EXT_FLAGS="$(COMMON64_CFLAGS)" $(ASSEMBLY64) || exit "$$?"
 	$(MAKE) -C $(TEST_FOLDERS) valgrind-check
 
-
-.PHONY:clean all all32 all64 all32_check all64_check run_test
 clean:
 	for lib in $(LIB_FOLDERS); do $(MAKE) -C $$lib $(ASSEMBLY64) clean; done;
 	$(MAKE) -C $(TEST_FOLDERS) clean
 	rm -rf $(ASSEMBLY_LOCAL_FOLDER)
+
+.PHONY:clean all all32 all64 check check32 check64 valgrind-check valgrind-check32 valgrind-check64
