@@ -321,8 +321,11 @@ char*   fnet_get_localip(int fd)
     sockaddr_u_t u_addr;
     socklen_t addr_len;
 
-    getsockname(fd, &u_addr.sa, &addr_len);
-    return inet_ntoa( u_addr.in.sin_addr );
+    if ( !getsockname(fd, &u_addr.sa, &addr_len) ) {
+        return inet_ntoa( u_addr.in.sin_addr );
+    } else {
+        return NULL;
+    }
 }
 
 char*   fnet_get_peerip(int fd)
@@ -330,8 +333,11 @@ char*   fnet_get_peerip(int fd)
     sockaddr_u_t u_addr;
     socklen_t addr_len;
 
-    getpeername(fd, &u_addr.sa, &addr_len);
-    return inet_ntoa( u_addr.in.sin_addr );
+    if ( !getpeername(fd, &u_addr.sa, &addr_len) ) {
+        return inet_ntoa( u_addr.in.sin_addr );
+    } else {
+        return NULL;
+    }
 }
 
 int     fnet_get_host(const char* host_name, fhost_info_t* hinfo)
