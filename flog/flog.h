@@ -62,8 +62,6 @@ size_t log_file_write(log_file_t*, const char* file_sig, size_t sig_len,
  *  @param sig_len - length of signature
  *  @param fmt - format string
  *  @param ... - dynamic args for format
- *  @return 0 - success
- *  @return 1 - failed
  */
 void log_file_write_f(log_file_t*, const char* file_sig, size_t sig_len,
                         const char* fmt, ...);

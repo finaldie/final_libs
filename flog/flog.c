@@ -64,7 +64,7 @@ typedef struct {
 // every thread have a private thread_data for containing logbuf
 // when we write log messages, data will fill into this buffer
 typedef struct _thread_data_t {
-    fmbuf*        plog_buf;
+    fmbuf*       plog_buf;
     int          efd;       // eventfd
     time_t       last_time;
     char         last_time_str[LOG_TIME_STR_LEN + 1];
