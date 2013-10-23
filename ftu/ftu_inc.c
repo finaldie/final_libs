@@ -9,8 +9,6 @@
 #include "flist/flist.h"
 #include "ftu_inc.h"
 
-//TODO...
-
 static flist* plist = NULL;
 static int failed_cases = 0;
 static int tu_case_num = 0;
@@ -25,7 +23,6 @@ typedef struct {
 
 void    get_cur_time(my_time* time){
     gettimeofday(&time->tv, NULL);
-    //printf("curr_time:%ds %dus\n", (int)time->tv.tv_sec, (int)time->tv.tv_usec);
 }
 
 int     get_diff_time(my_time* time1, my_time* time2){
@@ -75,7 +72,7 @@ int     tu_each_case(ftu_init pfunc)
 
 void tu_run_cases()
 {
-    printf("FINAL TEST UNIT START...\n");
+    printf("FINAL UNIT TEST START...\n");
 
     ftest_case* ftc = NULL;
     while ( ( ftc = (ftest_case*)flist_pop(plist) ) ){

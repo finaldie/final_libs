@@ -255,6 +255,17 @@
 }
 
 {
+    <fix for ubuntu 10.04>
+    Memcheck:Leak
+    fun:calloc
+    fun:_dl_allocate_tls
+    fun:pthread_create@@GLIBC_2.1
+    fun:test_mem
+    fun:tu_run_cases
+    fun:main
+}
+
+{
     <insert_a_suppression_name_here>
     Memcheck:Leak
     fun:malloc
@@ -267,4 +278,18 @@
     fun:_test_mem
     fun:start_thread
     obj:*
+}
+
+{
+    <fix for ubuntu 10.04>
+    Memcheck:Leak
+    fun:malloc
+    fun:f_block_create
+    fun:flmgr_create
+    fun:f_mp_create
+    fun:pthread_once
+    fun:alloc_test
+    fun:_test_mem
+    fun:start_thread
+    fun:clone
 }
