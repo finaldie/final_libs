@@ -3,7 +3,33 @@
  *
  *       Filename:  fev_timer_service.c
  *
- *    Description:  
+ *    Description:  The framework of Timer Serivce.
+ *                  Timer Service compose of user api, service framwork, module sdk and
+ *                  modules.
+ *
+ *                  user api: fev_timer_service.h fev_tmsvc_types.h
+ *                            support the add/del/reset api
+ *
+ *                  service framework: fev_timer_service.c
+ *                            service framework is responsible for:
+ *                              1. construct ftimer_node by the user input
+ *                              2. communicate with fev state machie to setup the cron
+ *                                 timer for checking the ftimer_node status every 1ms
+ *                              3. drive the module to do the init/destroy/add/del/reset
+ *                                 job
+ *
+ *                  module sdk: fev_tmsvc_modules.h
+ *                            support the api for module developers
+ *
+ *                  modules: fev_tmsvc_sl_mod.c
+ *                            the simple version of the single linked timer system,
+ *                            responsible for:
+ *                              1. storage system for ftimer_nodes
+ *                              2. add/del/reset implementation
+ *                              3. in the every loop of checking, remove the inactive
+ *                                 timer nodes, and run the callback functions for
+ *                                 those timeout timer nodes'
+ *
  *
  *        Version:  1.0
  *        Created:  07/27/2013 05:20:10 PM
@@ -22,67 +48,21 @@
 #include <errno.h>
 #include <time.h>
 
-#include "flist/fdlist.h"
 #include "fev_timer_service.h"
+#include "fev_tmsvc_modules.h"
 
 #ifndef CLOCK_MONOTONIC_COARSE
 #define CLOCK_MONOTONIC_COARSE 6
 #endif
 
-#define NS_PER_SECOND 1000000000L
-#define NS_PER_MS     1000000L
-
-struct _ftimer_node {
-    struct timespec start;
-    ftimer_cb       cb;
-    void*           arg;
-    fev_timer_svc*  owner;
-    uint32_t        expire;
-    int             isvalid;
-};
-
 struct _fev_timer_svc {
-    fev_state* fev;
-    fev_timer* ftimer;
-    fdlist*    timer_list;
-    fdlist*    backup_list;
-    uint32_t   interval;
-    clockid_t  clockid;
+    fev_state*     fev;
+    fev_timer*     ftimer;
+    void*          mod_data;
+    fev_tmsvc_opt* opt;
+    uint32_t       interval;
+    clockid_t      clockid;
 };
-
-static
-int is_trigger_timer(struct timespec* start, struct timespec* now, uint32_t expire)
-{
-    long int start_time_ns = start->tv_sec * NS_PER_SECOND + start->tv_nsec;
-    long int now_time_ns = now->tv_sec * NS_PER_SECOND + now->tv_nsec;
-
-    if( (start_time_ns + expire * NS_PER_MS) <= now_time_ns ) {
-        return 1;
-    } else {
-        return 0;
-    }
-}
-
-static
-int fev_tmsvc_destroy_timer(fdlist_node_t* timer_node)
-{
-    ftimer_node* node = (ftimer_node*)fdlist_get_nodedata(timer_node);
-    free(node);
-    fdlist_destroy_node(timer_node);
-    return 0;
-}
-
-static
-int fev_tmsvc_destroy_timerlist(fdlist* timer_list)
-{
-    fdlist_node_t* timer_node = NULL;
-    while( (timer_node = fdlist_pop(timer_list) ) ) {
-        fev_tmsvc_destroy_timer(timer_node);
-    }
-
-    fdlist_destroy(timer_list);
-    return 0;
-}
 
 static
 void timer_svc_callback(fev_state* fev, void* arg)
@@ -96,32 +76,14 @@ void timer_svc_callback(fev_state* fev, void* arg)
         abort();
     }
 
-    fdlist_node_t* timer_node = NULL;
-    while( (timer_node = fdlist_pop(svc->timer_list) ) ) {
-        ftimer_node* node = (ftimer_node*)fdlist_get_nodedata(timer_node);
-        if( node && node->isvalid && node->cb ) {
-            if( is_trigger_timer(&node->start, &now, node->expire) ) {
-                node->cb(fev, node->arg);
-                fev_tmsvc_destroy_timer(timer_node);
-            } else {
-                fdlist_push(svc->backup_list, timer_node);
-            }
-        } else {
-            fev_tmsvc_destroy_timer(timer_node);
-        }
-    }
-
-    // util now, the timer_list is empty, then
-    // swap the timer_list and backup_list, since everytime we
-    // iterate the timer_node from timer_list
-    fdlist* tmp = svc->timer_list;
-    svc->timer_list = svc->backup_list;
-    svc->backup_list = tmp;
+    // run the actually storage job
+    svc->opt->loopcb(fev, svc->mod_data, &now);
 }
 
 fev_timer_svc* fev_create_timer_service(
                 fev_state* fev,
-                uint32_t interval /* unit ms */
+                uint32_t interval,      // unit ms
+                fev_tmsvc_model_t type
                 )
 {
     if( !fev || !interval ) {
@@ -137,15 +99,14 @@ fev_timer_svc* fev_create_timer_service(
                                             interval,
                                             timer_svc_callback,
                                             timer_svc);
-    timer_svc->timer_list = fdlist_create();
-    timer_svc->backup_list = fdlist_create();
+    // init the opt table
+    timer_svc->opt = tmsvc_opt_tbl[type];
+    int mod_init_ret = timer_svc->opt->init(&timer_svc->mod_data);
     timer_svc->interval = interval;
 
-    if( !timer_svc->ftimer || !timer_svc->timer_list ||
-        !timer_svc->backup_list ) {
+    if( !timer_svc->ftimer || mod_init_ret ) {
+        timer_svc->opt->destroy(timer_svc->mod_data);
         fev_del_timer_event(fev, timer_svc->ftimer);
-        fdlist_destroy(timer_svc->timer_list);
-        fdlist_destroy(timer_svc->backup_list);
         free(timer_svc);
         return NULL;
     }
@@ -169,8 +130,7 @@ int fev_delete_timer_service(fev_timer_svc* svc)
     // must delete the timer event at first, then we
     // can delete all the other structures safety
     fev_del_timer_event(svc->fev, svc->ftimer);
-    fev_tmsvc_destroy_timerlist(svc->timer_list);
-    fev_tmsvc_destroy_timerlist(svc->backup_list);
+    svc->opt->destroy(svc->mod_data);
     free(svc);
 
     return 0;
@@ -204,32 +164,46 @@ ftimer_node* fev_tmsvc_add_timer(
         return NULL;
     }
 
-    fdlist_node_t* timer_node = fdlist_make_node(node, sizeof(ftimer_node));
-    fdlist_push(svc->timer_list, timer_node);
+    // call the module add method to do the actual adding action
+    if( svc->opt->add(node, svc->mod_data) ) {
+        free(node);
+    }
 
     return node;
 }
 
-int  fev_tmsvc_del_timer(fev_timer_svc* svc, ftimer_node* node)
+int  fev_tmsvc_del_timer(ftimer_node* node)
 {
-    if( !svc || !node ) {
+    if( !node || !node->owner ) {
         return 1;
     }
 
-    // only set the owner node as invalid,
+    // only set the node as invalid,
     node->isvalid = 0;
+
+    // run private del method
+    fev_timer_svc* svc = node->owner;
+    if (svc->opt->del) {
+        return svc->opt->del(node, svc->mod_data);
+    }
 
     return 0;
 }
 
-int fev_tmsvc_reset_timer(fev_timer_svc* svc, ftimer_node* node)
+int fev_tmsvc_reset_timer(ftimer_node* node)
 {
-    if( !svc || !node ) {
+    if( !node || !node->owner ) {
         return 1;
     }
 
+    fev_timer_svc* svc = node->owner;
     if( clock_gettime(svc->clockid, &node->start) ) {
         return 1;
+    }
+
+    // run private reset method
+    if (svc->opt->reset) {
+        return svc->opt->reset(node, svc->mod_data);
     }
 
     return 0;

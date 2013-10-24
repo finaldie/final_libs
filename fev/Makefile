@@ -7,7 +7,8 @@ INCLUDE_FILES = fev.h \
 		fev_buff.h \
 		fev_conn.h \
 		fev_listener.h \
-		fev_timer_service.h
+		fev_timer_service.h \
+		fev_tmsvc_types.h
 
 AR = ar -rcs
 INC = -I../
@@ -19,7 +20,9 @@ SRCS = fev.c \
 	   fev_buff.c \
 	   fev_conn.c \
 	   fev_listener.c \
-	   fev_timer_service.c
+	   fev_tmsvc_modules.c \
+	   fev_timer_service.c \
+	   fev_tmsvc_sl_mod.c
 
 DEPS = $(patsubst %.c,%.d,$(SRCS))
 OBJS = $(patsubst %.c,%.o,$(SRCS))
