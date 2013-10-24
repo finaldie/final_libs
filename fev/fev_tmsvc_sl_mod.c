@@ -53,6 +53,7 @@ void fev_tmmod_single_linked_destroy(void* mod_data)
     tm_sl_data* sl_data = (tm_sl_data*)mod_data;
     _destroy_timerlist(sl_data->timer_list);
     _destroy_timerlist(sl_data->backup_list);
+    free(sl_data);
 }
 
 static
