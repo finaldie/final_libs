@@ -27,7 +27,8 @@
 #define LOG_MSG_HEAD_SIZE             ( sizeof(log_msg_head_t) )
 #define LOG_PTO_ID_SIZE               ( sizeof(pto_id_t) )
 #define LOG_PTO_RESERVE_SIZE          LOG_PTO_ID_SIZE
-#define LOG_TIME_STR_LEN              (21)
+// specify the length of the formative time string: "%04d-%02d-%02d_%02d:%02d:%02d "
+#define LOG_TIME_STR_LEN              (20)
 
 // LOG PROTOCOL DEFINE
 #define LOG_PTO_FETCH_MSG          0
@@ -174,9 +175,9 @@ void _log_get_time(time_t tm_time, char* time_str)
 {
     struct tm now;
     gmtime_r(&tm_time, &now);
-    snprintf(time_str, LOG_TIME_STR_LEN + 1, "[%04d-%02d-%02d %02d:%02d:%02d]",
-                (now.tm_year+1900), now.tm_mon+1, now.tm_mday,
-                now.tm_hour, now.tm_min, now.tm_sec);
+    snprintf(time_str, LOG_TIME_STR_LEN + 1, "%04d-%02d-%02d_%02d:%02d:%02d ",
+             (now.tm_year+1900), now.tm_mon+1, now.tm_mday,
+             now.tm_hour, now.tm_min, now.tm_sec);
 }
 
 static inline
@@ -482,8 +483,10 @@ size_t _log_wrap_sync_head(char* buf, const char* file_sig, size_t sig_len)
     if ( now > g_log->last_time ) {
         do {
             pthread_mutex_lock(&g_log->lock);
-            time_t check_time = time(NULL);
-            if ( now != check_time ) {
+            // if the now timestamp < last_time, that means already have
+            // someone updated the last_time, so we can just simple use
+            // the last_time_str to write the log
+            if ( now <= g_log->last_time ) {
                 pthread_mutex_unlock(&g_log->lock);
                 break;
             }

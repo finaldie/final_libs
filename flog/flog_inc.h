@@ -24,12 +24,12 @@ extern "C" {
 #define TO_STR(x) TO_STRX(x)
 #define EXTRACT_STR(s) s, (sizeof(s) - 1)
 
-#define FLOG_TRACE(log_handler, fmt, args...) if( is_trace_enable() ) { log_file_write_f(log_handler, EXTRACT_STR(" [TRACE]" __FILE__ ":" "(" TO_STR(__LINE__) ") - "), fmt, ##args); }
-#define FLOG_DEBUG(log_handler, fmt, args...) if( is_debug_enable() ) { log_file_write_f(log_handler, EXTRACT_STR(" [DEBUG]" __FILE__ ":" "(" TO_STR(__LINE__) ") - "), fmt, ##args); }
-#define FLOG_INFO(log_handler,  fmt, args...) if( is_info_enable()  ) { log_file_write_f(log_handler, EXTRACT_STR(" [INFO]"  __FILE__ ":" "(" TO_STR(__LINE__) ") - "), fmt, ##args); }
-#define FLOG_WARN(log_handler,  fmt, args...) if( is_warn_enable()  ) { log_file_write_f(log_handler, EXTRACT_STR(" [WARN]"  __FILE__ ":" "(" TO_STR(__LINE__) ") - "), fmt, ##args); }
-#define FLOG_ERROR(log_handler, fmt, args...) if( is_error_enable() ) { log_file_write_f(log_handler, EXTRACT_STR(" [ERROR]" __FILE__ ":" "(" TO_STR(__LINE__) ") - "), fmt, ##args); }
-#define FLOG_FATAL(log_handler, fmt, args...) if( is_fatal_enable() ) { log_file_write_f(log_handler, EXTRACT_STR(" [FATAL]" __FILE__ ":" "(" TO_STR(__LINE__) ") - "), fmt, ##args); }
+#define FLOG_TRACE(log_handler, fmt, args...) if( is_trace_enable() ) { log_file_write_f(log_handler, EXTRACT_STR("[TRACE] " __FILE__ ":" TO_STR(__LINE__) " - "), fmt, ##args); }
+#define FLOG_DEBUG(log_handler, fmt, args...) if( is_debug_enable() ) { log_file_write_f(log_handler, EXTRACT_STR("[DEBUG] " __FILE__ ":" TO_STR(__LINE__) " - "), fmt, ##args); }
+#define FLOG_INFO(log_handler,  fmt, args...) if( is_info_enable()  ) { log_file_write_f(log_handler, EXTRACT_STR("[INFO] "  __FILE__ ":" TO_STR(__LINE__) " - "), fmt, ##args); }
+#define FLOG_WARN(log_handler,  fmt, args...) if( is_warn_enable()  ) { log_file_write_f(log_handler, EXTRACT_STR("[WARN] "  __FILE__ ":" TO_STR(__LINE__) " - "), fmt, ##args); }
+#define FLOG_ERROR(log_handler, fmt, args...) if( is_error_enable() ) { log_file_write_f(log_handler, EXTRACT_STR("[ERROR] " __FILE__ ":" TO_STR(__LINE__) " - "), fmt, ##args); }
+#define FLOG_FATAL(log_handler, fmt, args...) if( is_fatal_enable() ) { log_file_write_f(log_handler, EXTRACT_STR("[FATAL] " __FILE__ ":" TO_STR(__LINE__) " - "), fmt, ##args); }
 
 log_file_t* flog_create(const char* file_name);
 void        flog_destroy(log_file_t* fl);
