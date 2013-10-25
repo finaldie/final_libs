@@ -36,7 +36,10 @@ typedef struct fev_conn_info {
 } fev_conn_info;
 
 static
-void    on_connect(fev_state* fev, int fd, int mask, void* arg)
+void    on_connect(fev_state* fev,
+                   int fd   __attribute__((unused)),
+                   int mask,
+                   void* arg)
 {
     fev_conn_info* conn_info = (fev_conn_info*)arg;
     fev_del_event(fev, conn_info->fd, FEV_READ | FEV_WRITE);
@@ -131,7 +134,8 @@ int    fev_conn(fev_state* fev,
     }
 }
 
-void fev_conn_module_unload(fev_state* fev, void* ud)
+void fev_conn_module_unload(fev_state* fev __attribute__((unused)),
+                            void* ud)
 {
     fev_timer_svc* svc = (fev_timer_svc*)ud;
     fev_delete_timer_service(svc);

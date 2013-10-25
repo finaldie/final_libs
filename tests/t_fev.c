@@ -66,6 +66,7 @@ typedef struct fake_fev_conn_info {
 
 void test_fev_read(fev_state* fev, int fd, int mask, void* arg)
 {
+    (void)mask;
     test_arg* _arg = (test_arg*)arg;
 
     FTU_ASSERT_EXPRESS(_arg->fev==fev);
@@ -152,6 +153,7 @@ static fev_listen_info* fli;
 
 static void test_accept(fev_state* fev, int fd, void* ud)
 {
+    (void)ud;
     FTU_ASSERT_EXPRESS(g_fev==fev);
     FTU_ASSERT_GREATER_THAN_INT(0, fd);
     close(fd);
@@ -159,6 +161,7 @@ static void test_accept(fev_state* fev, int fd, void* ud)
 
 static void* test_listener(void* arg)
 {
+    (void)arg;
     printf("test listener thread startup\n");
     g_fev = fev_create(1024);
     fli = fev_add_listener(g_fev, 17759, test_accept, NULL);
@@ -199,6 +202,7 @@ void test_fev_listener()
 
 static void buff_read(fev_state* fev, fev_buff* evbuff, void* arg)
 {
+    (void)arg;
     FTU_ASSERT_EXPRESS(fev==g_fev);
 
     int buff_read_len = fevbuff_get_bufflen(evbuff, FEVBUFF_TYPE_READ);
@@ -235,6 +239,8 @@ static void buff_read(fev_state* fev, fev_buff* evbuff, void* arg)
 
 static void buff_error(fev_state* fev, fev_buff* evbuff, void* arg)
 {
+    (void)fev;
+    (void)arg;
     printf("evbuff error\n");
     int fd = fevbuff_destroy(evbuff);
     FTU_ASSERT_GREATER_THAN_INT(0, fd);
@@ -245,6 +251,7 @@ static void buff_error(fev_state* fev, fev_buff* evbuff, void* arg)
 
 static void fake_accept(fev_state* fev, int fd, void* ud)
 {
+    (void)ud;
     fev_buff* evbuff = fevbuff_new(fev, fd, buff_read, buff_error, NULL);
     FTU_ASSERT_EXPRESS(evbuff!=NULL);
 
@@ -269,6 +276,7 @@ static void fake_accept(fev_state* fev, int fd, void* ud)
 
 static void* fake_listener(void* arg)
 {
+    (void)arg;
     g_fev = fev_create(1024);
     fli = fev_add_listener(g_fev, 17759, fake_accept, NULL);
     FTU_ASSERT_EXPRESS(fli!=NULL);
@@ -326,12 +334,16 @@ void test_fev_buff()
 
 static void fake_accept1(fev_state* fev, int fd, void* ud)
 {
+    (void)fev;
+    (void)fd;
+    (void)ud;
     printf("accept sucessful\n");
     //close(fd);
 }
 
 static void test_for_conn(int fd, conn_arg_t arg)
 {
+    (void)arg;
     printf("tid=%lu, in async connection callback\n", pthread_self());
     if( fd <= 0 ) {
         printf("%s\n", strerror(errno));
@@ -344,6 +356,7 @@ static void test_for_conn(int fd, conn_arg_t arg)
 
 static void* fake_listener1(void* arg)
 {
+    (void)arg;
     g_fev = fev_create(1024);
     FTU_ASSERT( fev_conn_module_init(g_fev) == 0 );
     fli = fev_add_listener(g_fev, 17759, fake_accept1, NULL);

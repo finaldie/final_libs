@@ -31,7 +31,10 @@ struct fev_timer {
 };
 
 static
-void fev_on_timer(fev_state* fev, int fd, int mask, void* arg)
+void fev_on_timer(fev_state* fev,
+                  int fd    __attribute__((unused)),
+                  int mask  __attribute__((unused)),
+                  void* arg)
 {
     fev_timer* evt = (fev_timer*)arg;
 

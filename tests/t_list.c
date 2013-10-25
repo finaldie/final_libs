@@ -44,7 +44,7 @@ void test_list_sort()
     int input[] = {2,6,5,3,1,7,8,10,8,9,4};
     int output[] = {1,2,3,4,5,6,7,8,8,9,10};
     int i;
-    for(i=0; i<sizeof(input)/sizeof(int); ++i)
+    for(i=0; i<(int)(sizeof(input)/sizeof(int)); ++i)
     {
         flist_push(plist, &input[i]);
     }
@@ -56,7 +56,7 @@ void test_list_sort()
 
     flist_sort(plist, cmp);
     flist_iter it = flist_new_iter(plist);
-    for(i=0; i<sizeof(input)/sizeof(int); ++i)
+    for(i=0; i<(int)(sizeof(input)/sizeof(int)); ++i)
     {
         int x = *(int*)flist_each(&it);
         FTU_ASSERT_EQUAL_INT(x, output[i]);

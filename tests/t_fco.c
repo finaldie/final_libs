@@ -22,6 +22,8 @@
 static
 void* test2(fco* co, void* arg)
 {
+    (void)co;
+    (void)arg;
     printf("[in co2]\n");
     return NULL;
 }

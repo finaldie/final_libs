@@ -79,7 +79,7 @@ void test_hash(){
     FTU_ASSERT_EQUAL_INT((4*LOOP), iter_count);
 
     int total_count = 0;
-    int test_print(void* data) {
+    int test_print(void* data __attribute__((unused))) {
         //printf("key=%s(%d), value=%s\n", key, hash_atoi(key), (char*)data);
         total_count++;
         return 0;

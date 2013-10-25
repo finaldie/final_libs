@@ -97,13 +97,15 @@ int fev_tmmod_single_linked_add(ftimer_node* node, void* mod_data)
 }
 
 static
-int fev_tmmod_single_linked_del(ftimer_node* node, void* mod_data)
+int fev_tmmod_single_linked_del(ftimer_node* node __attribute__((unused)),
+                                void* mod_data    __attribute__((unused)))
 {
     return 0;
 }
 
 static
-int fev_tmmod_single_linked_reset(ftimer_node* node, void* mod_data)
+int fev_tmmod_single_linked_reset(ftimer_node* node __attribute__((unused)),
+                                  void* mod_data    __attribute__((unused)))
 {
     return 0;
 }

@@ -68,9 +68,10 @@ int    fnet_set_reuse_addr(int fd)
 inline
 int    fnet_set_reuse_port(int fd)
 {
+    (void)fd;
 #ifdef SO_REUSEPORT
     int optval = 0x1;
-    return setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(int)) ) {
+    return setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(int));
 #else
     return 0;
 #endif
@@ -186,7 +187,7 @@ int     fnet_send(int fd, const void* data, int len)
     do {
         int send_num = send(fd, data, len, MSG_NOSIGNAL);
 
-        if ( send >= 0 )
+        if ( send_num >= 0 )
             return send_num;
         else {
             if ( errno == EINTR )

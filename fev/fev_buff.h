@@ -43,8 +43,8 @@ fev_buff*  fevbuff_new(
 int        fevbuff_destroy(fev_buff*);
 int        fevbuff_get_fd(fev_buff*);
 void*      fevbuff_get_arg(fev_buff*);
-int        fevbuff_get_bufflen(fev_buff*, int type);
-int        fevbuff_get_usedlen(fev_buff*, int type);
+size_t     fevbuff_get_bufflen(fev_buff*, int type);
+size_t     fevbuff_get_usedlen(fev_buff*, int type);
 
 /**
 * descriptor:
@@ -57,6 +57,10 @@ int        fevbuff_get_usedlen(fev_buff*, int type);
 *  @ len - the length you want to receive
 * return:
 *  @ the length actually you can fetch in this action
+*
+* Note: the format of api is similar with the posix read, but to safe use it
+*       better to use the len <= max(int), the max buffer size also should limit
+*       within max(int)
 */
 int     fevbuff_read(fev_buff*, void* pbuf, size_t len);
 int     fevbuff_write(fev_buff*, const void* buff, size_t len);

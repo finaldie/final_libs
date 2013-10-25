@@ -29,7 +29,10 @@ struct fev_listen_info {
     void*       ud;
 };
 
-static void on_listen_port(fev_state* fev, int fd, int mask, void* arg)
+static void on_listen_port(fev_state* fev,
+                            int fd      __attribute__((unused)),
+                            int mask    __attribute__((unused)),
+                            void* arg)
 {
     fev_listen_info* listen_info = (fev_listen_info*)arg;
 

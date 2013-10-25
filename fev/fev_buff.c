@@ -74,7 +74,10 @@ int fev_write(int fd, const char* pbuf, size_t len)
 }
 
 static
-void evbuff_read(fev_state* fev, int fd, int mask, void* arg)
+void evbuff_read(fev_state* fev,
+                 int fd     __attribute__((unused)),
+                 int mask   __attribute__((unused)),
+                 void* arg)
 {
     fev_buff* evbuff = (fev_buff*)arg;
     if ( evbuff->read_cb )
@@ -82,7 +85,10 @@ void evbuff_read(fev_state* fev, int fd, int mask, void* arg)
 }
 
 static
-void evbuff_write(fev_state* fev, int fd, int mask, void* arg)
+void evbuff_write(fev_state* fev,
+                  int fd    __attribute__((unused)),
+                  int mask  __attribute__((unused)),
+                  void* arg)
 {
     fev_buff* evbuff = (fev_buff*)arg;
 
@@ -173,7 +179,7 @@ void*   fevbuff_get_arg(fev_buff* evbuff)
     return evbuff->arg;
 }
 
-int     fevbuff_get_bufflen(fev_buff* evbuff, int type)
+size_t  fevbuff_get_bufflen(fev_buff* evbuff, int type)
 {
     if ( type == FEVBUFF_TYPE_READ )
         return fmbuf_size(evbuff->rbuf);
@@ -181,7 +187,7 @@ int     fevbuff_get_bufflen(fev_buff* evbuff, int type)
         return fmbuf_size(evbuff->wbuf);
 }
 
-int     fevbuff_get_usedlen(fev_buff* evbuff, int type)
+size_t  fevbuff_get_usedlen(fev_buff* evbuff, int type)
 {
     if ( type == FEVBUFF_TYPE_READ )
         return fmbuf_used(evbuff->rbuf);
@@ -193,19 +199,19 @@ int     fevbuff_get_usedlen(fev_buff* evbuff, int type)
 // if pbuf == NULL, return data_len without copy data
 int     fevbuff_read(fev_buff* evbuff, void* pbuf, size_t len)
 {
-    int used_len = fevbuff_get_usedlen(evbuff, FEVBUFF_TYPE_READ);
-    int need_read_bytes = len - used_len;
+    size_t used_len = fevbuff_get_usedlen(evbuff, FEVBUFF_TYPE_READ);
+    int need_read_bytes = (int)len - (int)used_len;
 
     if ( need_read_bytes <= 0 ) {
         if( pbuf ) memcpy(pbuf, fmbuf_get_head(evbuff->rbuf), len);
         return (int)len;
     }
-    
+
     // rewind or realloc mbuf when tail_free is not enough
-    if ( need_read_bytes > fmbuf_tail_free(evbuff->rbuf) ) {
+    if ( need_read_bytes > (int)fmbuf_tail_free(evbuff->rbuf) ) {
         fmbuf_rewind(evbuff->rbuf);
 
-        if( fmbuf_total_free(evbuff->rbuf) < need_read_bytes ) {
+        if( (int)fmbuf_total_free(evbuff->rbuf) < need_read_bytes ) {
             evbuff->rbuf = fmbuf_realloc(evbuff->rbuf, len);
         }
     }
@@ -213,7 +219,7 @@ int     fevbuff_read(fev_buff* evbuff, void* pbuf, size_t len)
     int bytes = fev_read(evbuff->fd, fmbuf_get_tail(evbuff->rbuf), need_read_bytes);
     if ( bytes >= 0 ) {
         fmbuf_tail_seek(evbuff->rbuf, bytes);
-        int used = fmbuf_used(evbuff->rbuf);
+        size_t used = fmbuf_used(evbuff->rbuf);
         int copy_bytes = used > len ? len : used;
         if( pbuf ) memcpy(pbuf, fmbuf_get_head(evbuff->rbuf), copy_bytes);
         return (int)copy_bytes;

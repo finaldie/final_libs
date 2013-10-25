@@ -58,7 +58,7 @@ void    test_log(){
 }
 
 static
-void* _test_async_log(void* arg)
+void* _test_async_log(void* arg __attribute__((unused)))
 {
     FLOG_DEBUG(log_handler, "debug log test");
     FLOG_ERROR(log_handler, "error log test"); // first writen

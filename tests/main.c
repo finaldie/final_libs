@@ -28,7 +28,9 @@ void register_module(){
     tu_register_module(test_fco,          "for testing fco create, resume and yield");
 }
 
-int main(int argc, char** argv){
+int main(int argc    __attribute__((unused)),
+         char** argv __attribute__((unused)))
+{
     tu_register_init();
     register_module();
     tu_run_cases();

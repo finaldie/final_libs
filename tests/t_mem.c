@@ -83,7 +83,9 @@ void    _test_mem(void* arg){
     *(int*)arg = di/1000;
 }
 
-void    test_mem(int argc, char** argv){
+void    test_mem(int argc    __attribute__((unused)),
+                 char** argv __attribute__((unused)))
+{
     printf("main tid=%lu\n", pthread_self());
 
     pthread_t tid[THREAD_NUM];
@@ -97,7 +99,8 @@ void    test_mem(int argc, char** argv){
         pthread_join(tid[i], NULL);
 }
 
-void*   realloc_test(void* arg){
+void*   realloc_test(void* arg __attribute__((unused)))
+{
     int* n = (int*)f_alloc(4);
     free_block* fb = (free_block*)((fb_head*)n - 1);
     FTU_ASSERT_EQUAL_INT(0, fb->b_head.idx);

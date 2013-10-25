@@ -253,6 +253,7 @@ void    f_gc(void* arg)
 static
 fl_mgr* flmgr_create(int is_create_fb, int is_create_timer)
 {
+    (void)is_create_timer; // avoid compiler complain
     fl_mgr* mgr = f_malloc(sizeof(fl_mgr));
 
     int i;
@@ -473,6 +474,7 @@ void*   _f_alloc_fromsys(size_t size)
 static inline
 void    _f_free_tosys(void* data, size_t len)
 {
+    (void)len; // avoid compiler complain
 #ifdef STAT_SYS_ALLOC_SIZE
     spin_lock(&pmem->lock);
     pmem->sys_alloc_size -= len;

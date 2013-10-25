@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 #include "compiler.h"
 #include "fmbuf.h"
 
@@ -12,13 +13,11 @@
 #define MBUF_FREE(pbuf)     ( MBUF_HEAD(pbuf) <= MBUF_TAIL(pbuf) ? MBUF_SIZE(pbuf) + MBUF_HEAD(pbuf) - MBUF_TAIL(pbuf) : MBUF_HEAD(pbuf) - MBUF_TAIL(pbuf) )
 #define MBUF_FIX_ADDR(size) ( size + ((size & 3) > 0)*(4 - (size & 3))  )        //fix the addr 
 
-typedef unsigned int uint;
-
 struct _mbuf {
-    uint  size;
-    char* head;
-    char* tail;
-    char  buf[1];
+    size_t size;
+    char*  head;
+    char*  tail;
+    char   buf[1];
 };
 
 fmbuf*    fmbuf_create(size_t size)
@@ -42,8 +41,8 @@ void    fmbuf_delete(fmbuf* pbuf)
 
 int     fmbuf_push( fmbuf* pbuf, const void* data, size_t size)
 {
-    if ( pbuf && data && size > 0 && ((uint)MBUF_FREE(pbuf) -1) >= size ) {
-        uint tail_free = MBUF_END(pbuf) - MBUF_TAIL(pbuf) + 1;
+    if ( pbuf && data && size > 0 && ((size_t)MBUF_FREE(pbuf) -1) >= size ) {
+        size_t tail_free = MBUF_END(pbuf) - MBUF_TAIL(pbuf) + 1;
 
         if ( tail_free >= size ) {
             memcpy(MBUF_TAIL(pbuf), (char*)data, size);
@@ -53,7 +52,7 @@ int     fmbuf_push( fmbuf* pbuf, const void* data, size_t size)
                 MBUF_TAIL(pbuf) = MBUF_START(pbuf);
         } else {
             memcpy(MBUF_TAIL(pbuf), (char*)data, tail_free);
-            uint left = size - tail_free;
+            size_t left = size - tail_free;
             memcpy(MBUF_START(pbuf), (char*)data+tail_free, left);
             MBUF_TAIL(pbuf) = MBUF_START(pbuf) + left;
         }
@@ -68,8 +67,8 @@ int     fmbuf_push( fmbuf* pbuf, const void* data, size_t size)
 //if head to end space is less than size then go on to pop from start
 int        fmbuf_pop( fmbuf* pbuf, void* data, size_t size)
 {
-    if ( pbuf && data && size > 0 && size <= (uint)MBUF_USED(pbuf) ) {
-        uint tail_use = MBUF_END(pbuf) - MBUF_HEAD(pbuf) + 1;
+    if ( pbuf && data && size > 0 && size <= (size_t)MBUF_USED(pbuf) ) {
+        size_t tail_use = MBUF_END(pbuf) - MBUF_HEAD(pbuf) + 1;
 
         if ( tail_use >= size ) {
             memcpy((char*)data, MBUF_HEAD(pbuf), size);
@@ -79,7 +78,7 @@ int        fmbuf_pop( fmbuf* pbuf, void* data, size_t size)
                 MBUF_HEAD(pbuf) = MBUF_START(pbuf);
         } else {
             memcpy((char*)data, MBUF_HEAD(pbuf), tail_use);
-            uint left = size - tail_use;
+            size_t left = size - tail_use;
             memcpy((char*)data+tail_use, MBUF_START(pbuf), left);
             MBUF_HEAD(pbuf) = MBUF_START(pbuf) + left;
         }
@@ -93,8 +92,8 @@ int        fmbuf_pop( fmbuf* pbuf, void* data, size_t size)
 // ensure you use the return value , that's safe
 void*    fmbuf_vpop(fmbuf* pbuf, void* data, size_t size)
 {
-    if ( pbuf && data && size > 0 && size <= (uint)MBUF_USED(pbuf) ) {
-        uint tail_use = MBUF_END(pbuf) - MBUF_HEAD(pbuf) + 1;
+    if ( pbuf && data && size > 0 && size <= (size_t)MBUF_USED(pbuf) ) {
+        size_t tail_use = MBUF_END(pbuf) - MBUF_HEAD(pbuf) + 1;
 
         if ( tail_use >= size ) {
             data = MBUF_HEAD(pbuf);
@@ -104,7 +103,7 @@ void*    fmbuf_vpop(fmbuf* pbuf, void* data, size_t size)
                 MBUF_HEAD(pbuf) = MBUF_START(pbuf);
         } else {
             memcpy((char*)data, MBUF_HEAD(pbuf), tail_use);
-            uint left = size - tail_use;
+            size_t left = size - tail_use;
             memcpy((char*)data+tail_use, MBUF_START(pbuf), left);
             MBUF_HEAD(pbuf) = MBUF_START(pbuf) + left;
         }
@@ -118,8 +117,8 @@ void*    fmbuf_vpop(fmbuf* pbuf, void* data, size_t size)
 // only use to move the head ptr forward tail for sometime optimizating performance
 void    fmbuf_head_move(fmbuf* pbuf, size_t size)
 {
-    if ( pbuf && size > 0 && size <= (uint)MBUF_USED(pbuf) ) {
-        uint tail_use = MBUF_END(pbuf) - MBUF_HEAD(pbuf) + 1;
+    if ( pbuf && size > 0 && size <= (size_t)MBUF_USED(pbuf) ) {
+        size_t tail_use = MBUF_END(pbuf) - MBUF_HEAD(pbuf) + 1;
 
         if ( tail_use >= size ) {
             MBUF_HEAD(pbuf) += size;
@@ -127,7 +126,7 @@ void    fmbuf_head_move(fmbuf* pbuf, size_t size)
             if( unlikely(MBUF_HEAD(pbuf) > MBUF_END(pbuf)) )
                 MBUF_HEAD(pbuf) = MBUF_START(pbuf);
         } else {
-            uint left = size - tail_use;
+            size_t left = size - tail_use;
             MBUF_HEAD(pbuf) = MBUF_START(pbuf) + left;
         }
     }
@@ -135,14 +134,14 @@ void    fmbuf_head_move(fmbuf* pbuf, size_t size)
 
 void*   fmbuf_getraw(fmbuf* pbuf, void* data, size_t size)
 {
-    if ( pbuf && data && size > 0 && size <= (uint)MBUF_USED(pbuf) ) {
-        uint tail_use = MBUF_END(pbuf) - MBUF_HEAD(pbuf) + 1;
+    if ( pbuf && data && size > 0 && size <= (size_t)MBUF_USED(pbuf) ) {
+        size_t tail_use = MBUF_END(pbuf) - MBUF_HEAD(pbuf) + 1;
 
         if ( tail_use >= size ) {
             data = MBUF_HEAD(pbuf);
         } else {
             memcpy((char*)data, MBUF_HEAD(pbuf), tail_use);
-            uint left = size - tail_use;
+            size_t left = size - tail_use;
             memcpy((char*)data+tail_use, MBUF_START(pbuf), left);
         }
 
@@ -154,10 +153,10 @@ void*   fmbuf_getraw(fmbuf* pbuf, void* data, size_t size)
 
 void*   fmbuf_alloc(fmbuf* pbuf, size_t size)
 {
-    if ( fmbuf_tail_free(pbuf) < (int)size )
+    if ( fmbuf_tail_free(pbuf) < size )
         fmbuf_rewind(pbuf);
 
-    if ( fmbuf_tail_free(pbuf) >= (int)size ) {
+    if ( fmbuf_tail_free(pbuf) >= size ) {
         char* ptr = MBUF_TAIL(pbuf);
         MBUF_TAIL(pbuf) += size;
 
@@ -195,45 +194,45 @@ void    fmbuf_tail_seek(fmbuf* pbuf, int offset)
     MBUF_TAIL(pbuf) += offset;
 }
 
-int     fmbuf_used(fmbuf* pbuf)
+size_t  fmbuf_used(fmbuf* pbuf)
 {
     return MBUF_USED(pbuf);
 }
 
-int     fmbuf_total_free(fmbuf* pbuf)
+size_t  fmbuf_total_free(fmbuf* pbuf)
 {
     return MBUF_FREE(pbuf);
 }
 
-int     fmbuf_free(fmbuf* pbuf)
+size_t  fmbuf_free(fmbuf* pbuf)
 {
     return fmbuf_total_free(pbuf) - 1;
 }
 
-int     fmbuf_tail_free(fmbuf* pbuf)
+size_t  fmbuf_tail_free(fmbuf* pbuf)
 {
     return MBUF_END(pbuf) - MBUF_TAIL(pbuf) + 1;
 }
 
-int     fmbuf_head_free(fmbuf* pbuf)
+size_t  fmbuf_head_free(fmbuf* pbuf)
 {
     return MBUF_HEAD(pbuf) - MBUF_START(pbuf);
 }
 
 fmbuf*   fmbuf_realloc(fmbuf* pbuf, size_t size)
 {
-    uint total_size = MBUF_SIZE(pbuf);
+    size_t total_size = MBUF_SIZE(pbuf);
     if ( total_size == size )
         return pbuf;
 
-    uint tail_pos = MBUF_TAIL(pbuf) - MBUF_START(pbuf);
+    size_t tail_pos = MBUF_TAIL(pbuf) - MBUF_START(pbuf);
     if ( tail_pos > size ) {
         fmbuf_rewind(pbuf);
         tail_pos = MBUF_TAIL(pbuf) - MBUF_START(pbuf);
         size = tail_pos > size ? tail_pos : size;
     }
 
-    uint head_pos = MBUF_HEAD(pbuf) - MBUF_START(pbuf);
+    size_t head_pos = MBUF_HEAD(pbuf) - MBUF_START(pbuf);
     fmbuf* new_buf = realloc(pbuf, sizeof(fmbuf) + size);
 
     MBUF_SIZE(new_buf) = size;
@@ -253,7 +252,7 @@ void*   fmbuf_get_tail(fmbuf* pbuf)
     return MBUF_TAIL(pbuf);
 }
 
-int     fmbuf_size(fmbuf* pbuf)
+size_t  fmbuf_size(fmbuf* pbuf)
 {
     return MBUF_SIZE(pbuf);
 }

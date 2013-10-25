@@ -25,29 +25,22 @@ struct gt_catch{
      perror(msg); exit(EXIT_FAILURE); \
     } while (0)
 
-void handler(int sig, siginfo_t *si, void *uc){
+void handler(int sig, siginfo_t *si, void *uc __attribute__((unused))){
     if( sig != SIGRTMIN ) return;
 
     f_timer* pt = (f_timer*)si->si_value.sival_ptr;
     if( pt->pfunc )
         pt->pfunc(pt->arg);
-
-    //signal(sig, SIG_IGN);
 }
 
 static
 void ftimer_create_signal(){
     g_catch.sa.sa_flags = SA_SIGINFO;
     g_catch.sa.sa_sigaction = handler;
-    //sigemptyset(&g_catch.sa.sa_mask);
+
     if (sigaction(SIG, &g_catch.sa, NULL) == -1){
         exit(0);
     }
-
-    //sigemptyset(&g_catch.mask);
-    //sigaddset(&g_catch.mask, SIG);
-    //if (sigprocmask(SIG_SETMASK, &g_catch.mask, NULL) == -1)
-    //    return 2;
 }
 
 int  ftimer_create(f_timer* pt, long long nsecs, long long alter,

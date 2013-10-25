@@ -5,7 +5,7 @@ int fev_tmmod_timeout(struct timespec* start, struct timespec* now, uint32_t exp
     long int start_time_ns = start->tv_sec * NS_PER_SECOND + start->tv_nsec;
     long int now_time_ns = now->tv_sec * NS_PER_SECOND + now->tv_nsec;
 
-    if( now_time_ns >= (start_time_ns + expire * NS_PER_MS) ) {
+    if( now_time_ns >= (start_time_ns + (long int)expire * NS_PER_MS) ) {
         return 1;
     } else {
         return 0;
