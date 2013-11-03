@@ -34,6 +34,21 @@ fmbuf*    fmbuf_create(size_t size)
     return NULL;
 }
 
+fmbuf*    fmbuf_create1(size_t size, int fill)
+{
+    if ( size > 0 ) {
+        fmbuf* pmbuf = malloc(sizeof(fmbuf) + size);
+
+        if ( !pmbuf ) return NULL;
+        pmbuf->size = size;
+        pmbuf->head = pmbuf->tail = pmbuf->buf;
+        memset(pmbuf->buf, fill, size);
+
+        return pmbuf;
+    }
+    return NULL;
+}
+
 void    fmbuf_delete(fmbuf* pbuf)
 {
     free(pbuf);

@@ -12,6 +12,7 @@ extern "C" {
 typedef struct _mbuf fmbuf;
 
 fmbuf*  fmbuf_create(size_t size);
+fmbuf*  fmbuf_create1(size_t size, int fill); // create a fmbuf populate by 'fill'
 void    fmbuf_delete(fmbuf* pbuf);
 
 // public interface 
