@@ -50,6 +50,9 @@ $(TARGET):$(OBJS) $(DEPS)
 check:
 	./$(TARGET)
 
+valgrind-gensup:
+	valgrind --tool=memcheck --leak-check=full --suppressions=./valgrind.suppress --gen-suppressions=yes ./$(TARGET)
+
 valgrind-check:
 	valgrind --tool=memcheck --leak-check=full --suppressions=./valgrind.suppress ./$(TARGET)
 
