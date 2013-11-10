@@ -9,55 +9,122 @@
 #define READ_LINE_LEN 1024
 #define READ_WORD_LEN 512
 
-static
-int IsTokenEqual( char pStr )
+char* trim_left(char* str)
 {
-    return IsToken(pStr, '=');
+    if (!str) return NULL;
+    if (*str == ' ') {
+        return trim_left(str + 1);
+    } else {
+        return str;
+    }
+
+}
+
+char* trim_right(char* str)
+{
+    if (!str) return NULL;
+    char* _trim_right(char* str, char* end) {
+        if (*str == ' ') {
+            *str = '\0';
+
+            if (str == end) {
+                return end;
+            } else {
+                return _trim_right(str - 1, end);
+            }
+        } else {
+            return end;
+        }
+    }
+
+    size_t len = strlen(str);
+    if (!len) return str;
+
+    return _trim_right(str + len - 1, str);
+}
+
+char* trim(char* str)
+{
+    char* s1 = trim_left(str);
+    return trim_right(s1);
+}
+
+int fconf_readkv(char* line, char** key, char** value)
+{
+    *key = NULL;
+    *value = NULL;
+    size_t lenofline = strlen(line);
+    if ( lenofline == 0 ) {
+        return -1;
+    }
+
+    // find the first '='
+    char* loc = strchr(line, '=');
+    if (!loc) {
+        return -2;
+    }
+
+    // split it into key and value
+    *key = line;
+    *value = loc + 1;
+    *loc = '\0'; // replace '=' with '\0'
+
+    // trim the key and value
+    *key = trim(*key);
+    *value = trim(*value);
+
+    // validate key, if key contain blanks, that's a
+    // invalid key
+    if (strchr(*key, ' ')) {
+        return -3;
+    }
+
+    return 0;
 }
 
 int fload_config(const char* filename, pfload_cfg_cb pfunc)
 {
-    int   read_sign = 0;
-    int   read_len  = 0;
-    int   read_old_sign = 0;
-    char  read_line[READ_LINE_LEN];
-    char  read_word_left[READ_WORD_LEN];
-    char  read_word_right[READ_WORD_LEN];
-    char* pConfBuf = malloc(CONF_BUFF_LEN);
+    int   ret = 0;
+    int   next = 0;
+    int   buf_size = 0;
+    char  line[READ_LINE_LEN];
+    char* conf_buf = malloc(CONF_BUFF_LEN);
 
-    read_len = ReadConfig(filename, pConfBuf, CONF_BUFF_LEN);
+    buf_size = fconf_load2buf(filename, conf_buf, CONF_BUFF_LEN);
 
-    if ( read_len <= 0 )
-        return -1;
+    // an empty config is a valid config
+    if ( buf_size <= 0 )
+        goto out;
 
-    read_sign = ReadLine(pConfBuf, read_old_sign, read_line);
+    next = fconf_readline(conf_buf, next, line);
 
-    for ( ; read_sign > 0; ) {
-        int lp = 0;
-        lp = ReadWord(read_line, read_word_left, lp);
-
-        if ( lp > 0 ) {
-            lp = ReadWord(read_line, read_word_right, lp);
-
-            if( lp > 0 ) {
-                if ( IsTokenEqual(read_word_right[0]) ) {
-                    //lp = ReadWord(read_line, read_word_right, lp);
-                    lp = ReadLine(read_line, lp, read_word_right);
-
-                    if ( lp > 0 )
-                        pfunc(read_word_left, read_word_right);
-                }
-            }
+    while (next > 0) {
+        if (*line == '\0') {
+            goto next_round;
         }
 
-        read_old_sign = read_sign;
-        if ( read_old_sign >= read_len )
-            break;
+        char* key = NULL;
+        char* value = NULL;
+        if (fconf_readkv(line, &key, &value)) {
+            ret = 1;
+            goto out;
+        } else {
+            pfunc(key, value);
+        }
 
-        read_sign = ReadLine(pConfBuf, read_old_sign, read_line);
+        // the next is a array index, the buf_size is a exact
+        // size of the buffer, so compare them should convert
+        // the next index to a normal size: next - 1 means how
+        // many bytes we have already handled
+        if ( (next - 1) >= buf_size ) {
+            break;
+        }
+
+next_round:
+        next = fconf_readline(conf_buf, next, line);
     }
 
-    free(pConfBuf);
-
-    return 0;
+out:
+    free(conf_buf);
+    return ret;
 }

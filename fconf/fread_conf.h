@@ -10,6 +10,8 @@ extern "C" {
 
 typedef void (*pfload_cfg_cb)(const char* key, const char* value);
 
+// return 0: if loading config is ok
+// return non-zero: if loading config is error
 int fload_config(const char* filename, pfload_cfg_cb pfunc);
 
 #ifdef __cplusplus

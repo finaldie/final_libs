@@ -8,105 +8,82 @@
 #include "fconf.h"
 
 //return    0:normal 1:error
-int     ReadConfig(const char* filename, char* pBuf, unsigned int len)
+int     fconf_load2buf(const char* filename, char* buf, size_t len)
 {
     int fd, bytes_read = 0;
 
     if ( (fd = open(filename, O_RDONLY)) == -1 ) {
-        printf("open file error\n");
         return -1;
     }
 
-    bytes_read = read(fd, pBuf, len);
+    bytes_read = read(fd, buf, len);
     if ( (bytes_read == -1) )
-        return    -1; 
+        return -1;
     else if ( bytes_read > 0 ) {
-        pBuf[bytes_read] = '\0';
+        buf[bytes_read] = '\0';
     }
 
     return bytes_read;
 }
 
-int     IsToken(char pSrc, char pCmp)
+int     fconf_istoken(const char src, const char cmp)
 {
-    if ( pSrc == pCmp )
+    if ( src == cmp )
         return 1;
     return 0;
 }
 
-int     IsTokenEnd( char pStr )
+int     fconf_istoken_null(const char str)
 {
-    return IsToken(pStr, '\0');
+    return fconf_istoken(str, '\0');
 }
 
-int     IsTokenEnter( char pStr )
+int     fconf_istoken_lf(const char str)
 {
-    return IsToken(pStr, '\n');
+    return fconf_istoken(str, '\n');
 }
 
-int     IsTokenNotes( char pStr )
+int     fconf_istoken_numsign(const char str)
 {
-    return IsToken(pStr, '#');
+    return fconf_istoken(str, '#');
 }
 
-int     IsTokenBlank( char pStr )
+int     fconf_istoken_blank(const char str)
 {
-    return IsToken(pStr, ' ');
+    return fconf_istoken(str, ' ');
 }
 
-int     ReadLine(char* pBufSrc, unsigned int Start, char* pLine)
+int     fconf_readline(const char* buf, unsigned int start, char* line)
 {
     int len = 0;
 
-    while ( !IsTokenEnd(pBufSrc[Start]) )
-        if ( IsTokenBlank(pBufSrc[Start]) )
-            Start++;
-        else
-            break;
-
-    if ( IsTokenEnd(pBufSrc[Start]) )
-        return -1;
-
-    while ( !IsTokenEnd(pBufSrc[Start]) && !IsTokenEnter(pBufSrc[Start]) ) {
-        if ( !IsTokenNotes(pBufSrc[Start]) ) {
-            pLine[len++] = pBufSrc[Start++];
+    // skip all the blank, stop at the first non-blank location
+    while ( !fconf_istoken_lf(buf[start]) ) {
+        if ( fconf_istoken_blank(buf[start]) ) {
+            start++;
         } else {
             break;
         }
     }
-    pLine[len] = '\0';
 
-    while ( !IsTokenEnd(pBufSrc[Start]) && !IsTokenEnter(pBufSrc[Start]) )
-        Start++;
-
-    return ++Start;
-}
-
-int     ReadWord(char* pLine, char* pWord, int lp)
-{
-    int lp_word = 0;
-    int lenofline = strlen(pLine);
-
-    if ( lenofline == 0 )
+    if ( fconf_istoken_null(buf[start]) )
         return -1;
 
-    while ( !IsTokenEnd(pLine[lp]) )
-        if ( IsTokenBlank(pLine[lp]) )
-            lp++;
-        else
+    // store the string before number sign('#')
+    // people don't want to store the comments into
+    // the buffer
+    while ( !fconf_istoken_null(buf[start]) && !fconf_istoken_lf(buf[start]) ) {
+        if ( !fconf_istoken_numsign(buf[start]) ) {
+            line[len++] = buf[start++];
+        } else {
             break;
-
-    if ( IsTokenEnd(pLine[lp]) )
-        return -1;
-
-    while ( !IsTokenEnd(pLine[lp]) ) {
-        if ( !IsTokenBlank(pLine[lp]) )
-            pWord[lp_word++] = pLine[lp++];
-        else
-            break;
+        }
     }
+    line[len] = '\0';
 
-    pWord[lp_word] = '\0';
+    // Move the 'start' pointer to the 1st char of the next line
+    while ( !fconf_istoken_lf(buf[start]) )
+        start++;
 
-    return lp;
+    return ++start;
 }

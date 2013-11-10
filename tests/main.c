@@ -9,6 +9,7 @@
 #include "inc.h"
 
 void register_module(){
+    tu_register_module(test_conf,         "for testing fconf");
     tu_register_module(test_list,         "for testing flist");
     tu_register_module(test_list_sort,    "for testing flist_sort method");
     tu_register_module(test_hash,         "for testing fhash set and get");

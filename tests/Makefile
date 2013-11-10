@@ -17,7 +17,8 @@ LIBS = -lfhash \
 	   -lfnet \
 	   -lfcache \
 	   -lfco \
-	   -lftu
+	   -lftu \
+	   -lfconf
 
 SRCS = main.c \
 	   t_hash.c \
@@ -28,7 +29,8 @@ SRCS = main.c \
 	   t_list.c \
 	   t_fev.c \
 	   t_fcache.c \
-	   t_fco.c
+	   t_fco.c \
+	   t_conf.c
 
 COPY_FILES = 
 	   
@@ -52,6 +54,9 @@ check:
 
 valgrind-gensup:
 	valgrind --tool=memcheck --leak-check=full --suppressions=./valgrind.suppress --gen-suppressions=yes ./$(TARGET)
+
+valgrind-nosup:
+	valgrind --tool=memcheck --leak-check=full ./$(TARGET)
 
 valgrind-check:
 	valgrind --tool=memcheck --leak-check=full --suppressions=./valgrind.suppress ./$(TARGET)
