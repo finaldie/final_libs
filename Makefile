@@ -102,11 +102,13 @@ endif
 valgrind-check: valgrind-check32 valgrind-check64
 
 valgrind-check32:
+	@echo "======================Running 32bit Valgrind Test======================";
 	@$(MAKE) -s -C $(TEST_FOLDERS) $(ASSEMBLY32) clean;
 	@$(MAKE) -s -C $(TEST_FOLDERS) EXT_FLAGS="$(COMMON32_CFLAGS)" $(ASSEMBLY32) || exit "$$?";
 	@$(MAKE) -s -C $(TEST_FOLDERS) valgrind-check;
 
 valgrind-check64:
+	@echo "======================Running 64bit Valgrind Test======================";
 	@$(MAKE) -s -C $(TEST_FOLDERS) $(ASSEMBLY64) clean;
 	@$(MAKE) -s -C $(TEST_FOLDERS) EXT_FLAGS="$(COMMON64_CFLAGS)" $(ASSEMBLY64) || exit "$$?";
 	@$(MAKE) -s -C $(TEST_FOLDERS) valgrind-check;
