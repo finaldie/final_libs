@@ -1,10 +1,10 @@
 -include ../common/Makefile.common
 
-TARGET = test
+TARGET := test
 
-INC = -I$(INSTALL_PATH)/$(INCLUDE_PATH)
-LL = -L$(INSTALL_PATH)/$(LIBS_PATH)
-LIBS = -lfhash \
+INC := -I$(INSTALL_PATH)/$(INCLUDE_PATH)
+LL := -L$(INSTALL_PATH)/$(LIBS_PATH)
+LIBS := -lfhash \
 	   -lfmempool \
 	   -lpthread \
 	   -lflock \
@@ -20,7 +20,7 @@ LIBS = -lfhash \
 	   -lftu \
 	   -lfconf
 
-SRCS = main.c \
+SRCS := main.c \
 	   t_hash.c \
 	   t_mem.c \
 	   t_log.c \
@@ -32,10 +32,10 @@ SRCS = main.c \
 	   t_fco.c \
 	   t_conf.c
 
-COPY_FILES = 
+COPY_FILES := 
 	   
-DEPS = $(patsubst %.c,%.d,$(SRCS))
-OBJS = $(patsubst %.c,%.o,$(SRCS))
+DEPS := $(patsubst %.c,%.d,$(SRCS))
+OBJS := $(patsubst %.c,%.o,$(SRCS))
 
 CFLAGS += $(EXT_FLAGS)
 CFLAGS +=
