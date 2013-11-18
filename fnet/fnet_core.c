@@ -133,24 +133,34 @@ int     fnet_create_listen(const char* ip, int port, int max_link, int isblock)
     listen_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (0 > listen_fd) return -1;
 
-    fnet_set_reuse_addr(listen_fd);
-    fnet_set_reuse_port(listen_fd);
-    fnet_set_linger(listen_fd);
+    if (fnet_set_reuse_addr(listen_fd)) {
+        goto cleanup;
+    }
 
-    if ( !isblock )
-        fnet_set_nonblocking(listen_fd);
+    if (fnet_set_linger(listen_fd)) {
+        goto cleanup;
+    }
+
+    // Only enabled on linux kernel version >= 3.9
+    fnet_set_reuse_port(listen_fd);
+
+    if ( !isblock && fnet_set_nonblocking(listen_fd) ) {
+        goto cleanup;
+    }
 
     if (0 > bind(listen_fd, (struct sockaddr *)&addr, sizeof(addr))) {
-        close(listen_fd);
-        return -1;
+        goto cleanup;
     }
 
     if (0 > listen(listen_fd, max_link)) {
-        close(listen_fd);
-        return -1;
+        goto cleanup;
     }
 
     return listen_fd;
+
+cleanup:
+    close(listen_fd);
+    return -1;
 }
 
 // send data util data all send complete
