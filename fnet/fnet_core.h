@@ -11,6 +11,11 @@ extern "C" {
 #define SOCKET_ERROR    -1
 #define SOCKET_CLOSE    0
 
+// This feature only enabled when linux kernel >= 3.9
+#ifndef SO_REUSEPORT
+#define SO_REUSEPORT 15
+#endif
+
 // host struct
 typedef struct {
     int    alias_count;

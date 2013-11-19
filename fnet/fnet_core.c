@@ -141,9 +141,6 @@ int     fnet_create_listen(const char* ip, int port, int max_link, int isblock)
         goto cleanup;
     }
 
-    // Only enabled on linux kernel version >= 3.9
-    fnet_set_reuse_port(listen_fd);
-
     if ( !isblock && fnet_set_nonblocking(listen_fd) ) {
         goto cleanup;
     }
