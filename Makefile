@@ -123,4 +123,18 @@ clean:
 	@rm -rf $(ASSEMBLY_LOCAL_FOLDER);
 	@echo "clean complete";
 
-.PHONY:clean all all32 all64 check check32 check64 valgrind-check valgrind-check32 valgrind-check64
+install32:
+	@for lib in $(LIB_FOLDERS); \
+	do \
+		echo "Install $$lib"; \
+		$(MAKE) -s -C $$lib $(ASSEMBLY32) install; \
+	done;
+
+install64:
+	@for lib in $(LIB_FOLDERS); \
+	do \
+		echo "Install $$lib"; \
+		$(MAKE) -s -C $$lib $(ASSEMBLY64) install; \
+	done;
+
+.PHONY:clean all all32 all64 check check32 check64 valgrind-check valgrind-check32 valgrind-check64 install32 install64
