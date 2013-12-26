@@ -123,21 +123,18 @@ void    fev_destroy(fev_state* fev)
 {
     if( !fev ) return;
 
-    int module_unload(void* arg)
-    {
-        if( !arg ) return 0;
+    // delete module's private data first
+    fev_module_t* module = NULL;
+    fhash_iter iter = fhash_new_iter(fev->module_tbl);
+    while ((module = (fev_module_t*)fhash_next(&iter))) {
+        if( module->fev_module_unload ) {
+            module->fev_module_unload(fev, module->ud);
+        }
 
-        fev_module_t* module = (fev_module_t*)arg;
-        if( !module->fev_module_unload ) return 0;
-
-        module->fev_module_unload(fev, module->ud);
         free(module);
-        return 0;
     }
 
-    fhash_foreach(fev->module_tbl, module_unload);
     fhash_delete(fev->module_tbl);
-
     fev_state_destroy(fev);
     free(fev->fevents);
     free(fev->firelist);
@@ -149,16 +146,16 @@ void    fev_destroy(fev_state* fev)
 // return > 0 : sucess
 int     fev_reg_event(fev_state* fev, int fd, int mask, pfev_read pread, pfev_write pwrite, void* arg)
 {
-    if( !fev ) return -1; 
+    if( !fev ) return -1;
 
-    // only reversed FEV_READ & FEV_WRITE state 
+    // only reversed FEV_READ & FEV_WRITE state
     mask &= FEV_READ | FEV_WRITE;
     if( mask == FEV_NIL ) return -2;
 
-    if( fev->fevents[fd].mask != FEV_NIL ) 
+    if( fev->fevents[fd].mask != FEV_NIL )
         return -3;
 
-    if( fev_state_addevent(fev, fd, mask) == -1 ) 
+    if( fev_state_addevent(fev, fd, mask) == -1 )
         return -4;
 
     fev->fevents[fd].pread = pread;

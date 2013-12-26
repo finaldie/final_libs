@@ -46,8 +46,8 @@ int  fev_get_fd(fev_state*);
 
 typedef struct fev_module_t {
     const char* name;
-    void  (*fev_module_unload)(fev_state*, void* ud);
     void* ud;
+    void  (*fev_module_unload)(fev_state*, void* ud);
 } fev_module_t;
 
 int   fev_register_module(fev_state*, fev_module_t*);

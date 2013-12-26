@@ -218,26 +218,15 @@ void dump_cb(u_char* ud, const struct pcap_pkthdr* pkg_header, const u_char* pkg
 }
 
 static
-void fpcap_session_foreach(fopt_action_t* action)
+void fpcap_session_cleanup(fopt_action_t* action)
 {
-    int loop_handler(void* data)
-    {
-        session_t* session = (session_t*)data;
-        int ret = action->iaction->cleanup(session, action->iaction->ud);
-        fsession_del(action->phash, session->id);
-        return ret;
-    }
-
-    int final_clean(void* data)
-    {
-        session_t* session = (session_t*)data;
-        fsession_del(action->phash, session->id);
-        return 0;
-    }
-
     fhash* phash = action->phash;
-    fhash_foreach(phash, loop_handler);
-    fhash_foreach(phash, final_clean);
+    fhash_iter iter = fhash_new_iter(phash);
+    session_t* session = NULL;
+
+    while ((session = (session_t*)fhash_next(&iter))) {
+        action->iaction->cleanup(session, action->iaction->ud);
+    }
 }
 
 FPCAP_STATUS fpcap_convert(convert_action_t action)
@@ -276,7 +265,7 @@ FPCAP_STATUS fpcap_convert(convert_action_t action)
 cleanup:
     // cleanup
     if( action.cleanup ) {
-        fpcap_session_foreach(&opt_action);
+        fpcap_session_cleanup(&opt_action);
     }
 
     fhash_delete(opt_action.phash);

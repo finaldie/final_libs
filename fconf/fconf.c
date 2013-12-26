@@ -17,7 +17,7 @@ int     fconf_load2buf(const char* filename, char* buf, size_t len)
     }
 
     bytes_read = read(fd, buf, len);
-    if ( (bytes_read == -1) )
+    if (bytes_read == -1)
         return -1;
     else if ( bytes_read > 0 ) {
         buf[bytes_read] = '\0';

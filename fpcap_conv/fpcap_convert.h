@@ -57,15 +57,15 @@ typedef enum {
 } fsession_event;
 
 typedef void (*fconv_handler)(fsession_event, session_t*, fapp_data_t*, void* ud);
-typedef int (*fsession_loop)(session_t*, void* ud);
+typedef void (*fsession_end)(session_t*, void* ud);
 
 typedef struct convert_action_t {
-    const char*     pcap_filename;
-    const char*     filter_rules;
-    uint32_t        type; //convertion type:CLIENT, SERVER, CLIENT|SERVER
-    fconv_handler   handler;
-    fsession_loop   cleanup;
-    void*           ud;
+    const char*   pcap_filename;
+    const char*   filter_rules;
+    uint32_t      type; //convertion type:CLIENT, SERVER, CLIENT|SERVER
+    fconv_handler handler;
+    fsession_end  cleanup;
+    void*         ud;
 } convert_action_t;
 
 FPCAP_STATUS fpcap_convert(convert_action_t);

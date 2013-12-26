@@ -22,22 +22,32 @@
 
 typedef struct {
     int i;
-}tnode;
+} tnode;
+
 struct list_node {
     void*             data;
     struct list_node* pre;
     struct list_node* next;
 };
+
 struct list_mgr {
     struct list_node* head;
     struct list_node* tail;
 };
+
 int test_list_foreach(void* data)
 {
     tnode* tn = (tnode*)data;
     FTU_ASSERT_EQUAL_INT(100, tn->i);
     return 0;
 }
+
+static
+int cmp(void *a, void *b)
+{
+    return *(int*)a - *(int*)b;
+}
+
 void test_list_sort()
 {
     flist* plist = flist_create();
@@ -47,11 +57,6 @@ void test_list_sort()
     for(i=0; i<(int)(sizeof(input)/sizeof(int)); ++i)
     {
         flist_push(plist, &input[i]);
-    }
-
-    int cmp(void *a, void *b)
-    {
-        return *(int*)a - *(int*)b;
     }
 
     flist_sort(plist, cmp);

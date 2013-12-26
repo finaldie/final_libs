@@ -532,7 +532,7 @@ void    fhash_foreach(fhash* phash, fhash_each_cb pfunc){
     }
 }
 
-int        fhash_get_count(fhash* phash)
+int     fhash_get_count(fhash* phash)
 {
     return phash->value_count;
 }

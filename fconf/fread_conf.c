@@ -9,6 +9,7 @@
 #define READ_LINE_LEN 1024
 #define READ_WORD_LEN 512
 
+static
 char* trim_left(char* str)
 {
     if (!str) return NULL;
@@ -20,22 +21,25 @@ char* trim_left(char* str)
 
 }
 
+static
+char* _trim_right(char* str, char* end) {
+    if (*str == ' ') {
+        *str = '\0';
+
+        if (str == end) {
+            return end;
+        } else {
+            return _trim_right(str - 1, end);
+        }
+    } else {
+        return end;
+    }
+}
+
+static
 char* trim_right(char* str)
 {
     if (!str) return NULL;
-    char* _trim_right(char* str, char* end) {
-        if (*str == ' ') {
-            *str = '\0';
-
-            if (str == end) {
-                return end;
-            } else {
-                return _trim_right(str - 1, end);
-            }
-        } else {
-            return end;
-        }
-    }
 
     size_t len = strlen(str);
     if (!len) return str;
