@@ -5,3 +5,4 @@ types_c.taghl
 *.d
 *.o
 *.a
+.ycm_extra_conf.pyc
