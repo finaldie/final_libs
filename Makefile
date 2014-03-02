@@ -12,8 +12,13 @@ ASSEMBLY32 := INSTALL_PATH=$(ASSEMBLY_LOCAL_FOLDER) INCLUDE_PATH=$(ASSEMBLY_INCL
 ASSEMBLY64 := INSTALL_PATH=$(ASSEMBLY_LOCAL_FOLDER) INCLUDE_PATH=$(ASSEMBLY_INCLUDE_FOLDER) LIBS_PATH=$(ASSEMBLY_64_LIB_FOLDER)
 ASSEMBLY_FOLDERS := $(prefix)/$(ASSEMBLY_INCLUDE_FOLDER) $(prefix)/$(ASSEMBLY_32_LIB_FOLDER) $(prefix)/$(ASSEMBLY_64_LIB_FOLDER)
 
-PLATFORM = $(shell uname -m)
-COMMON32_CFLAGS += -m32
+# PLATFORM is one of the 32 or 64
+PLATFORM = $(shell getconf LONG_BIT)
+
+# only in x86_64 platform compile a 32bit app need append -m32 parameter
+ifeq ($PLATFORM, 64)
+	COMMON32_CFLAGS += -m32;
+endif
 COMMON64_CFLAGS +=
 
 ifeq ($(MODE), debug)
@@ -61,8 +66,9 @@ ifneq ($(need_install),false)
 endif
 
 all64:
-ifeq ($(PLATFORM),i386) 
-	@exit "32 bit platform, abort to compile the 64bit library";
+ifeq ($(PLATFORM),32) 
+	@echo "32 bit platform, abort to compile the 64bit library";
+	@exit 0;
 else
 	@echo "[Compiling 64bit libraries]";
 	@for lib in $(LIB_FOLDERS); \
@@ -90,8 +96,9 @@ check32:
 	@$(MAKE) -s -C $(TEST_FOLDERS) $(ASSEMBLY32) check;
 
 check64:
-ifeq ($(PLATFORM),i386)
-	@exit "32 bit platform, abort to running the 64bit Unit Test";
+ifeq ($(PLATFORM),32)
+	@echo "32 bit platform, abort to running the 64bit Unit Test";
+	@exit 0
 else
 	@echo "======================Running 64bit Unit Test======================";
 	@$(MAKE) -s -C $(TEST_FOLDERS) $(ASSEMBLY64) clean;
