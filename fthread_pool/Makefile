@@ -1,28 +1,29 @@
 -include ../common/Makefile.common
 
-TARGET = libfthpool.a
+TARGET = libfthpool
 
 INCLUDE_FILES = fthread_pool.h
 
-AR = ar -rcs
 INC = -I../
 LL = 
 LIBS = 
 
 SRCS = fthread_pool.c
-DEPS = $(patsubst %.c,%.d,$(SRCS))
 OBJS = $(patsubst %.c,%.o,$(SRCS))
 
 CFLAGS += $(EXT_FLAGS)
 CFLAGS +=
 
-all:$(TARGET)
-$(TARGET):$(OBJS) $(DEPS)
-	$(AR) $(TARGET) $(OBJS)
+all: $(TARGET)
 
-%.d:%.c
-	$(CC) $(INC) -MM $< > $@
-%.o:%.c
+$(TARGET): $(OBJS)
+ifeq ($(SHARED), true)
+	$(CC) -shared -fPIC -o $(TARGET).so $(OBJS)
+else
+	$(AR) $(TARGET).a $(OBJS)
+endif
+
+%.o: %.c
 	$(CC) $(CFLAGS) $(INC) -c $< 
 
 install:
@@ -30,17 +31,14 @@ install:
 	-(test -d $(INSTALL_PATH)/$(INCLUDE_PATH) || mkdir -p $(INSTALL_PATH)/$(INCLUDE_PATH) )
 	-(test -d $(INSTALL_PATH)/$(LIBS_PATH) || mkdir $(INSTALL_PATH)/$(LIBS_PATH) )
 	cp $(INCLUDE_FILES) $(INSTALL_PATH)/$(INCLUDE_PATH)
-	cp $(TARGET) $(INSTALL_PATH)/$(LIBS_PATH)
+	cp $(TARGET).* $(INSTALL_PATH)/$(LIBS_PATH)
 
-.PHONY:clean
+.PHONY: all install clean help
 clean:
-	rm -f $(DEPS) $(OBJS) $(TARGET)
+	rm -f $(OBJS) $(TARGET).*
 
 help:
 	@echo "The information represents in the program:"
-	@echo "Final executable name: $(TARGET)"
+	@echo "Final executable name: $(TARGET).a|.so"
 	@echo "Source files: $(SRCS)"
 	@echo "Object files: $(OBJS)"
-depend:$(DEPS)
-	@echo "Dependencies are now up-to-date"
--include $(DEPS)

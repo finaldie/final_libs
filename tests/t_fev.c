@@ -344,12 +344,14 @@ static void fake_accept1(fev_state* fev, int fd, void* ud)
 static void test_for_conn(int fd, conn_arg_t arg)
 {
     (void)arg;
-    printf("tid=%lu, in async connection callback\n", pthread_self());
+    printf("tid=%lu, in async connection callback, time=%ld\n", pthread_self(), time(NULL));
     if( fd <= 0 ) {
-        printf("%s\n", strerror(errno));
+        printf("maybe some error or timer triggered, detail: %s\n", strerror(errno));
+    } else {
+        FTU_ASSERT_GT_INT(0, fd);
+        FTU_ASSERT_EQUAL_INT(FEV_NIL, fev_get_mask(g_fev, fd));
     }
-    FTU_ASSERT_GREATER_THAN_INT(0, fd);
-    FTU_ASSERT_EQUAL_INT(FEV_NIL, fev_get_mask(g_fev, fd));
+
     close(fd);
     start = 0;
 }
@@ -360,13 +362,15 @@ static void* fake_listener1(void* arg)
     g_fev = fev_create(1024);
     FTU_ASSERT( fev_conn_module_init(g_fev) == 0 );
     fli = fev_add_listener(g_fev, 17759, fake_accept1, NULL);
-    FTU_ASSERT_EXPRESS(fli != NULL);
+    FTU_ASSERT(fli != NULL);
 
     printf("wait for poll\n");
     start = 1;
 
     conn_arg_t carg;
-    fev_conn(g_fev, "127.0.0.1", 17759, 5000, test_for_conn, carg);
+    printf("before start async conn, time=%ld\n", time(NULL));
+    int ret = fev_conn(g_fev, "127.0.0.1", 17759, 5000, test_for_conn, carg);
+    FTU_ASSERT_EQUAL_INT(0, ret);
 
     while(start){
         fev_poll(g_fev, 500);

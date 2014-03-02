@@ -314,9 +314,9 @@ int     fnet_conn_async(const char* ip, int port, int* outfd)
     int r = connect(sockfd, (struct sockaddr *)(&server_addr),
                     sizeof(struct sockaddr));
     if ( r == -1 ) {
-        if( errno == EINPROGRESS )
+        if ( errno == EINPROGRESS ) {
             return 1;
-        else {
+        } else {
             return -1;
         }
     }

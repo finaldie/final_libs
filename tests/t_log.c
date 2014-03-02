@@ -33,12 +33,12 @@ void    _test_log(){
 
     fake_log_file_t* ff = (fake_log_file_t*)log_handler;
     int fd = open(ff->poutput_filename, O_RDONLY);
-    FTU_ASSERT_GREATER_THAN_INT(0, fd);
+    FTU_ASSERT_GT_INT(0, fd);
 
     char assert_info[100];
     memset(assert_info, 0, 100);
     int bytes_read = read(fd, assert_info, 100);
-    FTU_ASSERT_GREATER_THAN_INT(0, bytes_read);
+    FTU_ASSERT_GT_INT(0, bytes_read);
 
     printf("read log info:%s\n", assert_info);
     char* ptr = strstr(assert_info, "error log test");
@@ -72,12 +72,12 @@ void* _test_async_log(void* arg __attribute__((unused)))
     fake_log_file_t* ff = (fake_log_file_t*)log_handler;
     printf("try to open file:%s\n", ff->poutput_filename);
     int fd = open(ff->poutput_filename, O_RDONLY);
-    FTU_ASSERT_GREATER_THAN_INT(0, fd);
+    FTU_ASSERT_GT_INT(0, fd);
 
     char assert_info[100];
     memset(assert_info, 0, 100);
     int bytes_read = read(fd, assert_info, 100);
-    FTU_ASSERT_GREATER_THAN_INT(0, bytes_read);
+    FTU_ASSERT_GT_INT(0, bytes_read);
 
     printf("read log info:%s\n", assert_info);
     char* ptr = strstr(assert_info, "debug log test");

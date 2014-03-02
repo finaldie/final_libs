@@ -4,6 +4,7 @@ TARGET := test
 
 INC := -I$(INSTALL_PATH)/$(INCLUDE_PATH)
 LL := -L$(INSTALL_PATH)/$(LIBS_PATH)
+
 LIBS := -lfhash \
 	   -lfmempool \
 	   -lpthread \
@@ -34,19 +35,17 @@ SRCS := main.c \
 
 COPY_FILES := 
 	   
-DEPS := $(patsubst %.c,%.d,$(SRCS))
-OBJS := $(patsubst %.c,%.o,$(SRCS))
+OBJS := $(patsubst %.c, %.o, $(SRCS))
 
 CFLAGS += $(EXT_FLAGS)
 CFLAGS +=
 
-all:$(TARGET)
-$(TARGET):$(OBJS) $(DEPS)
+all: $(TARGET)
+
+$(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) $(EXT_FLAGS) $(INC) $(LL) -o $(TARGET) $(OBJS) $(LIBS)
 
-%.d:%.c
-	$(CC) $(INC) -MM $< > $@
-%.o:%.c 
+%.o: %.c 
 	$(CC) $(CFLAGS) $(INC) -c $< 
 
 check:
@@ -63,7 +62,7 @@ valgrind-check:
 
 .PHONY:clean
 clean:
-	rm -f $(DEPS) $(OBJS) $(TARGET)
+	rm -f $(OBJS) $(TARGET)
 	rm -f test_async_log*
 	rm -f test_log*
 
@@ -72,6 +71,3 @@ help:
 	@echo "Final executable name: $(TARGET)"
 	@echo "Source files: $(SRCS)"
 	@echo "Object files: $(OBJS)"
-depend:$(DEPS)
-	@echo "Dependencies are now up-to-date"
--include $(DEPS)

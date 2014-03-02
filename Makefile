@@ -22,13 +22,28 @@ endif
 COMMON64_CFLAGS +=
 
 ifeq ($(MODE), debug)
+	COMMON32_CFLAGS += -DDEBUG
+	COMMON64_CFLAGS += -DDEBUG
 else
 	COMMON32_CFLAGS += -O2
 	COMMON64_CFLAGS += -O2
 endif
 
+# expose the SHARED to everywhere
+ifeq ($(SHARED),)
+	SHARED := false
+endif
+export SHARED;
+
+# expose the CC
+ifeq ($(CC),)
+	CC := gcc
+endif
+export CC;
+
 # Build all libs by order
-LIB_FOLDERS = flist \
+LIB_FOLDERS = \
+  flist \
   fhash \
   flock \
   fmbuf \

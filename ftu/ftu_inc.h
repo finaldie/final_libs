@@ -76,8 +76,14 @@ extern int curr_total_assert;
 #define FTU_ASSERT_GREATER_THAN_INT(expect, real) \
     do{ curr_total_assert++; if( real < expect ) { printf("(%s %s) %d: ASSERT FAILED, expect > %d but real=%d \n", __FILE__, __func__, __LINE__, expect, real); curr_failed_assert++; } }while(0)
 
+// GT means "greater than"
+#define FTU_ASSERT_GT_INT(expect, real) FTU_ASSERT_GREATER_THAN_INT(expect, real)
+
 #define FTU_ASSERT_LESS_THAN_INT(expect, real) \
     do{ curr_total_assert++; if( real > expect ) { printf("(%s %s) %d: ASSERT FAILED, expect < %d but real=%d \n", __FILE__, __func__, __LINE__, expect, real); curr_failed_assert++; } }while(0)
+
+// LT means "less than"
+#define FTU_ASSERT_LT_INT(expect, real) FTU_ASSERT_LESS_THAN_INT(expect, real)
 
 #define FTU_ASSERT_EXPRESS(express) \
     do{ curr_total_assert++; if( !(express) ) { printf("(%s %s) %d: ASSERT FAILED, expect=%s but failed \n", __FILE__, __func__, __LINE__, #express); curr_failed_assert++; } }while(0)

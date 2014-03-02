@@ -52,8 +52,9 @@ void    on_connect(fev_state* fev,
     socklen_t len = sizeof(int);
     if (( 0 == getsockopt(conn_info->fd, SOL_SOCKET, SO_ERROR, &err, &len) )) {
         if ( 0 == err ) {
-            if ( conn_info->conn_cb )
+            if ( conn_info->conn_cb ) {
                 conn_info->conn_cb(conn_info->fd, conn_info->arg);
+            }
             goto CONN_END;
         }
     }
@@ -74,8 +75,9 @@ void    on_timer(fev_state* fev, void* arg)
     fev_del_event(fev, conn_info->fd, FEV_READ | FEV_WRITE);
     close(conn_info->fd);
 
-    if ( conn_info->conn_cb )
+    if ( conn_info->conn_cb ) {
         conn_info->conn_cb(-1, conn_info->arg);
+    }
 
     free(conn_info);
 }
@@ -90,7 +92,7 @@ int    fev_conn(fev_state* fev,
     int sockfd = -1;
     int s = fnet_conn_async(ip, port, &sockfd);
 
-    if ( !pfunc ) abort();
+    if ( !pfunc ) return -1;
 
     if ( s == 0 ){    // connect sucess
         if ( pfunc ) pfunc(sockfd, arg);
@@ -99,19 +101,12 @@ int    fev_conn(fev_state* fev,
         return -1;
     } else {
         fev_conn_info* conn_info = malloc(sizeof(fev_conn_info));
-        if ( !conn_info ) {
-            close(sockfd);
-            return -1;
-        }
-
         conn_info->fd = sockfd;
-
         fev_timer_svc* timer_svc = (fev_timer_svc*)fev_get_module_data(fev,
                                         FEV_CONN_MODULE_NAME);
         conn_info->timer = fev_tmsvc_add_timer(timer_svc, (uint32_t)timeout,
                                                 on_timer, conn_info);
         if ( !conn_info->timer ) {
-            fprintf(stderr, "fev_conn init timer failed sockfd=%d\n", sockfd);
             close(sockfd);
             free(conn_info);
             return -1;
@@ -123,7 +118,6 @@ int    fev_conn(fev_state* fev,
         int ret = fev_reg_event(fev, sockfd, FEV_WRITE, NULL,
                                 on_connect, conn_info);
         if ( ret != 0 ) {
-            printf("fev_conn reg_event failed sockfd=%d ret=%d\n", sockfd, ret);
             fev_tmsvc_del_timer(conn_info->timer);
             close(sockfd);
             free(conn_info);
