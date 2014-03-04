@@ -6,3 +6,4 @@ types_c.taghl
 *.o
 *.a
 .ycm_extra_conf.pyc
+*.so

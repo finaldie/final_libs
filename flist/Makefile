@@ -20,7 +20,7 @@ all: $(TARGET)
 
 $(TARGET): $(OBJS)
 ifeq ($(SHARED), true)
-	$(CC) -shared -fPIC -o $(TARGET).so $(OBJS)
+	$(CC) $(CFLAGS) -shared -fPIC -o $(TARGET).so $(OBJS)
 else
 	$(AR) $(TARGET).a $(OBJS)
 endif

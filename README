@@ -47,6 +47,10 @@ Library contains:
     2. make check64
     3. make valgrind-check64
 
+[Notes]
+    1. if you want to change the compiler, such as using clang: make CC=clang
+    2. if you want to use shared library instead of static library: make SHARED=true
+
 [ChangeLog]
 2013-09-04 0.4.6
    * Fix the api name for fread_conf library

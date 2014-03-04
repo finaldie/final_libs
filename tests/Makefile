@@ -3,7 +3,7 @@
 TARGET := test
 
 INC := -I$(INSTALL_PATH)/$(INCLUDE_PATH)
-LL := -L$(INSTALL_PATH)/$(LIBS_PATH)
+LL := -L$(INSTALL_PATH)/$(LIBS_PATH) -Wl,-rpath,$(INSTALL_PATH)/$(LIBS_PATH)
 
 LIBS := -lfhash \
 	   -lfmempool \
@@ -39,6 +39,7 @@ OBJS := $(patsubst %.c, %.o, $(SRCS))
 
 CFLAGS += $(EXT_FLAGS)
 CFLAGS +=
+LDFLAGS +=
 
 all: $(TARGET)
 

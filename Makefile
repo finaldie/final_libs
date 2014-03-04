@@ -65,11 +65,10 @@ TEST_FOLDERS = tests
 all: all32 all64
 
 all32:
-	@echo "[Compiling 32bit libraries]";
+	@echo "[Compiling 32bit libraries SHARED=$SHARED]";
 	@for lib in $(LIB_FOLDERS); \
 	do \
 		echo "CC $$lib"; \
-		$(MAKE) -s -C $$lib $(ASSEMBLY32) clean; \
 		$(MAKE) -s -C $$lib $(ASSEMBLY32) EXT_FLAGS="$(COMMON32_CFLAGS)" || exit "$$?"; \
 		$(MAKE) -s -C $$lib $(ASSEMBLY32) install; \
 	done;
@@ -85,11 +84,10 @@ ifeq ($(PLATFORM),32)
 	@echo "32 bit platform, abort to compile the 64bit library";
 	@exit 0;
 else
-	@echo "[Compiling 64bit libraries]";
+	@echo "[Compiling 64bit libraries SHARED=$SHARED]";
 	@for lib in $(LIB_FOLDERS); \
 	do \
 		echo "CC $$lib"; \
-		$(MAKE) -s -C $$lib $(ASSEMBLY64) clean; \
 		$(MAKE) -s -C $$lib $(ASSEMBLY64) EXT_FLAGS="$(COMMON64_CFLAGS)" || exit "$$?"; \
 		$(MAKE) -s -C $$lib $(ASSEMBLY64) install; \
 	done;
@@ -106,7 +104,6 @@ check: check32 check64
 
 check32:
 	@echo "======================Running 32bit Unit Test======================";
-	@$(MAKE) -s -C $(TEST_FOLDERS) $(ASSEMBLY32) clean;
 	@$(MAKE) -s -C $(TEST_FOLDERS) EXT_FLAGS="$(COMMON32_CFLAGS)" $(ASSEMBLY32) || exit "$$?";
 	@$(MAKE) -s -C $(TEST_FOLDERS) $(ASSEMBLY32) check;
 
@@ -116,7 +113,6 @@ ifeq ($(PLATFORM),32)
 	@exit 0
 else
 	@echo "======================Running 64bit Unit Test======================";
-	@$(MAKE) -s -C $(TEST_FOLDERS) $(ASSEMBLY64) clean;
 	@$(MAKE) -s -C $(TEST_FOLDERS) EXT_FLAGS="$(COMMON64_CFLAGS)" $(ASSEMBLY64) || exit "$$?";
 	@$(MAKE) -s -C $(TEST_FOLDERS) $(ASSEMBLY64) check;
 endif
@@ -125,13 +121,11 @@ valgrind-check: valgrind-check32 valgrind-check64
 
 valgrind-check32:
 	@echo "======================Running 32bit Valgrind Test======================";
-	@$(MAKE) -s -C $(TEST_FOLDERS) $(ASSEMBLY32) clean;
 	@$(MAKE) -s -C $(TEST_FOLDERS) EXT_FLAGS="$(COMMON32_CFLAGS)" $(ASSEMBLY32) || exit "$$?";
 	@$(MAKE) -s -C $(TEST_FOLDERS) valgrind-check;
 
 valgrind-check64:
 	@echo "======================Running 64bit Valgrind Test======================";
-	@$(MAKE) -s -C $(TEST_FOLDERS) $(ASSEMBLY64) clean;
 	@$(MAKE) -s -C $(TEST_FOLDERS) EXT_FLAGS="$(COMMON64_CFLAGS)" $(ASSEMBLY64) || exit "$$?";
 	@$(MAKE) -s -C $(TEST_FOLDERS) valgrind-check;
 
