@@ -15,9 +15,6 @@ extern "C" {
 #include "fev.h"
 #include "fev_tmsvc_types.h"
 
-#define NS_PER_SECOND 1000000000L
-#define NS_PER_MS     1000000L
-
 // The struct used for contain the basic information from user input
 struct _ftimer_node {
     struct timespec start;

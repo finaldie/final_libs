@@ -39,5 +39,6 @@ void    test_fev_conn();
 void    test_fcache();
 void    test_fco();
 void    test_conf();
+void    test_timer_service();
 
 #endif

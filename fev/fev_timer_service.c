@@ -121,10 +121,10 @@ fev_timer_svc* fev_create_timer_service(
     return timer_svc;
 }
 
-int fev_delete_timer_service(fev_timer_svc* svc)
+void fev_delete_timer_service(fev_timer_svc* svc)
 {
     if( !svc ) {
-        return 1;
+        return;
     }
 
     // must delete the timer event at first, then we
@@ -133,7 +133,7 @@ int fev_delete_timer_service(fev_timer_svc* svc)
     svc->opt->destroy(svc->mod_data);
     free(svc);
 
-    return 0;
+    return;
 }
 
 ftimer_node* fev_tmsvc_add_timer(

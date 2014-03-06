@@ -32,6 +32,8 @@
 #include "fev_listener.h"
 #include "fev_conn.h"
 #include "fev_timer.h"
+#include "fev_timer_service.h"
+
 #include "inc.h"
 
 typedef struct {
@@ -393,4 +395,37 @@ void test_fev_conn()
     pthread_create(&tid, 0, fake_listener1, NULL);
 
     pthread_join(tid, NULL);
+}
+
+static void timeout(fev_state* fev, void* arg)
+{
+    (void)fev;
+    time_t trigger_time = time(NULL);
+    time_t start_time = *(time_t*)arg;
+    printf("in timeout, currently start_time = %ld, trigger_time = %ld, diff = %ld\n",
+           start_time, trigger_time, trigger_time - start_time);
+
+    FTU_ASSERT(trigger_time - start_time >= 2);
+    start = 0;
+}
+
+void test_timer_service()
+{
+    g_fev = NULL;
+    g_fev = fev_create(1024);
+    FTU_ASSERT(g_fev);
+
+    fev_timer_svc* svc = fev_create_timer_service(g_fev, 1000, FEV_TMSVC_SINGLE_LINKED);
+    FTU_ASSERT(svc);
+
+    time_t now = time(NULL);
+    start = 1;
+    ftimer_node* tn = fev_tmsvc_add_timer(svc, 2000, timeout, &now);
+    FTU_ASSERT(tn);
+
+    while (start) {
+        fev_poll(g_fev, 500);
+    }
+
+    fev_delete_timer_service(svc);
 }

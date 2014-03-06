@@ -33,7 +33,7 @@ fev_timer_svc* fev_create_timer_service(
                 fev_tmsvc_model_t type
                 );
 
-int fev_delete_timer_service(fev_timer_svc*);
+void fev_delete_timer_service(fev_timer_svc*);
 
 ftimer_node*   fev_tmsvc_add_timer(
                 fev_timer_svc*,
