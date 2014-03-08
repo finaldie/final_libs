@@ -23,6 +23,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "ftu_inc.h"
 #include "fhash.h"
@@ -348,11 +349,11 @@ static void test_for_conn(int fd, conn_arg_t arg)
     (void)arg;
     printf("tid=%lu, in async connection callback, time=%ld\n", pthread_self(), time(NULL));
     if( fd <= 0 ) {
-        printf("maybe some error or timer triggered, detail: %s\n", strerror(errno));
-    } else {
-        FTU_ASSERT_GT_INT(0, fd);
-        FTU_ASSERT_EQUAL_INT(FEV_NIL, fev_get_mask(g_fev, fd));
+        printf("maybe some error or timer triggered, but the timer shouldn't be triggered!!!, detail: %s\n", strerror(errno));
     }
+
+    FTU_ASSERT_GT_INT(0, fd);
+    FTU_ASSERT_EQUAL_INT(FEV_NIL, fev_get_mask(g_fev, fd));
 
     close(fd);
     start = 0;
@@ -411,11 +412,20 @@ static void timeout(fev_state* fev, void* arg)
 
 void test_timer_service()
 {
+    // print the resolution of the CLOCK_MONOTONIC_COARSE and CLOCK_MONOTONIC
+    struct timespec resolution;
+    clock_getres(CLOCK_MONOTONIC_COARSE, &resolution);
+    printf("CLOCK_MONOTONIC_COARSE resolution: %ldns\n", resolution.tv_nsec);
+
+    clock_getres(CLOCK_MONOTONIC, &resolution);
+    printf("CLOCK_MONOTONIC resolution: %ldns\n", resolution.tv_nsec);
+
     g_fev = NULL;
     g_fev = fev_create(1024);
     FTU_ASSERT(g_fev);
 
-    fev_timer_svc* svc = fev_create_timer_service(g_fev, 1000, FEV_TMSVC_SINGLE_LINKED);
+    fev_timer_svc* svc = fev_create_timer_service(g_fev, 1000, /*million second*/
+                                                  FEV_TMSVC_SINGLE_LINKED);
     FTU_ASSERT(svc);
 
     time_t now = time(NULL);

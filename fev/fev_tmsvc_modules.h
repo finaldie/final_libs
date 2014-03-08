@@ -36,7 +36,10 @@ typedef struct fev_timer_svc_opt {
     int  (*reset)(ftimer_node*, void* mod_data);
 } fev_tmsvc_opt;
 
-// if 'now' >= 'start + expire', means timeout
+// @desc: if 'now' >= 'start + expire', means timeout
+// @param start: the time of begin
+// @param now: the time of now
+// @param expire: the expiration time, unit is million second
 // @return 1, means already timeout
 // @return 0, means doesn't timeout
 int fev_tmmod_timeout(struct timespec* start,

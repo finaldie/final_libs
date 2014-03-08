@@ -60,7 +60,7 @@ struct _fev_timer_svc {
     fev_timer*     ftimer;
     void*          mod_data;
     fev_tmsvc_opt* opt;
-    uint32_t       interval;
+    uint32_t       interval; // ms
     clockid_t      clockid;
 };
 
@@ -82,7 +82,7 @@ void timer_svc_callback(fev_state* fev, void* arg)
 
 fev_timer_svc* fev_create_timer_service(
                 fev_state* fev,
-                uint32_t interval,      // unit ms
+                uint32_t interval,      // unit million second
                 fev_tmsvc_model_t type
                 )
 {
@@ -94,9 +94,9 @@ fev_timer_svc* fev_create_timer_service(
     memset(timer_svc, 0, sizeof(fev_timer_svc));
 
     timer_svc->fev = fev;
-    interval *= NS_PER_MS;
-    timer_svc->ftimer = fev_add_timer_event(fev, interval,
-                                            interval,
+    long long te_interval = (long long)interval * NS_PER_MS;
+    timer_svc->ftimer = fev_add_timer_event(fev, te_interval,
+                                            te_interval,
                                             timer_svc_callback,
                                             timer_svc);
     // init the opt table
@@ -113,11 +113,15 @@ fev_timer_svc* fev_create_timer_service(
 
     struct timespec resolution;
     if( 0 == clock_getres(CLOCK_MONOTONIC_COARSE, &resolution) ) {
-        timer_svc->clockid = CLOCK_MONOTONIC_COARSE;
-    } else {
-        timer_svc->clockid = CLOCK_MONOTONIC;
+        if (resolution.tv_nsec <= NS_PER_MS) {
+            timer_svc->clockid = CLOCK_MONOTONIC_COARSE;
+            goto done;
+        }
     }
 
+    timer_svc->clockid = CLOCK_MONOTONIC;
+
+done:
     return timer_svc;
 }
 

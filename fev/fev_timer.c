@@ -58,17 +58,21 @@ void fev_on_timer(fev_state* fev,
     }
 }
 
-// return < 0 : failed
-// return > 0(fd) : sucess
-fev_timer*  fev_add_timer_event(fev_state* fev, long long nsec, long long alter, fev_timer_cb callback, void* arg)
+// return NULL : failed
+// return non-NULL : sucess
+fev_timer*  fev_add_timer_event(fev_state* fev,
+                                long long nsec,  // after how long will start, nano second 
+                                long long alter, // interval, nano second
+                                fev_timer_cb callback,
+                                void* arg)
 {
-    if ( !fev || !callback ) return NULL;
+    if (!fev || !callback) return NULL;
 
     int fd = ftimerfd_create();
-    if ( fd == -1 ) return NULL;
+    if (fd == -1) return NULL;
 
     fev_timer* evt = malloc(sizeof(fev_timer));
-    if ( !evt ) return NULL;
+    if (!evt) return NULL;
     evt->fd = fd;
     evt->once = alter == 0 ? 1 : 0;
     evt->callback = callback;
@@ -76,15 +80,13 @@ fev_timer*  fev_add_timer_event(fev_state* fev, long long nsec, long long alter,
 
     int mask = FEV_READ;
     int ret = fev_reg_event(fev, fd, mask, fev_on_timer, NULL, evt);
-    if ( ret != 0 ){
-        printf("fev_timer reg_event failed fd=%d ret=%d mask=%d\n", fd, ret, fev_get_mask(fev, fd));
+    if (ret != 0) {
         close(fd);
         free(evt);
         return NULL;
     } 
 
-    if ( ftimerfd_start(fd, nsec, alter) ) {
-        printf("fev_timer start timer failed fd=%d\n", fd);
+    if (ftimerfd_start(fd, nsec, alter)) {
         fev_del_event(fev, fd, mask);
         close(fd);
         free(evt);
