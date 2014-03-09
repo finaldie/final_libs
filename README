@@ -6,7 +6,7 @@ Email: hyzwowtools@gmail.com
 +--------+--------------------+------------+-----------------------------------------+
 | Branch | Lastest Stable Tag |  Released  | Description                             |
 +--------+--------------------+------------+-----------------------------------------+
-|  0.4   | 0.4.3              | 2013-07-25 | Refine all api and filename, 32 & 64bit |
+|  0.4   | 0.4.7              | 2014-03-09 | Full 32 & 64 bit support                |
 +--------+--------------------+------------+-----------------------------------------+
 |  0.3   | 0.3.8              | 2013-07-10 | Full libs support, 64bit                |
 +--------+--------------------+------------+-----------------------------------------+
@@ -24,7 +24,7 @@ Library contains:
     8.  fmempool      -- Thread cache memory pool
     9.  fthread_pool  -- Simple thread pool, which easy to use
     10. fnet          -- Wrap the system api, easy to use the network api
-    11. fev           -- Event framework, additional support buffer, network, timer service
+    11. fev           -- Event framework, including buffer, network, timer service
     12. ftu           -- Unit test framework
     13. fcache        -- A simple cache with LRU
     14. fco           -- C coroutine support
@@ -52,6 +52,8 @@ Library contains:
     2. if you want to use shared library instead of static library: make SHARED=true
 
 [ChangeLog]
+2014-03-09 0.4.7
+   * Fix the clock resolution higher than 1ms in some systems
 2013-09-04 0.4.6
    * Fix the api name for fread_conf library
 2013-09-04 0.4.5
