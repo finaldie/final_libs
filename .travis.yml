@@ -1,0 +1,17 @@
+language: c
+
+compiler:
+    - clang
+    - gcc
+
+before_install:
+    - sudo apt-get libpcap0.8 libpcap0.8-dev
+
+script:
+    - make all32 && make check32 && make valgrind-check32
+    - make clean
+    - make all64 && make check64 && make valgrind-check64"
+
+notifications:
+    email:
+      - hyzwowtools@gmail.com
