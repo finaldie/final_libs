@@ -10,7 +10,7 @@ before_install:
 script:
     - make all32 && make check32 && make valgrind-check32
     - make clean
-    - make all64 && make check64 && make valgrind-check64"
+    - make all64 && make check64 && make valgrind-check64
 
 notifications:
     email:

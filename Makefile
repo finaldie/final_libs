@@ -68,7 +68,7 @@ all32:
 	@echo "[Compiling 32bit libraries SHARED=$SHARED]";
 	@for lib in $(LIB_FOLDERS); \
 	do \
-		echo "CC $$lib"; \
+		echo "$(CC) $$lib"; \
 		$(MAKE) -s -C $$lib $(ASSEMBLY32) EXT_FLAGS="$(COMMON32_CFLAGS)" || exit "$$?"; \
 		$(MAKE) -s -C $$lib $(ASSEMBLY32) install; \
 	done;
@@ -87,7 +87,7 @@ else
 	@echo "[Compiling 64bit libraries SHARED=$SHARED]";
 	@for lib in $(LIB_FOLDERS); \
 	do \
-		echo "CC $$lib"; \
+		echo "$(CC) $$lib"; \
 		$(MAKE) -s -C $$lib $(ASSEMBLY64) EXT_FLAGS="$(COMMON64_CFLAGS)" || exit "$$?"; \
 		$(MAKE) -s -C $$lib $(ASSEMBLY64) install; \
 	done;
