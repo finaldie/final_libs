@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/finaldie/final_libs.svg?branch=0.4)](https://travis-ci.org/finaldie/final_libs)
 
-Common Libraries (linux platform)
+Common Libraries (Linux Platform)
 =========================================
 
 ## Lastest Versions
