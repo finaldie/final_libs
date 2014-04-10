@@ -5,7 +5,7 @@ compiler:
     - gcc
 
 before_install:
-    - sudo apt-get libpcap0.8 libpcap0.8-dev
+    - sudo apt-get install libpcap0.8 libpcap0.8-dev
 
 script:
     - make all32 && make check32 && make valgrind-check32
