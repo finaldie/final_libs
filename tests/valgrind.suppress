@@ -313,3 +313,16 @@
     fun:start_thread
     fun:clone
 }
+
+{
+   <for clang, ubuntu 12.04>
+   Memcheck:Leak
+   fun:malloc
+   fun:flmgr_create
+   fun:f_mp_create
+   fun:pthread_once
+   fun:f_alloc
+   fun:alloc_test
+   fun:_test_mem
+   fun:start_thread
+}
