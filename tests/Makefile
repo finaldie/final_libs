@@ -59,7 +59,7 @@ valgrind-nosup:
 	valgrind --tool=memcheck --leak-check=full ./$(TARGET)
 
 valgrind-check:
-	valgrind --tool=memcheck --leak-check=full --suppressions=./valgrind.suppress ./$(TARGET)
+	valgrind --tool=memcheck --leak-check=full --suppressions=./valgrind.suppress --error-exitcode=1 ./$(TARGET)
 
 .PHONY:clean
 clean:
