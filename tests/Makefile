@@ -33,8 +33,8 @@ SRCS := main.c \
 	   t_fco.c \
 	   t_conf.c
 
-COPY_FILES := 
-	   
+COPY_FILES :=
+
 OBJS := $(patsubst %.c, %.o, $(SRCS))
 
 CFLAGS += $(EXT_FLAGS)
@@ -46,8 +46,8 @@ all: $(TARGET)
 $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) $(EXT_FLAGS) $(INC) $(LL) -o $(TARGET) $(OBJS) $(LIBS)
 
-%.o: %.c 
-	$(CC) $(CFLAGS) $(INC) -c $< 
+%.o: %.c
+	$(CC) $(CFLAGS) $(INC) -c $<
 
 check:
 	./$(TARGET)
@@ -59,7 +59,7 @@ valgrind-nosup:
 	valgrind --tool=memcheck --leak-check=full ./$(TARGET)
 
 valgrind-check:
-	valgrind --tool=memcheck --leak-check=full --suppressions=./valgrind.suppress --error-exitcode=1 ./$(TARGET)
+	valgrind --tool=memcheck --leak-check=full --suppressions=./valgrind.suppress --error-exitcode=1 -v ./$(TARGET)
 
 .PHONY:clean
 clean:
