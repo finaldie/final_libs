@@ -31,26 +31,37 @@ fpcap    | Pcap file convertion lib |
 
 **NOTE:** After run as above, you can find the libraries have been installed in the specified folder or current folder, which named as "final_libraries"
 
-## INSTALL 32bit only
-1. make all32 or make prefix=/usr/ all32
-2. make check32
-3. make valgrind-check32
-
-## INSTALL 64bit only
-1. make all64 or make prefix=/usr/ all64
-2. make check64
-3. make valgrind-check64
-    
-## INSTALL Fat
-1. make or make prefix=/usr/
+## Compile and INSTALL
+1. make
 2. make check
 3. make valgrind-check
 
-## Notes
-1. if you want to change the compiler, such as using clang: make CC=clang
-2. if you want to use shared library instead of static library: make SHARED=true
+## Flags
+* Change the compiler, such as using clang:
+```
+make CC=clang
+```
+* Build shared library instead of static library:
+```
+make SHARED=true
+```
+* Build debug version without any optimization parameters
+```
+make MODE=debug
+```
+* Show verbose output
+```
+make VERBOSE=true
+```
+* Build `32`bit libraries under `64`bit platform
+```
+make BIT=32
+```
 
 ## ChangeLog
+* 2014-05-02 0.4.8
+   * Refactor Makefile
+   * exit non-zero when UT failure
 * 2014-03-09 0.4.7
    * Fix the clock resolution higher than 1ms in some systems
 * 2013-09-04 0.4.6

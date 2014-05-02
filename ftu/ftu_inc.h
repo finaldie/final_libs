@@ -51,7 +51,7 @@ void    _tu_register_module(ftu_init pfunc, char* case_name, char* describe);
 #define tu_register_module(pfunc, describe) \
     _tu_register_module(pfunc, #pfunc, describe);
     
-void    tu_run_cases();
+int     tu_run_cases();
 
 typedef struct {
     struct timeval tv;

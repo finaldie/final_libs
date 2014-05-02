@@ -8,9 +8,9 @@ before_install:
     - sudo apt-get install libpcap0.8 libpcap0.8-dev valgrind
 
 script:
-    - make all32 && make check32 && make valgrind-check32
+    - make BIT=32 && make check BIT=32 && make valgrind-check BIT=32
     - make clean
-    - make all64 && make check64 && make valgrind-check64
+    - make && make check && make valgrind-check
 
 notifications:
     email:

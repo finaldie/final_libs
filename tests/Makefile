@@ -1,11 +1,11 @@
--include ../common/Makefile.common
+include ../common/Makefile.common
 
-TARGET := test
+TARGET = test
 
 INC := -I$(INSTALL_PATH)/$(INCLUDE_PATH)
 LL := -L$(INSTALL_PATH)/$(LIBS_PATH) -Wl,-rpath,$(INSTALL_PATH)/$(LIBS_PATH)
 
-LIBS := -lfhash \
+LIBS = -lfhash \
 	   -lfmempool \
 	   -lpthread \
 	   -lflock \
@@ -21,7 +21,7 @@ LIBS := -lfhash \
 	   -lftu \
 	   -lfconf
 
-SRCS := main.c \
+SRCS = main.c \
 	   t_hash.c \
 	   t_mem.c \
 	   t_log.c \
@@ -33,21 +33,22 @@ SRCS := main.c \
 	   t_fco.c \
 	   t_conf.c
 
-COPY_FILES :=
+COPY_FILES =
 
 OBJS := $(patsubst %.c, %.o, $(SRCS))
 
-CFLAGS += $(EXT_FLAGS)
-CFLAGS +=
-LDFLAGS +=
+FL_FLAGS = $(COMMON_FLAGS) $(CFLAGS) $(EXT_FLAGS)
+LDFLAGS += $(LIBS)
+
+.PHONY: all $(TARGET) check valgrind-gensup valgrind-nosup valgrind-check clean help
 
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) $(EXT_FLAGS) $(INC) $(LL) -o $(TARGET) $(OBJS) $(LIBS)
+	$(CC) $(FL_FLAGS) $(INC) $(LL) -o $(TARGET) $(OBJS) $(LDFLAGS)
 
 %.o: %.c
-	$(CC) $(CFLAGS) $(INC) -c $<
+	$(CC) $(FL_FLAGS) $(INC) -c $<
 
 check:
 	./$(TARGET)
@@ -61,7 +62,6 @@ valgrind-nosup:
 valgrind-check:
 	valgrind --tool=memcheck --leak-check=full --suppressions=./valgrind.suppress --error-exitcode=1 -v ./$(TARGET)
 
-.PHONY:clean
 clean:
 	rm -f $(OBJS) $(TARGET)
 	rm -f test_async_log*

@@ -70,7 +70,7 @@ int     tu_each_case(ftu_init pfunc)
     return 0;
 }
 
-void tu_run_cases()
+int tu_run_cases()
 {
     printf("FINAL UNIT TEST START...\n");
 
@@ -97,4 +97,10 @@ void tu_run_cases()
             tu_case_num,
             tu_case_num - failed_cases,
             failed_cases);
+
+    if (failed_cases) {
+        return 1;
+    }
+
+    return 0;
 }
