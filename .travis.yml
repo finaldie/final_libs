@@ -5,7 +5,7 @@ compiler:
     - gcc
 
 before_install:
-    - sudo apt-get install libc6-dev-i386 libpcap0.8 libpcap0.8-dev valgrind
+    - sudo apt-get install libc6-dbg:i386 libc6-dev-i386 libpcap0.8 libpcap0.8-dev valgrind
 
 script:
     - make BIT=32 && make check BIT=32 && make valgrind-check BIT=32
