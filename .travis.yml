@@ -8,6 +8,10 @@ before_install:
     - sudo apt-get install libc6-dbg:i386 libc6-dev-i386 libpcap0.8 libpcap0.8-dev valgrind
 
 script:
+    - make BIT=32 && make BIT=32 check
+    - make clean
+    - make BIT=32 SHARED=true && make BIT=32 check
+    - make clean
     - make && make check && make valgrind-check
     - make clean
     - make SHARED=true && make check && make valgrind-check
