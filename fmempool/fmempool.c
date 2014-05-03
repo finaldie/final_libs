@@ -46,8 +46,8 @@
 #define FMEM_PAGE_SIZE8     (1024 * 32)    //max size
 
 static const size_t b_size[] = {
-    8, 16, 24, 32, 48, 64, 128, 
-    256, 512, 768, 1024, 2048, 
+    8, 16, 24, 32, 48, 64, 128,
+    256, 512, 768, 1024, 2048,
     FMEM_PAGE_SIZE,
     FMEM_PAGE_SIZE2,
     FMEM_PAGE_SIZE4,
@@ -129,7 +129,6 @@ void*   f_malloc(size_t size)
 }
 
 // for test
-static inline
 int     f_count(free_list* fl)
 {
     int i = 0;
@@ -156,7 +155,6 @@ int     _f_bsearch(size_t size, int start, int end)
         return _f_bsearch(size, half + 1, end);
 }
 
-static inline
 int     f_bsearch(size_t size)
 {
     return _f_bsearch(size, 0, FMEM_BLOCK_TYPE_SIZE-1);
