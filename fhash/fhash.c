@@ -101,23 +101,10 @@ _ulong    base_str_hash1(char* c)
     return ((ret >> 16) ^ ret);
 }
 
-// Don't recommend to use it
-static inline
-int     base_int_hash(int key)
-{
-    return (key + MAGIC_PRIME);
-}
-
 static inline
 int        hash_str(fhash* phash, const char* key)
 {
     return base_str_hash(key) % phash->size;
-}
-
-static inline
-int        hash_int(fhash* phash, int key)
-{
-    return base_int_hash(key) % phash->size;
 }
 
 static inline
@@ -199,12 +186,6 @@ static inline
 int        hash_get_size(fhash* phash, int h)
 {
     return hash_get_head(phash, h)->size;
-}
-
-static inline
-int        hash_get_maxsize(fhash* phash, int h)
-{
-    return hash_get_head(phash, h)->max_size;
 }
 
 static inline
