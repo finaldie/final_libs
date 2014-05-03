@@ -19,7 +19,7 @@ all: $(TARGET)
 
 $(TARGET): $(OBJS)
 ifeq ($(SHARED), true)
-	$(CC) $(FL_FLAGS) -o $(TARGET).so $(OBJS)
+	$(CC) $(FL_FLAGS) $(SHARED_FLAGS) -o $(TARGET).so $(OBJS)
 else
 	$(AR) $(TARGET).a $(OBJS)
 endif

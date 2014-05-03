@@ -4,9 +4,9 @@ TARGET = libfconf
 
 INCLUDE_FILES = fread_conf.h
 
-INC = 
-LL = 
-LIBS = 
+INC =
+LL =
+LIBS =
 
 SRCS = fconf.c fread_conf.c
 OBJS = $(patsubst %.c,%.o,$(SRCS))
@@ -20,7 +20,7 @@ all: $(TARGET)
 
 $(TARGET): $(OBJS)
 ifeq ($(SHARED), true)
-	$(CC) $(FL_FLAGS) -o $(TARGET).so $(OBJS)
+	$(CC) $(FL_FLAGS) $(SHARED_FLAGS) -o $(TARGET).so $(OBJS)
 else
 	$(AR) $(TARGET).a $(OBJS)
 endif

@@ -4,3 +4,4 @@
 AR = ar -rcs
 
 COMMON_FLAGS += -Wall -Wextra -g -Werror -pipe
+

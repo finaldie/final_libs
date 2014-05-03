@@ -11,8 +11,8 @@ INCLUDE_FILES = fev.h \
 		fev_tmsvc_types.h
 
 INC = -I../
-LL = 
-LIBS = 
+LL =
+LIBS =
 
 SRCS = fev.c \
 	fev_timer.c \
@@ -33,12 +33,12 @@ all: $(TARGET)
 
 $(TARGET): $(OBJS)
 ifeq ($(SHARED), true)
-	$(CC) $(FL_FLAGS) -o $(TARGET).so $(OBJS)
+	$(CC) $(FL_FLAGS) $(SHARED_FLAGS) -o $(TARGET).so $(OBJS)
 else
 	$(AR) $(TARGET).a $(OBJS)
 endif
 
-%.o: %.c 
+%.o: %.c
 	$(CC) $(FL_FLAGS) $(INC) -c $<
 
 install:

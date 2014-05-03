@@ -8,8 +8,8 @@ INCLUDE_PATH = include
 LIBS_PATH = libs
 
 INC = -I$(INSTALL_PATH)/$(INCLUDE_PATH)
-LL = 
-LIBS = 
+LL =
+LIBS =
 
 SRCS = fnet_core.c
 OBJS = $(patsubst %.c,%.o,$(SRCS))
@@ -22,7 +22,7 @@ all: $(TARGET)
 
 $(TARGET): $(OBJS)
 ifeq ($(SHARED), true)
-	$(CC) $(FL_FLAGS) -o $(TARGET).so $(OBJS)
+	$(CC) $(FL_FLAGS) $(SHARED_FLAGS) -o $(TARGET).so $(OBJS)
 else
 	$(AR) $(TARGET).a $(OBJS)
 endif

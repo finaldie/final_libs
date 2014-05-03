@@ -5,8 +5,8 @@ TARGET = libfpcap_conv
 INCLUDE_FILES = fpcap_convert.h
 
 INC = -I../
-LL = 
-LIBS = 
+LL =
+LIBS =
 
 SRCS = fpcap_convert.c
 OBJS = $(patsubst %.c,%.o,$(SRCS))
@@ -19,7 +19,7 @@ all: $(TARGET)
 
 $(TARGET): $(OBJS)
 ifeq ($(SHARED), true)
-	$(CC) $(FL_FLAGS) -o $(TARGET).so $(OBJS)
+	$(CC) $(FL_FLAGS) $(SHARED_FLAGS) -o $(TARGET).so $(OBJS)
 else
 	$(AR) $(TARGET).a $(OBJS)
 endif

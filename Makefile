@@ -42,23 +42,25 @@ else
 	EXT_FLAGS += -O2
 endif
 
+# expose the CC
+CC ?= gcc
+export CC
+
 # expose the SHARED to everywhere
 SHARED ?= false
 ifeq ($(SHARED), true)
-	EXT_FLAGS += -shared -fPIC
+	EXT_FLAGS += -fPIC
+	SHARED_FLAGS = -shared
 endif
-export SHARED;
-
-# expose the CC
-CC ?= gcc
-export CC;
+export SHARED
+export SHARED_FLAGS
 
 # verbose
 VERBOSE ?= false
 ifeq ($(VERBOSE), false)
 	MAKE_FLAGS += -s
 endif
-export VERBOSE;
+export VERBOSE
 
 # Build all libs by order
 LIB_FOLDERS = \
