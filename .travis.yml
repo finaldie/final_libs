@@ -8,7 +8,7 @@ before_install:
     - sudo apt-get install libc6-dbg:i386 libc6-dev-i386 libpcap0.8 libpcap0.8-dev valgrind
 
 script:
-    - make && make check && make valgrind-check
+    - make SHARED=true && make check && make valgrind-check
 
 notifications:
     email:
