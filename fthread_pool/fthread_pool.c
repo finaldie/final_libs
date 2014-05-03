@@ -16,17 +16,19 @@ typedef enum {
 } TH_EVENT;
 
 typedef struct {
-    int      tid;
+    unsigned long tid;
     cond_var cond;
-    fmbuf*    pbuf;
+    fmbuf*   pbuf;
     void*    parg;
 } thread_data;
 
+#pragma pack(4)
 typedef struct {
-    int      ev;
     fth_task pf;
     void*    arg;
+    TH_EVENT ev;
 } th_msg_t;
+#pragma pack()
 
 static int th_id = 0;
 static int max_num = 0;

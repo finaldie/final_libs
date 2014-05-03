@@ -23,11 +23,13 @@
 
 #define FEV_LISTEN_QUEUE_NUM 1024
 
+#pragma pack(4)
 struct fev_listen_info {
     int         fd;
     pfev_accept accept_cb;
     void*       ud;
 };
+#pragma pack()
 
 static void on_listen_port(fev_state* fev,
                             int fd      __attribute__((unused)),

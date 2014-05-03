@@ -4,7 +4,7 @@ TARGET = libfmbuf
 
 INCLUDE_FILES = fmbuf.h
 
-INC = -I../common/
+INC = -I../
 LL =
 LIBS =
 

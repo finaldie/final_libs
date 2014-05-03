@@ -54,41 +54,43 @@ typedef unsigned char pto_id_t;
 typedef struct {
     log_file_t*    f;
     unsigned short len;
-}log_msg_head_t;
+} log_msg_head_t;
 
 typedef struct {
     pto_id_t       id;
     log_msg_head_t msgh;
-}log_fetch_msg_head_t;
+} log_fetch_msg_head_t;
 #pragma pack()
 
 // every thread have a private thread_data for containing logbuf
 // when we write log messages, data will fill into this buffer
+#pragma pack(4)
 typedef struct _thread_data_t {
     fmbuf*       plog_buf;
     int          efd;       // eventfd
     time_t       last_time;
-    char         last_time_str[LOG_TIME_STR_LEN + 1];
+    char         last_time_str[LOG_TIME_STR_LEN + 4];
     char         tmp_buf[LOG_MAX_LEN_PER_MSG];
-}thread_data_t;
+} thread_data_t;
 
 typedef void (*ptofunc)(thread_data_t*);
 
 // global log system data
 typedef struct _log_t {
     fhash*          phash;       // mapping filename <--> log_file structure
+    plog_event_func event_cb;    // event callback
     pthread_mutex_t lock;        // protect some scences resource competion
     pthread_key_t   key;
-    plog_event_func event_cb;    // event callback
-    LOG_MODE        mode;        // global log flag
     size_t          roll_size;
     size_t          buffer_size; // buffer size per user thread
+    LOG_MODE        mode;        // global log flag
     int             is_background_thread_started;
     int             flush_interval;
     int             epfd;        // epoll fd
     time_t          last_time;
-    char            last_time_str[LOG_TIME_STR_LEN + 1];
-}f_log;
+    char            last_time_str[LOG_TIME_STR_LEN + 4];
+} f_log;
+#pragma pack()
 
 // define global log struct
 static f_log* g_log = NULL;
@@ -180,7 +182,7 @@ void _log_get_time(time_t tm_time, char* time_str)
              now.tm_hour, now.tm_min, now.tm_sec);
 }
 
-static inline
+static
 void _log_flush_file(log_file_t* lf, time_t now)
 {
     if ( fflush(lf->pf) ) {
@@ -191,7 +193,7 @@ void _log_flush_file(log_file_t* lf, time_t now)
     lf->last_flush_time = now;
 }
 
-static inline
+static
 void _log_roll_file(log_file_t* lf)
 {
     _log_generate_filename(lf->pfilename, lf->poutput_filename);
@@ -454,7 +456,7 @@ void _log_async_write_f(log_file_t* f, const char* file_sig, size_t sig_len,
     }
 }
 
-static inline
+static
 size_t _log_write(log_file_t* f, const char* log, size_t len)
 {
     size_t real_writen_len = _log_write_unlocked(f, log, len);
@@ -476,7 +478,7 @@ size_t _log_write(log_file_t* f, const char* log, size_t len)
     return real_writen_len;
 }
 
-static inline
+static
 size_t _log_wrap_sync_head(char* buf, const char* file_sig, size_t sig_len)
 {
     time_t now = time(NULL);

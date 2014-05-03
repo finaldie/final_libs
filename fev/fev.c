@@ -10,8 +10,8 @@
  *       Revision:  none
  *       Compiler:  gcc
  *
- *         Author:  finaldie 
- *        Company:  
+ *         Author:  finaldie
+ *        Company:
  *
  * =====================================================================================
  */
@@ -22,7 +22,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <errno.h>
-#include <fcntl.h> 
+#include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include "fev.h"
@@ -46,6 +46,7 @@ struct fev_state {
     int         max_ev_size;
     int         fire_num;
     int         in_processing;
+    int         reserved;       // unused
 };
 
 static void fev_add_firelist(fev_state* fev, int fd)

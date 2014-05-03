@@ -21,6 +21,7 @@ typedef struct plugin_meta {
     ucontext_t   main_ctx;
 } plugin_meta;
 
+#pragma pack(4)
 struct _fco {
     ucontext_t   ctx;
     ucontext_t*  prev_ctx;
@@ -33,6 +34,7 @@ struct _fco {
     int          status;
     char         stack[0];
 };
+#pragma pack()
 
 struct _fco_sched {
     uint64_t       numco;
