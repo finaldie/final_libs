@@ -35,7 +35,8 @@ int main(int argc    __attribute__((unused)),
 {
     tu_register_init();
     register_module();
-    tu_run_cases();
+    int ret = tu_run_cases();
+    exit(ret);
 
     return 0;
 }

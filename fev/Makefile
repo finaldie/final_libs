@@ -25,20 +25,21 @@ SRCS = fev.c \
 
 OBJS = $(patsubst %.c,%.o,$(SRCS))
 
-CFLAGS += $(EXT_FLAGS)
-CFLAGS +=
+FL_FLAGS = $(COMMON_FLAGS) $(CFLAGS) $(EXT_FLAGS)
+
+.PHONY: all install clean help
 
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
 ifeq ($(SHARED), true)
-	$(CC) $(CFLAGS) -shared -fPIC -o $(TARGET).so $(OBJS)
+	$(CC) $(FL_FLAGS) -o $(TARGET).so $(OBJS)
 else
 	$(AR) $(TARGET).a $(OBJS)
 endif
 
 %.o: %.c 
-	$(CC) $(CFLAGS) $(INC) -c $< 
+	$(CC) $(FL_FLAGS) $(INC) -c $<
 
 install:
 	-(test -d $(INSTALL_PATH) || mkdir -p $(INSTALL_PATH) )
@@ -47,7 +48,6 @@ install:
 	cp $(INCLUDE_FILES) $(INSTALL_PATH)/$(INCLUDE_PATH)
 	cp $(TARGET).* $(INSTALL_PATH)/$(LIBS_PATH)
 
-.PHONY: all install clean help
 clean:
 	rm -f $(OBJS) $(TARGET).*
 

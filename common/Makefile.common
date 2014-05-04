@@ -3,4 +3,4 @@
 
 AR = ar -rcs
 
-CFLAGS += -Wall -Wextra -g -Werror -pipe
+COMMON_FLAGS += -Wall -Wextra -g -Werror -pipe
