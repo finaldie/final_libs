@@ -6,7 +6,7 @@ Common Libraries (Linux Platform)
 ## Lastest Versions
 | Branch | Lastest Stable Tag |  Released  | Description                             |
 ---------|--------------------|------------|-----------------------------------------|
-|  0.4   | 0.4.7              | 2014-03-09 | Full 32 & 64 bit support                |
+|  0.4   | 0.4.8              | 2014-05-04 | Full 32 & 64 bit support                |
 |  0.3   | 0.3.8              | 2013-07-10 | Full libs support, 64bit                |
 
 
@@ -59,7 +59,7 @@ make BIT=32
 ```
 
 ## ChangeLog
-* 2014-05-02 0.4.8
+* 2014-05-04 0.4.8
    * Refactor Makefile
    * exit non-zero when UT failure
 * 2014-03-09 0.4.7
