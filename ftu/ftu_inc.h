@@ -86,7 +86,7 @@ extern int curr_total_assert;
 #define FTU_ASSERT_LT_INT(expect, real) FTU_ASSERT_LESS_THAN_INT(expect, real)
 
 #define FTU_ASSERT_EXPRESS(express) \
-    do{ curr_total_assert++; if( !(express) ) { printf("(%s %s) %d: ASSERT FAILED, expect=%s but failed \n", __FILE__, __func__, __LINE__, #express); curr_failed_assert++; } }while(0)
+    do{ curr_total_assert++; if( !(express) ) { printf("(%s %s) %d: ASSERT FAILED, expect: %s but failed \n", __FILE__, __func__, __LINE__, #express); curr_failed_assert++; } }while(0)
 
 #define FTU_ASSERT(express) FTU_ASSERT_EXPRESS(express)
 

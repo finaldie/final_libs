@@ -2,13 +2,18 @@
 
 TARGET = libfhash
 
-INCLUDE_FILES = fhash_core.h
+INCLUDE_FILES = fhash_core.h \
+		fhash.h
 
 INC =
 LL =
 LIBS =
 
-SRCS = fhash_core.c
+SRCS = fhash_core.c \
+       fhash_int.c \
+       fhash_uint64.c \
+       fhash_str.c
+
 OBJS = $(patsubst %.c, %.o, $(SRCS))
 
 FL_FLAGS = $(COMMON_FLAGS) $(CFLAGS) $(EXT_FLAGS)

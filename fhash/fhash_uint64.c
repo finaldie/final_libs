@@ -1,0 +1,52 @@
+#include <assert.h>
+
+#include "fhash.h"
+
+// INTERNAL
+static
+int _hash_uint64_compare(const void* key1, key_sz_t key_sz1,
+                      const void* key2, key_sz_t key_sz2)
+{
+    assert(key_sz1 == key_sz2 && key_sz1 == sizeof(uint64_t));
+    uint64_t ikey1 = *(uint64_t*)key1;
+    uint64_t ikey2 = *(uint64_t*)key2;
+
+    return !(ikey1 == ikey2);
+}
+
+fhash* fhash_uint64_create(uint32_t init_size, void* ud, uint32_t flags)
+{
+    fhash_opt opt;
+    opt.hash_alg = NULL;
+    opt.compare = _hash_uint64_compare;
+
+    return fhash_create(init_size, opt, ud, flags);
+}
+
+void   fhash_uint64_delete(fhash* phash)
+{
+    fhash_delete(phash);
+}
+
+void   fhash_uint64_set(fhash* phash, uint64_t key, void* value)
+{
+    fhash_set(phash, (void*)&key, sizeof(key), &value, sizeof(value));
+}
+
+void*  fhash_uint64_get(fhash* phash, uint64_t key)
+{
+    void** value = (void**)fhash_get(phash, (void*)&key, sizeof(key), NULL);
+    if (value) {
+        return *value;
+    } else {
+        return NULL;
+    }
+}
+
+void*  fhash_uint64_del(fhash* phash, uint64_t key)
+{
+    void* value = NULL;
+    fhash_fetch_and_del(phash, (void*)&key, sizeof(key),
+                        &value, sizeof(value));
+    return value;
+}

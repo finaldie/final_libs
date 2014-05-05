@@ -16,12 +16,14 @@ typedef int32_t key_sz_t;
 typedef int64_t value_sz_t;
 
 typedef struct fhash fhash;
-typedef struct fhash_mask fhash_mask;
 
 // hash table operation functions, all the function will be called
 // on demand by hash table itself
 typedef struct {
     uint32_t (*hash_alg) (const void* key,  key_sz_t key_sz);
+
+    // return 0: key1 is same as key2
+    // return non-zero: key1 is different with key2
     int      (*compare)  (const void* key1, key_sz_t key_sz1,
                           const void* key2, key_sz_t key_sz2);
 } fhash_opt;
@@ -48,7 +50,7 @@ typedef int (*fhash_each_cb)(void* ud,
 
 // APIs
 fhash*     fhash_create(uint32_t init_size, fhash_opt, void* ud,
-                        fhash_mask flags);
+                        uint32_t flags);
 void       fhash_delete(fhash*);
 
 void       fhash_set(fhash*,

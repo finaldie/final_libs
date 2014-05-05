@@ -8,11 +8,71 @@
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 
-#include "ftu_inc.h"
-#include "fhash.h"
+#include "ftu/ftu_inc.h"
+#include "fhash/fhash.h"
 #include "inc.h"
 
-int total_count = 0;
+#define LOOP 10000
+
+static int total_count = 0;
+
+//=====================FAKE STRUCTURE===========================================
+typedef uint64_t data_sz_t;
+
+typedef struct _fhash_node {
+    data_sz_t  real_sz;   // size of real memory space
+
+    uint32_t valid:1;
+    uint32_t padding:31;  // reserved
+
+    key_sz_t   key_sz;
+    value_sz_t value_sz;
+    void*      data;
+
+} _fhash_node;
+
+typedef struct {
+    size_t used;
+    size_t size;
+    _fhash_node* node_list;
+} _fhash_node_mgr;
+
+typedef struct _fhash {
+    uint32_t index_size;
+    uint32_t index_used;
+
+    size_t   slots_used;
+    _fhash_node_mgr node_mgr[0];
+} _fhash;
+
+typedef union {
+    struct {
+        // user flags
+        uint32_t auto_rehash:1;
+        uint32_t padding:29;    // reserved
+
+        // internal use
+        uint32_t rehashing:1;   // doing rehash
+        uint32_t performing:1;  // doing delayed actions
+    };
+
+    uint32_t value;
+} fhash_mask;
+
+struct fhash {
+    void*      ud;          // User Data
+    uint32_t   iter_refs;   // how many iterators have already refenerced it
+
+    fhash_mask mask;
+
+    fhash_opt  opt;
+    _fhash*    current;
+    _fhash*    temporary;   // we use it when trigger resizing
+
+    // a delay action list, only *ADD* action can add into it
+    _fhash_node_mgr delayed_actions;
+};
+//=====================FAKE STRUCTURE END=======================================
 
 int test_print(void* data __attribute__((unused)))
 {
@@ -21,104 +81,376 @@ int test_print(void* data __attribute__((unused)))
     return 0;
 }
 
-
-#define LOOP 10000
-void test_hash(){
-    fhash* phash = fhash_create(0);
-
-    int i;
-    char test[20];
-    for ( i=0; i<LOOP; ++i ) {
-        char* va = (char*)malloc(20);
-
-        sprintf(test, "test%d", i);
-        sprintf(va, "a%d", i);
-        fhash_set_str(phash, test, va);
-        char* res = (char*)fhash_get_str(phash, test);
-        FTU_ASSERT_EQUAL_CHAR(res, va);
-        free(va);
-    }
-
-    for ( i=0; i<LOOP; ++i ) {
-        char* va = (char*)malloc(20);
-        sprintf(test, "www%d", i);
-        sprintf(va, "ba%d", i);
-        fhash_set_str(phash, test, va);
-        char* res = (char*)fhash_get_str(phash, test);
-        FTU_ASSERT_EQUAL_CHAR(res, va);
-        free(va);
-    }
-
-    for ( i=0; i<LOOP; ++i ) {
-        char* value = (char*)malloc(10);
-        sprintf(value, "ca%d", i);
-        fhash_set_int(phash, i, value);
-        char* res = (char*)fhash_get_int(phash, i);
-        assert(res);
-        FTU_ASSERT_EQUAL_CHAR(res, value);
-        free(value);
-    }
-
-    printf("uint64 testing\n");
-    uint64_t j = 0;
-    for ( j=LOOP*10; j<LOOP*11; ++j ) {
-        char* value = (char*)malloc(30);
-        memset(value, 0, 30);
-        snprintf(value, 30, "uint64_%" PRIu64 , j);
-        fhash_set_uint64(phash, j, value);
-        char* res = (char*)fhash_get_uint64(phash, j);
-        assert(res);
-        FTU_ASSERT_EQUAL_CHAR(res, value);
-        free(value);
-    }
-    printf("uint64 testing end\n");
-
-    fhash_statistics(phash);
-
-    fhash_iter iter = fhash_new_iter(phash);
-    void* data = NULL;
-    int iter_count = 0;
-    while ( (data = fhash_next(&iter)) ) {
-        //printf("iter data = %s\n", (char*)data);
-        iter_count++;
-    }
-    printf("hash iter total=%d\n", iter_count);
-    FTU_ASSERT_EQUAL_INT((4*LOOP), iter_count);
-
-    fhash_foreach(phash, test_print);
-    printf("hashforeach total=%d\n", total_count);
-    FTU_ASSERT_EQUAL_INT((4*LOOP), total_count);
-
-    fhash_delete(phash);
-}
-
-void    test_hash_del()
+// return 0: key1 is same as key2
+// return non-zero: key1 is different with key2
+int hash_core_compare(const void* key1, key_sz_t key_sz1,
+                      const void* key2, key_sz_t key_sz2)
 {
-    fhash* phash = fhash_create(0);
-
-    int i;
-    for ( i=0; i<10000; ++i ) {
-        int n = i;
-        char* key = (char*)malloc(30);
-        char* pkey = fhash_itoa(n, key);
-        fhash_set_int(phash, n, pkey);
-        char* res = (char*)fhash_get_int(phash, n);
-        assert(!strcmp(res, pkey));
-        FTU_ASSERT_EQUAL_CHAR(pkey, res);
+    if (key_sz1 != key_sz2) {
+        return 1;
     }
 
-    for (i=0; i<10000; ++i) {
-        char* s = fhash_del_int(phash, i);
-
-        char buf[30];
-        char* _key = fhash_itoa(i, buf);
-        FTU_ASSERT_EQUAL_CHAR(_key, s);
-        free(s);
-
-        assert( !fhash_del_int(phash, i));
-    }
-
-    fhash_delete(phash);
-
-    printf("hash del complete\n");
+    return memcmp(key1, key2, key_sz1);
 }
+
+void test_hash_int()
+{
+
+}
+
+void test_hash_uint64()
+{
+
+}
+
+void test_hash_str()
+{
+
+}
+
+void test_hash_core()
+{
+    // test create/delete
+    {
+        fhash_opt opt;
+        opt.hash_alg = NULL;
+        opt.compare = hash_core_compare;
+        fhash* phash = fhash_create(0, opt, NULL, FHASH_MASK_NONE);
+        FTU_ASSERT(phash != NULL);
+        FTU_ASSERT(phash->ud == NULL);
+        FTU_ASSERT(phash->iter_refs == 0);
+        FTU_ASSERT(phash->mask.value == 0);
+        FTU_ASSERT(phash->current != NULL);
+        FTU_ASSERT(phash->temporary == NULL);
+
+        fhash_delete(phash);
+    }
+
+    // test set/get/del, set one key/value in it
+    {
+        fhash_opt opt;
+        opt.hash_alg = NULL;
+        opt.compare = hash_core_compare;
+        fhash* phash = fhash_create(0, opt, NULL, FHASH_MASK_NONE);
+
+        char key[] = "test_key";
+        char value[] = "test_value";
+        fhash_set(phash, key, strlen(key), value, strlen(value));
+        FTU_ASSERT(phash->temporary == NULL);
+        FTU_ASSERT(phash->iter_refs == 0);
+        FTU_ASSERT(phash->current->index_size == 10);
+        FTU_ASSERT(phash->current->index_used == 1);
+        FTU_ASSERT(phash->current->slots_used == 1);
+
+        value_sz_t ret_value_sz = 0;
+        char* ret_value = (char*)fhash_get(phash, key, strlen(key),
+                                           &ret_value_sz);
+        FTU_ASSERT(0 == strcmp(ret_value, value));
+        FTU_ASSERT((size_t)ret_value_sz == strlen(value));
+
+        FTU_ASSERT(phash->temporary == NULL);
+        FTU_ASSERT(phash->iter_refs == 0);
+        FTU_ASSERT(phash->current->index_size == 10);
+        FTU_ASSERT(phash->current->index_used == 1);
+        FTU_ASSERT(phash->current->slots_used == 1);
+
+        fhash_del(phash, key, strlen(key));
+        FTU_ASSERT(phash->temporary == NULL);
+        FTU_ASSERT(phash->iter_refs == 0);
+        FTU_ASSERT(phash->current->index_size == 10);
+        FTU_ASSERT(phash->current->index_used == 0);
+        FTU_ASSERT(phash->current->slots_used == 0);
+
+        fhash_delete(phash);
+    }
+
+    // test set/get/fetch_and_del, set one key/value in it
+    {
+        fhash_opt opt;
+        opt.hash_alg = NULL;
+        opt.compare = hash_core_compare;
+        fhash* phash = fhash_create(0, opt, NULL, FHASH_MASK_NONE);
+
+        char key[] = "test_key";
+        char value[] = "test_value";
+        fhash_set(phash, key, strlen(key), value, strlen(value));
+        FTU_ASSERT(phash->temporary == NULL);
+        FTU_ASSERT(phash->iter_refs == 0);
+        FTU_ASSERT(phash->current->index_size == 10);
+        FTU_ASSERT(phash->current->index_used == 1);
+        FTU_ASSERT(phash->current->slots_used == 1);
+
+        value_sz_t ret_value_sz = 0;
+        char* ret_value = (char*)fhash_get(phash, key, strlen(key),
+                                           &ret_value_sz);
+        FTU_ASSERT(0 == strcmp(ret_value, value));
+        FTU_ASSERT((size_t)ret_value_sz == strlen(value));
+
+        FTU_ASSERT(phash->temporary == NULL);
+        FTU_ASSERT(phash->iter_refs == 0);
+        FTU_ASSERT(phash->current->index_size == 10);
+        FTU_ASSERT(phash->current->index_used == 1);
+        FTU_ASSERT(phash->current->slots_used == 1);
+
+        char data[1024];
+        memset(data, 0, 1024);
+        char* ret_value1 = fhash_fetch_and_del(phash, key, strlen(key),
+                                               data, 1024);
+        FTU_ASSERT(phash->temporary == NULL);
+        FTU_ASSERT(phash->iter_refs == 0);
+        FTU_ASSERT(phash->current->index_size == 10);
+        FTU_ASSERT(phash->current->index_used == 0);
+        FTU_ASSERT(phash->current->slots_used == 0);
+        FTU_ASSERT(ret_value1 == data);
+        FTU_ASSERT(0 == strcmp(ret_value1, value));
+        FTU_ASSERT(0 == strcmp(data, value));
+
+        fhash_delete(phash);
+    }
+
+    // test set/get/del, set a group of key/value pairs, to enlarge hash table's
+    // node list
+    // NOTE: by default, the enlarge coefficient is 2, so we will add 4 items
+    {
+        fhash_opt opt;
+        opt.hash_alg = NULL;
+        opt.compare = hash_core_compare;
+        uint32_t index_size = 1;
+        fhash* phash = fhash_create(index_size, opt, NULL, FHASH_MASK_NONE);
+
+        // set items
+        char key1[] = "test_key1";
+        char value1[] = "test_value1";
+        fhash_set(phash, key1, strlen(key1), value1, strlen(value1));
+        FTU_ASSERT(phash->temporary == NULL);
+        FTU_ASSERT(phash->iter_refs == 0);
+        FTU_ASSERT(phash->current->index_size == 1);
+        FTU_ASSERT(phash->current->index_used == 1);
+        FTU_ASSERT(phash->current->slots_used == 1);
+        FTU_ASSERT(phash->current->node_mgr[0].size == 1);
+        FTU_ASSERT(phash->current->node_mgr[0].used == 1);
+        FTU_ASSERT(phash->current->node_mgr[0].node_list[0].real_sz ==
+                   (strlen(key1) + strlen(value1) + 2));
+        FTU_ASSERT(phash->current->node_mgr[0].node_list[0].valid == 1);
+        FTU_ASSERT(phash->current->node_mgr[0].node_list[0].key_sz ==
+                   (key_sz_t)strlen(key1));
+        FTU_ASSERT(phash->current->node_mgr[0].node_list[0].value_sz ==
+                   (value_sz_t)strlen(value1));
+
+        char key2[] = "test_key2";
+        char value2[] = "test_value2";
+        fhash_set(phash, key2, strlen(key2), value2, strlen(value2));
+        FTU_ASSERT(phash->temporary == NULL);
+        FTU_ASSERT(phash->iter_refs == 0);
+        FTU_ASSERT(phash->current->index_size == 1);
+        FTU_ASSERT(phash->current->index_used == 1);
+        FTU_ASSERT(phash->current->slots_used == 2);
+        FTU_ASSERT(phash->current->node_mgr[0].node_list[1].real_sz ==
+                   (strlen(key2) + strlen(value2) + 2));
+        FTU_ASSERT(phash->current->node_mgr[0].node_list[1].valid == 1);
+        FTU_ASSERT(phash->current->node_mgr[0].node_list[1].key_sz ==
+                   (key_sz_t)strlen(key2));
+        FTU_ASSERT(phash->current->node_mgr[0].node_list[1].value_sz ==
+                   (value_sz_t)strlen(value2));
+
+        char key3[] = "test_key3";
+        char value3[] = "test_value3";
+        fhash_set(phash, key3, strlen(key3), value3, strlen(value3));
+        FTU_ASSERT(phash->temporary == NULL);
+        FTU_ASSERT(phash->iter_refs == 0);
+        FTU_ASSERT(phash->current->index_size == 1);
+        FTU_ASSERT(phash->current->index_used == 1);
+        FTU_ASSERT(phash->current->slots_used == 3);
+        FTU_ASSERT(phash->current->node_mgr[0].node_list[2].real_sz ==
+                   (strlen(key3) + strlen(value3) + 2));
+        FTU_ASSERT(phash->current->node_mgr[0].node_list[2].valid == 1);
+        FTU_ASSERT(phash->current->node_mgr[0].node_list[2].key_sz ==
+                   (key_sz_t)strlen(key3));
+        FTU_ASSERT(phash->current->node_mgr[0].node_list[2].value_sz ==
+                   (value_sz_t)strlen(value3));
+
+        char key4[] = "test_key4";
+        char value4[] = "test_value4";
+        fhash_set(phash, key4, strlen(key4), value4, strlen(value4));
+        FTU_ASSERT(phash->temporary == NULL);
+        FTU_ASSERT(phash->iter_refs == 0);
+        FTU_ASSERT(phash->current->index_size == 1);
+        FTU_ASSERT(phash->current->index_used == 1);
+        FTU_ASSERT(phash->current->slots_used == 4);
+        FTU_ASSERT(phash->current->node_mgr[0].node_list[3].real_sz ==
+                   (strlen(key4) + strlen(value4) + 2));
+        FTU_ASSERT(phash->current->node_mgr[0].node_list[3].valid == 1);
+        FTU_ASSERT(phash->current->node_mgr[0].node_list[3].key_sz ==
+                   (key_sz_t)strlen(key4));
+        FTU_ASSERT(phash->current->node_mgr[0].node_list[3].value_sz ==
+                   (value_sz_t)strlen(value4));
+
+        // get items
+        {
+            value_sz_t ret_value_sz = 0;
+            char* ret_value = (char*)fhash_get(phash, key1, strlen(key1),
+                                               &ret_value_sz);
+            FTU_ASSERT(0 == strcmp(ret_value, value1));
+            FTU_ASSERT((size_t)ret_value_sz == strlen(value1));
+        }
+
+        {
+            value_sz_t ret_value_sz = 0;
+            char* ret_value = (char*)fhash_get(phash, key2, strlen(key2),
+                                               &ret_value_sz);
+            FTU_ASSERT(0 == strcmp(ret_value, value2));
+            FTU_ASSERT((size_t)ret_value_sz == strlen(value2));
+        }
+
+        {
+            value_sz_t ret_value_sz = 0;
+            char* ret_value = (char*)fhash_get(phash, key3, strlen(key3),
+                                               &ret_value_sz);
+            FTU_ASSERT(0 == strcmp(ret_value, value3));
+            FTU_ASSERT((size_t)ret_value_sz == strlen(value3));
+        }
+
+        {
+            value_sz_t ret_value_sz = 0;
+            char* ret_value = (char*)fhash_get(phash, key4, strlen(key4),
+                                               &ret_value_sz);
+            FTU_ASSERT(0 == strcmp(ret_value, value4));
+            FTU_ASSERT((size_t)ret_value_sz == strlen(value4));
+        }
+
+        FTU_ASSERT(phash->temporary == NULL);
+        FTU_ASSERT(phash->iter_refs == 0);
+        FTU_ASSERT(phash->current->index_size == 1);
+        FTU_ASSERT(phash->current->index_used == 1);
+        FTU_ASSERT(phash->current->slots_used == 4);
+
+        // delete items
+        {
+            fhash_del(phash, key1, strlen(key1));
+            fhash_del(phash, key2, strlen(key2));
+            fhash_del(phash, key3, strlen(key3));
+            fhash_del(phash, key4, strlen(key4));
+            FTU_ASSERT(phash->temporary == NULL);
+            FTU_ASSERT(phash->iter_refs == 0);
+            FTU_ASSERT(phash->current->index_size == 1);
+            FTU_ASSERT(phash->current->index_used == 0);
+            FTU_ASSERT(phash->current->slots_used == 0);
+        }
+
+        fhash_delete(phash);
+    }
+
+    // test iteration
+    {
+        fhash_opt opt;
+        opt.hash_alg = NULL;
+        opt.compare = hash_core_compare;
+        fhash* phash = fhash_create(0, opt, NULL, FHASH_MASK_NONE);
+
+        char key1[] = "test_key1";
+        char key2[] = "test_key2";
+        char key3[] = "test_key3";
+        char key4[] = "test_key4";
+        char value1[] = "test_value1";
+        char value2[] = "test_value2";
+        char value3[] = "test_value3";
+        char value4[] = "test_value4";
+        fhash_set(phash, key1, strlen(key1), value1, strlen(value1));
+        fhash_set(phash, key2, strlen(key2), value2, strlen(value2));
+        fhash_set(phash, key3, strlen(key3), value3, strlen(value3));
+        fhash_set(phash, key4, strlen(key4), value4, strlen(value4));
+
+        fhash_iter iter = fhash_iter_new(phash);
+        FTU_ASSERT(phash->iter_refs == 1);
+
+        char* data = NULL;
+        int value1_exist = 0;
+        int value2_exist = 0;
+        int value3_exist = 0;
+        int value4_exist = 0;
+
+        while ((data = (char*)fhash_next(&iter))) {
+            if (strcmp(data, value1) == 0) {
+                value1_exist = 1;
+
+                FTU_ASSERT(iter.key_sz == (key_sz_t)strlen(key1));
+                FTU_ASSERT(iter.value_sz == (value_sz_t)strlen(value1));
+                FTU_ASSERT(0 == strcmp(key1, iter.key));
+            } else if (strcmp(data, value2) == 0) {
+                value2_exist = 1;
+
+                FTU_ASSERT(iter.key_sz == (key_sz_t)strlen(key2));
+                FTU_ASSERT(iter.value_sz == (value_sz_t)strlen(value2));
+                FTU_ASSERT(0 == strcmp(key2, iter.key));
+            } else if (strcmp(data, value3) == 0) {
+                value3_exist = 1;
+
+                FTU_ASSERT(iter.key_sz == (key_sz_t)strlen(key3));
+                FTU_ASSERT(iter.value_sz == (value_sz_t)strlen(value3));
+                FTU_ASSERT(0 == strcmp(key3, iter.key));
+            } else if (strcmp(data, value4) == 0) {
+                value4_exist = 1;
+
+                FTU_ASSERT(iter.key_sz == (key_sz_t)strlen(key4));
+                FTU_ASSERT(iter.value_sz == (value_sz_t)strlen(value4));
+                FTU_ASSERT(0 == strcmp(key4, iter.key));
+            }
+        }
+
+        FTU_ASSERT(value1_exist == 1);
+        FTU_ASSERT(value2_exist == 1);
+        FTU_ASSERT(value3_exist == 1);
+        FTU_ASSERT(value4_exist == 1);
+
+        fhash_iter_release(&iter);
+        FTU_ASSERT(phash->iter_refs == 0);
+
+        fhash_delete(phash);
+    }
+
+    // add key/value pair during iteration
+    {
+
+    }
+
+    // set key/value pair during iteration
+    {
+
+    }
+
+    // delete key during iteration
+    {
+
+    }
+
+    // test rehash
+    {
+
+    }
+
+    // test reset the value of a key
+    {
+
+    }
+
+    // test set a empty key or empty value
+    {
+
+    }
+
+    // test delete a empty key or empty value
+    {
+
+    }
+
+    // test delete a non-exist key
+    {
+
+    }
+
+    // test get a non-exist key
+    {
+
+    }
+}
+

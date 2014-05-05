@@ -1,5 +1,5 @@
 //create by final
-//desc: fhash (unthread safe)
+//desc: fhash (not thread safe)
 
 #ifndef _HASH_H_FINAL_
 #define _HASH_H_FINAL_
@@ -8,44 +8,31 @@
 extern "C" {
 #endif
 
-#include <stdint.h>
+#include "fhash_core.h"
 
-typedef struct _f_hash fhash;
+// hash table for: int - void*
+fhash* fhash_int_create(uint32_t init_size, void* ud, uint32_t flags);
+void   fhash_int_delete(fhash*);
 
-typedef struct {
-    fhash*  phash;
-    int     offset;
-    int     idx;
-} fhash_iter;
+void   fhash_int_set(fhash*, int key, void* value);
+void*  fhash_int_get(fhash*, int key);
+void*  fhash_int_del(fhash*, int key);
 
-// call back return 0 to continue iter else break out
-typedef int (*fhash_each_cb)(void*);
+// hash table for: uint64 - void*
+fhash* fhash_uint64_create(uint32_t init_size, void* ud, uint32_t flags);
+void   fhash_uint64_delete(fhash*);
 
-fhash*     fhash_create(int size);
-void       fhash_delete(fhash*);
+void   fhash_uint64_set(fhash*, uint64_t key, void* value);
+void*  fhash_uint64_get(fhash*, uint64_t key);
+void*  fhash_uint64_del(fhash*, uint64_t key);
 
-void       fhash_set_int(fhash*, int key, void* value);
-void*      fhash_get_int(fhash*, int key);
-void*      fhash_del_int(fhash*, int key);
+// hash table for: string - void*
+fhash* fhash_str_create(uint32_t init_size, void* ud, uint32_t flags);
+void   fhash_str_delete(fhash*);
 
-void       fhash_set_uint64(fhash*, uint64_t key, void* value);
-void*      fhash_get_uint64(fhash*, uint64_t key);
-void*      fhash_del_uint64(fhash*, uint64_t key);
-
-void       fhash_set_str(fhash*, const char* key, void* value);
-void*      fhash_get_str(fhash*, const char* key);
-void*      fhash_del_str(fhash*, const char* key);
-
-fhash_iter fhash_new_iter(fhash*);
-void*      fhash_next(fhash_iter*);
-
-void       fhash_foreach(fhash*, fhash_each_cb);
-int        fhash_atoi(const char* key);
-char*      fhash_itoa(int v, char* retbuff);
-
-// return total value count
-int        fhash_get_count(fhash*);
-void       fhash_statistics(fhash* phash);
+void   fhash_str_set(fhash*, const void* key, void* value);
+void*  fhash_str_get(fhash*, const void* key);
+void*  fhash_str_del(fhash*, const void* key);
 
 #ifdef __cplusplus
 }

@@ -9,6 +9,7 @@
 #include <fcntl.h>
 #include <sys/eventfd.h>
 #include <sys/epoll.h>
+#include <assert.h>
 
 #include "common/compiler.h"
 #include "fmbuf/fmbuf.h"
@@ -612,9 +613,13 @@ void _log_async_process(thread_data_t* th_data, unsigned int process_num)
 }
 
 static inline
-int _log_process_timeout(void* arg)
+int _log_process_timeout(void* ud,
+                         const void* key, key_sz_t key_sz,
+                         void* value, value_sz_t value_sz)
 {
-    log_file_t* f = (log_file_t*)arg;
+    assert(value_sz == sizeof(log_file_t*));
+
+    log_file_t* f = *(log_file_t**)value;
     time_t now = time(NULL);
     if ( now - f->last_flush_time >= g_log->flush_interval ) {
         _log_flush_file(f, now);
@@ -714,7 +719,7 @@ void _log_init()
     }
 
     t_log->epfd = epfd;
-    t_log->phash = fhash_create(0);
+    t_log->phash = fhash_str_create(0, NULL, FHASH_MASK_NONE);
     pthread_mutex_init(&t_log->lock, NULL);
     pthread_key_create(&t_log->key, _user_thread_destroy);
     t_log->event_cb = NULL;
@@ -741,7 +746,7 @@ log_file_t* log_create(const char* filename){
     {
         // check whether log file data has been created
         // if not, create it, or return its pointer
-        log_file_t* created_file = fhash_get_str(g_log->phash, filename);
+        log_file_t* created_file = fhash_str_get(g_log->phash, filename);
         if ( created_file ) {
             created_file->ref_count++;
             pthread_mutex_unlock(&g_log->lock);
@@ -770,7 +775,7 @@ log_file_t* log_create(const char* filename){
         f->file_size = 0;
         f->last_flush_time = time(NULL);
         snprintf(f->pfilename, LOG_MAX_FILE_NAME, "%s", filename);
-        fhash_set_str(g_log->phash, filename, f);
+        fhash_str_set(g_log->phash, filename, f);
         f->ref_count = 1;
     }
     pthread_mutex_unlock(&g_log->lock);
@@ -786,7 +791,7 @@ void log_destroy(log_file_t* lf)
 
         if ( lf->ref_count == 0 ) {
             fclose(lf->pf);
-            fhash_del_str(g_log->phash, lf->pfilename);
+            fhash_str_del(g_log->phash, lf->pfilename);
             free(lf);
         }
     }
