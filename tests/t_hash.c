@@ -547,13 +547,13 @@ void test_hash_core()
         char* new_value1 = (char*)fhash_get(phash, key1, strlen(key1),
                                             &new_value1sz);
         FTU_ASSERT(0 == strcmp(new_value1, value3));
-        FTU_ASSERT(strlen(new_value1) == strlen(value3));
+        FTU_ASSERT((value_sz_t)strlen(new_value1) == new_value1sz);
 
         value_sz_t new_value2sz = 0;
         char* new_value2 = (char*)fhash_get(phash, key2, strlen(key2),
                                             &new_value2sz);
         FTU_ASSERT(0 == strcmp(new_value2, value4));
-        FTU_ASSERT(strlen(new_value2) == strlen(value4));
+        FTU_ASSERT((value_sz_t)strlen(new_value2) == new_value2sz);
 
         fhash_iter_release(&iter);
         FTU_ASSERT(phash->iter_refs == 0);
@@ -567,7 +567,79 @@ void test_hash_core()
 
     // delete key during iteration
     {
+        fhash_opt opt;
+        opt.hash_alg = NULL;
+        opt.compare = hash_core_compare;
+        fhash* phash = fhash_create(0, opt, NULL, FHASH_MASK_NONE);
 
+        char key1[] = "test_key1";
+        char key2[] = "test_key2";
+        char value1[] = "test_value1";
+        char value2[] = "test_value2";
+
+        fhash_set(phash, key1, strlen(key1), value1, strlen(value1));
+        fhash_set(phash, key2, strlen(key2), value2, strlen(value2));
+
+        FTU_ASSERT(phash->iter_refs == 0);
+        FTU_ASSERT(phash->current->index_size == 10);
+        FTU_ASSERT(phash->current->index_used == 2);
+        FTU_ASSERT(phash->current->slots_used == 2);
+
+        fhash_iter iter = fhash_iter_new(phash);
+        char* data = NULL;
+        int loop_cnt = 0;
+        int key1_exist = 0;
+        int key2_exist = 0;
+
+        while ((data = (char*)fhash_next(&iter))) {
+            loop_cnt++;
+
+            if (strcmp(data, value1) == 0) {
+                key1_exist = 1;
+
+                fhash_del(phash, key1, strlen(key1));
+                FTU_ASSERT(phash->current->index_size == 10);
+            } else if (strcmp(data, value2) == 0) {
+                key2_exist = 1;
+
+                fhash_del(phash, key2, strlen(key2));
+                FTU_ASSERT(phash->current->index_size == 10);
+            } else {
+                // shouldn't reach here
+                printf("FATAL: data: %s\n", data);
+                FTU_ASSERT(0);
+            }
+        }
+
+        FTU_ASSERT(loop_cnt == 2);
+        FTU_ASSERT(key1_exist == 1);
+        FTU_ASSERT(key2_exist == 1);
+        FTU_ASSERT(phash->delayed_actions.used == 0);
+        FTU_ASSERT(phash->delayed_actions.size == 0);
+        FTU_ASSERT(phash->current->index_used == 0);
+        FTU_ASSERT(phash->current->slots_used == 0);
+
+        // check the new values have already be replaced
+        value_sz_t new_value1sz = 0;
+        char* new_value1 = (char*)fhash_get(phash, key1, strlen(key1),
+                                            &new_value1sz);
+        FTU_ASSERT(new_value1 == NULL);
+        FTU_ASSERT(new_value1sz == 0);
+
+        value_sz_t new_value2sz = 0;
+        char* new_value2 = (char*)fhash_get(phash, key2, strlen(key2),
+                                            &new_value2sz);
+        FTU_ASSERT(new_value2 == NULL);
+        FTU_ASSERT(new_value2sz == 0);
+
+        fhash_iter_release(&iter);
+        FTU_ASSERT(phash->iter_refs == 0);
+        FTU_ASSERT(phash->current->index_size == 10);
+        FTU_ASSERT(phash->current->index_used == 0);
+        FTU_ASSERT(phash->current->slots_used == 0);
+        FTU_ASSERT(phash->delayed_actions.size == 0);
+        FTU_ASSERT(phash->delayed_actions.used == 0);
+        fhash_delete(phash);
     }
 
     // test rehash
