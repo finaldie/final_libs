@@ -701,7 +701,89 @@ void test_hash_core()
 
     // rehash duiring iteration
     {
+        fhash_opt opt;
+        opt.hash_alg = NULL;
+        opt.compare = hash_core_compare;
+        fhash* phash = fhash_create(0, opt, NULL, FHASH_MASK_NONE);
 
+        char key1[] = "test_key1";
+        char key2[] = "test_key2";
+        char key3[] = "test_key3";
+        char key4[] = "test_key4";
+        char value1[] = "test_value1";
+        char value2[] = "test_value2";
+        char value3[] = "test_value3";
+        char value4[] = "test_value4";
+        fhash_set(phash, key1, strlen(key1), value1, strlen(value1));
+        fhash_set(phash, key2, strlen(key2), value2, strlen(value2));
+        fhash_set(phash, key3, strlen(key3), value3, strlen(value3));
+        fhash_set(phash, key4, strlen(key4), value4, strlen(value4));
+
+        fhash_iter iter = fhash_iter_new(phash);
+        FTU_ASSERT(phash->iter_refs == 1);
+
+        char* data = NULL;
+        int value1_exist = 0;
+        int value2_exist = 0;
+        int value3_exist = 0;
+        int value4_exist = 0;
+        int loop_cnt = 0;
+
+        while ((data = (char*)fhash_next(&iter))) {
+            loop_cnt++;
+
+            if (strcmp(data, value1) == 0) {
+                value1_exist = 1;
+
+                FTU_ASSERT(iter.key_sz == (key_sz_t)strlen(key1));
+                FTU_ASSERT(iter.value_sz == (value_sz_t)strlen(value1));
+                FTU_ASSERT(0 == strcmp(key1, iter.key));
+
+                int ret = fhash_rehash(phash, 20);
+                FTU_ASSERT(ret == 1);
+            } else if (strcmp(data, value2) == 0) {
+                value2_exist = 1;
+
+                FTU_ASSERT(iter.key_sz == (key_sz_t)strlen(key2));
+                FTU_ASSERT(iter.value_sz == (value_sz_t)strlen(value2));
+                FTU_ASSERT(0 == strcmp(key2, iter.key));
+
+                int ret = fhash_rehash(phash, 20);
+                FTU_ASSERT(ret == 1);
+            } else if (strcmp(data, value3) == 0) {
+                value3_exist = 1;
+
+                FTU_ASSERT(iter.key_sz == (key_sz_t)strlen(key3));
+                FTU_ASSERT(iter.value_sz == (value_sz_t)strlen(value3));
+                FTU_ASSERT(0 == strcmp(key3, iter.key));
+
+                int ret = fhash_rehash(phash, 20);
+                FTU_ASSERT(ret == 1);
+            } else if (strcmp(data, value4) == 0) {
+                value4_exist = 1;
+
+                FTU_ASSERT(iter.key_sz == (key_sz_t)strlen(key4));
+                FTU_ASSERT(iter.value_sz == (value_sz_t)strlen(value4));
+                FTU_ASSERT(0 == strcmp(key4, iter.key));
+
+                int ret = fhash_rehash(phash, 20);
+                FTU_ASSERT(ret == 1);
+            }
+        }
+
+        FTU_ASSERT(value1_exist == 1);
+        FTU_ASSERT(value2_exist == 1);
+        FTU_ASSERT(value3_exist == 1);
+        FTU_ASSERT(value4_exist == 1);
+        FTU_ASSERT(loop_cnt == 4);
+
+        fhash_iter_release(&iter);
+        FTU_ASSERT(phash->iter_refs == 0);
+        FTU_ASSERT(phash->current->index_size == 10);
+        FTU_ASSERT(phash->current->index_used == 4);
+        FTU_ASSERT(phash->current->slots_used == 4);
+
+        fhash_delete(phash);
     }
 
     // test reset the value of a key
