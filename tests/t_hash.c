@@ -748,9 +748,43 @@ void test_hash_core()
         fhash_delete(phash);
     }
 
-    // test delete a empty key or empty value
+    // test delete a empty key
     {
+        fhash_opt opt;
+        opt.hash_alg = NULL;
+        opt.compare = hash_core_compare;
+        fhash* phash = fhash_create(0, opt, NULL, FHASH_MASK_NONE);
 
+        char key[] = "test_key";
+        char value[] = "test_value";
+        fhash_set(phash, key, strlen(key), value, strlen(value));
+        FTU_ASSERT(phash->temporary == NULL);
+        FTU_ASSERT(phash->iter_refs == 0);
+        FTU_ASSERT(phash->current->index_size == 10);
+        FTU_ASSERT(phash->current->index_used == 1);
+        FTU_ASSERT(phash->current->slots_used == 1);
+
+        value_sz_t ret_value_sz = 0;
+        char* ret_value = (char*)fhash_get(phash, key, strlen(key),
+                                           &ret_value_sz);
+        FTU_ASSERT(strcmp(ret_value, value) == 0);
+        FTU_ASSERT((size_t)ret_value_sz == strlen(value));
+
+        FTU_ASSERT(phash->temporary == NULL);
+        FTU_ASSERT(phash->iter_refs == 0);
+        FTU_ASSERT(phash->current->index_size == 10);
+        FTU_ASSERT(phash->current->index_used == 1);
+        FTU_ASSERT(phash->current->slots_used == 1);
+
+        char key2[] = "";
+        fhash_del(phash, key2, strlen(key2));
+        FTU_ASSERT(phash->temporary == NULL);
+        FTU_ASSERT(phash->iter_refs == 0);
+        FTU_ASSERT(phash->current->index_size == 10);
+        FTU_ASSERT(phash->current->index_used == 1);
+        FTU_ASSERT(phash->current->slots_used == 1);
+
+        fhash_delete(phash);
     }
 
     // test delete a non-exist key
