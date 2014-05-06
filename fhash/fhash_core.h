@@ -57,7 +57,7 @@ void       fhash_set(fhash*,
                const void* key, key_sz_t key_sz,
                const void* value, value_sz_t value_sz);
 void*      fhash_get(fhash*, const void* key, key_sz_t key_sz,
-                     value_sz_t* value_sz);
+               value_sz_t* value_sz);
 void       fhash_del(fhash*, const void* key, key_sz_t key_sz);
 void*      fhash_fetch_and_del(fhash* phash,
                const void* key, key_sz_t key_sz,

@@ -755,6 +755,7 @@ void fhash_delete(fhash* phash)
 
     _hash_tbl_delete(phash->current);
     _hash_tbl_delete(phash->temporary);
+    _hash_nodemgr_destroy(&phash->delayed_actions);
     free(phash);
 }
 
