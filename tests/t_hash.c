@@ -644,7 +644,54 @@ void test_hash_core()
 
     // test rehash
     {
+        fhash_opt opt;
+        opt.hash_alg = NULL;
+        opt.compare = hash_core_compare;
+        fhash* phash = fhash_create(0, opt, NULL, FHASH_MASK_NONE);
 
+        char key1[] = "test_key1";
+        char key2[] = "test_key2";
+        char key3[] = "test_key3";
+        char key4[] = "test_key4";
+        char value1[] = "test_value1";
+        char value2[] = "test_value2";
+        char value3[] = "test_value3";
+        char value4[] = "test_value4";
+        fhash_set(phash, key1, strlen(key1), value1, strlen(value1));
+        fhash_set(phash, key2, strlen(key2), value2, strlen(value2));
+        fhash_set(phash, key3, strlen(key3), value3, strlen(value3));
+        fhash_set(phash, key4, strlen(key4), value4, strlen(value4));
+
+        int ret = fhash_rehash(phash, 20);
+        FTU_ASSERT(ret == 0);
+        FTU_ASSERT(phash->temporary == NULL);
+        FTU_ASSERT(phash->current->index_size == 20);
+        FTU_ASSERT(phash->current->index_used == 4);
+        FTU_ASSERT(phash->current->slots_used == 4);
+        FTU_ASSERT(phash->delayed_actions.size == 0);
+        FTU_ASSERT(phash->delayed_actions.used == 0);
+
+        value_sz_t value_sz = 0;
+        char* data = fhash_get(phash, key1, strlen(key1), &value_sz);
+        FTU_ASSERT((size_t)value_sz == strlen(value1));
+        FTU_ASSERT(strcmp(data, value1) == 0);
+
+        value_sz = 0;
+        data = fhash_get(phash, key2, strlen(key2), &value_sz);
+        FTU_ASSERT((size_t)value_sz == strlen(value2));
+        FTU_ASSERT(strcmp(data, value2) == 0);
+
+        value_sz = 0;
+        data = fhash_get(phash, key3, strlen(key3), &value_sz);
+        FTU_ASSERT((size_t)value_sz == strlen(value3));
+        FTU_ASSERT(strcmp(data, value3) == 0);
+
+        value_sz = 0;
+        data = fhash_get(phash, key4, strlen(key4), &value_sz);
+        FTU_ASSERT((size_t)value_sz == strlen(value4));
+        FTU_ASSERT(strcmp(data, value4) == 0);
+
+        fhash_delete(phash);
     }
 
     // test auto rehash
