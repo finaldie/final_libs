@@ -368,8 +368,11 @@ void test_hash_core()
         int value2_exist = 0;
         int value3_exist = 0;
         int value4_exist = 0;
+        int loop_cnt = 0;
 
         while ((data = (char*)fhash_next(&iter))) {
+            loop_cnt++;
+
             if (strcmp(data, value1) == 0) {
                 value1_exist = 1;
 
@@ -401,6 +404,7 @@ void test_hash_core()
         FTU_ASSERT(value2_exist == 1);
         FTU_ASSERT(value3_exist == 1);
         FTU_ASSERT(value4_exist == 1);
+        FTU_ASSERT(loop_cnt == 4);
 
         fhash_iter_release(&iter);
         FTU_ASSERT(phash->iter_refs == 0);
@@ -410,10 +414,76 @@ void test_hash_core()
 
     // add key/value pair during iteration
     {
+        fhash_opt opt;
+        opt.hash_alg = NULL;
+        opt.compare = hash_core_compare;
+        fhash* phash = fhash_create(0, opt, NULL, FHASH_MASK_NONE);
 
+        char key1[] = "test_key1";
+        char key2[] = "test_key2";
+        char value1[] = "test_value1";
+        char value2[] = "test_value2";
+
+        fhash_set(phash, key1, strlen(key1), value1, strlen(value1));
+        fhash_set(phash, key2, strlen(key2), value2, strlen(value2));
+
+        FTU_ASSERT(phash->iter_refs == 0);
+        FTU_ASSERT(phash->current->index_size == 10);
+        FTU_ASSERT(phash->current->index_used == 2);
+        FTU_ASSERT(phash->current->slots_used == 2);
+
+        char key3[] = "test_key3";
+        char key4[] = "test_key4";
+        char value3[] = "test_value3";
+        char value4[] = "test_value4";
+
+        fhash_iter iter = fhash_iter_new(phash);
+        char* data = NULL;
+        int loop_cnt = 0;
+        int key1_exist = 0;
+        int key2_exist = 0;
+
+        while ((data = (char*)fhash_next(&iter))) {
+            loop_cnt++;
+
+            if (strcmp(data, value1) == 0) {
+                key1_exist = 1;
+
+                fhash_set(phash, key3, strlen(key3), value3, strlen(value3));
+                FTU_ASSERT(phash->current->index_size == 10);
+                FTU_ASSERT(phash->current->index_used == 2);
+                FTU_ASSERT(phash->current->slots_used == 2);
+            } else if (strcmp(data, value2) == 0) {
+                key2_exist = 1;
+
+                fhash_set(phash, key4, strlen(key4), value4, strlen(value4));
+                FTU_ASSERT(phash->current->index_size == 10);
+                FTU_ASSERT(phash->current->index_used == 2);
+                FTU_ASSERT(phash->current->slots_used == 2);
+            } else {
+                // shouldn't reach here
+                printf("FATAL: data: %s\n", data);
+                FTU_ASSERT(0);
+            }
+        }
+
+        FTU_ASSERT(loop_cnt == 2);
+        FTU_ASSERT(key1_exist == 1);
+        FTU_ASSERT(key2_exist == 1);
+        FTU_ASSERT(phash->delayed_actions.used == 2);
+        FTU_ASSERT(phash->delayed_actions.size == 2);
+
+        fhash_iter_release(&iter);
+        FTU_ASSERT(phash->iter_refs == 0);
+        FTU_ASSERT(phash->current->index_size == 10);
+        FTU_ASSERT(phash->current->index_used == 4);
+        FTU_ASSERT(phash->current->slots_used == 4);
+        FTU_ASSERT(phash->delayed_actions.size == 2);
+        FTU_ASSERT(phash->delayed_actions.used == 0);
+        fhash_delete(phash);
     }
 
-    // set key/value pair during iteration
+    // set key during iteration
     {
 
     }
@@ -424,6 +494,11 @@ void test_hash_core()
     }
 
     // test rehash
+    {
+
+    }
+
+    // rehash duiring iteration
     {
 
     }

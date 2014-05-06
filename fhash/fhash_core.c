@@ -454,11 +454,11 @@ void _hash_tbl_set(_fhash* table, fhash_opt* opt,
 
     _fhash_node* node = _hash_nodemgr_find(mgr, opt, key, key_sz, NODE_VALID);
     if (!node) {
-        size_t old_index_used = _hash_nodemgr_size(mgr);
+        size_t old_used = _hash_nodemgr_size(mgr);
         _hash_nodemgr_add(mgr, key, key_sz, value, value_sz);
         table->slots_used++;
 
-        if ( old_index_used == 0) {
+        if (old_used == 0) {
             table->index_used++;
         }
     } else {
@@ -681,11 +681,17 @@ int _hash_try_rehash(fhash* phash)
 }
 
 static
-void _hash_set_delay(fhash* phash,
+void _hash_set_delay(fhash* phash, fhash_opt* opt,
                      const void* key, key_sz_t key_sz,
                      const void* value, value_sz_t value_sz)
 {
-    _hash_nodemgr_add(&phash->delayed_actions, key, key_sz, value, value_sz);
+    _fhash_node_mgr* mgr = &phash->delayed_actions;
+    _fhash_node* node = _hash_nodemgr_find(mgr, opt, key, key_sz, NODE_VALID);
+    if (!node) {
+        _hash_nodemgr_add(mgr, key, key_sz, value, value_sz);
+    } else {
+        _hash_nodemgr_set(mgr, node, key, key_sz, value, value_sz);
+    }
 }
 
 static
@@ -716,7 +722,7 @@ void _hash_perform_actions(fhash* phash)
     }
 
     phash->mask.performing = 0;
-    assert(_hash_nodemgr_size(actions) == 0);
+    assert(_hash_nodemgr_used(actions) == 0);
 }
 
 //===================================OPEN API===================================
@@ -763,7 +769,7 @@ void fhash_set(fhash* phash,
         int success = _hash_tbl_set_only(table, &phash->opt,
                                          key, key_sz, value, value_sz);
         if (!success) {
-            _hash_set_delay(phash, key, key_sz, value, value_sz);
+            _hash_set_delay(phash, &phash->opt, key, key_sz, value, value_sz);
         }
         return;
     }
