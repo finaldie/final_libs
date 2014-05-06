@@ -763,7 +763,9 @@ void fhash_set(fhash* phash,
                const void* key, key_sz_t key_sz,
                const void* value, value_sz_t value_sz)
 {
-    assert(phash && key && key_sz > 0 && value && value_sz > 0);
+    if (!phash || !key || key_sz <= 0 || !value || value_sz <= 0) {
+        return;
+    }
 
     _fhash* table = phash->current;
     if (phash->iter_refs > 0) {
@@ -785,7 +787,9 @@ void fhash_set(fhash* phash,
 void* fhash_get(fhash* phash, const void* key, key_sz_t key_sz,
                 value_sz_t* value_sz)
 {
-    assert(phash && key && key_sz > 0);
+    if (!phash || !key || key_sz <= 0) {
+        return NULL;
+    }
 
     _fhash* table = phash->current;
     return _hash_tbl_get(table, &phash->opt, key, key_sz, value_sz);
@@ -873,9 +877,7 @@ void fhash_foreach(fhash* phash, fhash_each_cb cb)
 
 int fhash_rehash(fhash* phash, uint32_t new_size)
 {
-    assert(phash && !phash->temporary);
-
-    if (!_hash_can_rehash(phash)) {
+    if (!phash || !_hash_can_rehash(phash)) {
         return 1;
     }
 
