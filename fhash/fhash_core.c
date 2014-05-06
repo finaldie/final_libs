@@ -377,9 +377,11 @@ _fhash_node* _hash_nodemgr_next(_fhash_node_mgr* mgr, fhash_iter* iter,
     size_t slot_idx = iter->slot;
 
     _fhash_node* node = NULL;
+    _fhash_node* tmp = NULL;
     for (; slot_idx < mgr->size; slot_idx++) {
-        node = &mgr->node_list[slot_idx];
-        if (node->valid == target) {
+        tmp = &mgr->node_list[slot_idx];
+        if (tmp->valid == target) {
+            node = tmp;
             break;
         }
     }
@@ -635,7 +637,7 @@ static
 int _hash_need_rehash(fhash* phash)
 {
     _fhash* table = phash->current;
-    if (table->slots_used / table->index_size < AUTO_REHASH_THRESHOLD) {
+    if (table->slots_used / table->index_size <= AUTO_REHASH_THRESHOLD) {
         return 0;
     }
 
