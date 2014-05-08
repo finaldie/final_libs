@@ -2,17 +2,20 @@
 
 TARGET = libfhash
 
-INCLUDE_FILES = fhash_core.h \
-		fhash.h
+INCLUDE_FILES = \
+    fhash_core.h \
+    fhash_int.h \
+    fhash.h
 
 INC =
 LL =
 LIBS =
 
-SRCS = fhash_core.c \
-       fhash_int.c \
-       fhash_uint64.c \
-       fhash_str.c
+SRCS = \
+    fhash_core.c \
+    fhash_int.c \
+    fhash_uint64.c \
+    fhash_str.c
 
 OBJS = $(patsubst %.c, %.o, $(SRCS))
 

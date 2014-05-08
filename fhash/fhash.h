@@ -9,14 +9,7 @@ extern "C" {
 #endif
 
 #include "fhash_core.h"
-
-// hash table for: int - void*
-fhash* fhash_int_create(uint32_t init_size, void* ud, uint32_t flags);
-void   fhash_int_delete(fhash*);
-
-void   fhash_int_set(fhash*, int key, void* value);
-void*  fhash_int_get(fhash*, int key);
-void*  fhash_int_del(fhash*, int key);
+#include "fhash_int.h"
 
 // hash table for: uint64 - void*
 fhash* fhash_uint64_create(uint32_t init_size, void* ud, uint32_t flags);
