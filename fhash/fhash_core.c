@@ -602,15 +602,14 @@ void _hash_rehash(fhash* phash, uint32_t new_size)
 
     // 1. lock on rehashing mask
     // 2. migrate all key-value pairs from old table to new table
-    // 3. swap current with temporary pointer then release the old table
+    // 3. release the old table
     // 4. unlock rehashing mask
 
     // 1.
     phash->mask.rehashing = 1;
 
     // 2.
-    phash->temporary = _hash_tbl_create(new_size);
-    _fhash* new_table = phash->temporary;
+    _fhash* new_table = _hash_tbl_create(new_size);
 
     fhash_iter iter = fhash_iter_new(phash);
     void* data = NULL;
@@ -624,8 +623,7 @@ void _hash_rehash(fhash* phash, uint32_t new_size)
 
     // 3.
     _fhash* discarded_tbl = phash->current;
-    phash->current = phash->temporary;
-    phash->temporary = NULL;
+    phash->current = new_table;
 
     _hash_tbl_delete(discarded_tbl);
 
@@ -703,8 +701,8 @@ void _hash_perform_actions(fhash* phash)
 
     _fhash_node_mgr* actions = &phash->delayed_actions;
     size_t action_cnt = _hash_nodemgr_size(actions);
-    if (action_cnt== 0) {
-        return;
+    if (action_cnt == 0) {
+        goto performing_end;
     }
 
     _fhash* table = phash->current;
@@ -723,6 +721,7 @@ void _hash_perform_actions(fhash* phash)
         _hash_nodemgr_del(actions, node);
     }
 
+performing_end:
     phash->mask.performing = 0;
     assert(_hash_nodemgr_used(actions) == 0);
 }

@@ -261,7 +261,70 @@ void test_hash_int()
 
     // rehash
     {
+        fhash* phash = fhash_int_create(0, FHASH_MASK_NONE);
 
+        int key = 10;
+        char value[] = "test_value";
+        int key2 = 11;
+        char value2[] = "test_value2";
+        int key3 = 12;
+        char value3[] = "test_value3";
+        int key4 = 13;
+        char value4[] = "test_value4";
+        int key5 = 14;
+        char value5[] = "test_value5";
+        int key6 = 15;
+        char value6[] = "test_value6";
+
+        fhash_int_set(phash, key, value);
+        fhash_int_set(phash, key2, value2);
+        fhash_int_set(phash, key3, value3);
+        fhash_int_set(phash, key4, value4);
+        fhash_int_set(phash, key5, value5);
+        fhash_int_set(phash, key6, value6);
+
+        // before rehash
+        {
+            _foreach_data ud;
+            memset(&ud, 0, sizeof(ud));
+            ud.test_data = 100;
+            fhash_int_foreach(phash, hash_int_each, &ud);
+
+            FTU_ASSERT(ud.loop_cnt == 6);
+            FTU_ASSERT(ud.v1_exist == 1);
+            FTU_ASSERT(ud.v2_exist == 1);
+            FTU_ASSERT(ud.v3_exist == 1);
+            FTU_ASSERT(ud.v4_exist == 1);
+            FTU_ASSERT(ud.v5_exist == 1);
+            FTU_ASSERT(ud.v6_exist == 1);
+        }
+
+        int ret = fhash_rehash(phash, 20);
+        FTU_ASSERT(ret == 0);
+        FTU_ASSERT(phash->temporary == NULL);
+        FTU_ASSERT(phash->current->index_size == 20);
+        FTU_ASSERT(phash->current->index_used == 6);
+        FTU_ASSERT(phash->current->slots_used == 6);
+        FTU_ASSERT(phash->delayed_actions.size == 0);
+        FTU_ASSERT(phash->delayed_actions.used == 0);
+
+        // after rehash
+        {
+            _foreach_data ud;
+            memset(&ud, 0, sizeof(ud));
+            ud.test_data = 100;
+            fhash_int_foreach(phash, hash_int_each, &ud);
+
+            FTU_ASSERT(ud.loop_cnt == 6);
+            FTU_ASSERT(ud.v1_exist == 1);
+            FTU_ASSERT(ud.v2_exist == 1);
+            FTU_ASSERT(ud.v3_exist == 1);
+            FTU_ASSERT(ud.v4_exist == 1);
+            FTU_ASSERT(ud.v5_exist == 1);
+            FTU_ASSERT(ud.v6_exist == 1);
+        }
+
+        fhash_int_delete(phash);
     }
 }
 
@@ -888,7 +951,6 @@ void test_hash_core()
         FTU_ASSERT(phash->delayed_actions.size == 0);
         FTU_ASSERT(phash->delayed_actions.used == 0);
 
-        printf("=============================\n");
         char key5[] = "test_value5";
         char value5[] = "test_value5";
         fhash_set(phash, key5, strlen(key5), value5, strlen(value5));
@@ -898,6 +960,9 @@ void test_hash_core()
         FTU_ASSERT(phash->current->slots_used == 5);
         FTU_ASSERT(phash->delayed_actions.size == 0);
         FTU_ASSERT(phash->delayed_actions.used == 0);
+        FTU_ASSERT(phash->mask.rehashing == 0);
+        FTU_ASSERT(phash->mask.performing == 0);
+        FTU_ASSERT(phash->mask.auto_rehash == 1);
 
         value_sz_t value_sz = 0;
         char* data = fhash_get(phash, key1, strlen(key1), &value_sz);
@@ -1010,6 +1075,8 @@ void test_hash_core()
         FTU_ASSERT(phash->current->index_size == 10);
         FTU_ASSERT(phash->current->index_used == 4);
         FTU_ASSERT(phash->current->slots_used == 4);
+        FTU_ASSERT(phash->mask.rehashing == 0);
+        FTU_ASSERT(phash->mask.performing == 0);
 
         fhash_delete(phash);
     }
