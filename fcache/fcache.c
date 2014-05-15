@@ -27,7 +27,7 @@ fcache_t* fcache_create(size_t max_size, cache_obj_free obj_free)
     if ( !pcache ) return NULL;
     memset(pcache, 0, sizeof(fcache_t));
 
-    pcache->phash_node_index = fhash_str_create(max_size * 1.5, NULL,
+    pcache->phash_node_index = fhash_str_create(max_size * 1.5,
                                                 FHASH_MASK_NONE);
 
     pcache->pactive_list = fcache_list_create();
@@ -67,7 +67,7 @@ void      _fcache_destroy_list(fc_list* plist, cache_obj_free obj_free)
 void      fcache_destroy(fcache_t* pcache)
 {
     if ( !pcache ) return;
-    fhash_delete(pcache->phash_node_index);
+    fhash_str_delete(pcache->phash_node_index);
     _fcache_destroy_list(pcache->pactive_list, pcache->obj_free);
     _fcache_destroy_list(pcache->pinactive_list, pcache->obj_free);
     free(pcache);

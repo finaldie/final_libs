@@ -89,8 +89,7 @@ fev_state*    fev_create(int max_ev_size)
 
     fev->fevents = (fev_event*)malloc( sizeof(fev_event) * max_ev_size );
     fev->firelist = (int*)malloc( sizeof(int) * max_ev_size );
-    fev->module_tbl = fhash_str_create(FEV_DEFAULT_MODULE_CNT, NULL,
-                                       FHASH_MASK_NONE);
+    fev->module_tbl = fhash_str_create(FEV_DEFAULT_MODULE_CNT, FHASH_MASK_NONE);
 
     fev->max_ev_size = max_ev_size;
     fev_clear_firelist(fev);
@@ -114,17 +113,17 @@ void    fev_destroy(fev_state* fev)
 
     // delete module's private data first
     fev_module_t* module = NULL;
-    fhash_iter iter = fhash_iter_new(fev->module_tbl);
-    while ((module = (fev_module_t*)fhash_next(&iter))) {
+    fhash_str_iter iter = fhash_str_iter_new(fev->module_tbl);
+    while ((module = (fev_module_t*)fhash_str_next(&iter))) {
         if( module->fev_module_unload ) {
             module->fev_module_unload(fev, module->ud);
         }
 
         free(module);
     }
-    fhash_iter_release(&iter);
+    fhash_str_iter_release(&iter);
 
-    fhash_delete(fev->module_tbl);
+    fhash_str_delete(fev->module_tbl);
     fev_state_destroy(fev);
     free(fev->fevents);
     free(fev->firelist);

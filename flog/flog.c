@@ -614,12 +614,10 @@ void _log_async_process(thread_data_t* th_data, unsigned int process_num)
 
 static inline
 int _log_process_timeout(void* ud,
-                         const void* key, key_sz_t key_sz,
-                         void* value, value_sz_t value_sz)
+                         const char* key,
+                         void* value)
 {
-    assert(value_sz == sizeof(log_file_t*));
-
-    log_file_t* f = *(log_file_t**)value;
+    log_file_t* f = (log_file_t*)value;
     time_t now = time(NULL);
     if ( now - f->last_flush_time >= g_log->flush_interval ) {
         _log_flush_file(f, now);
@@ -643,7 +641,7 @@ LOG_LOOP:
     // timeout
     if ( unlikely(nums == 0) ) {
         pthread_mutex_lock(&g_log->lock);
-        fhash_foreach(g_log->phash, _log_process_timeout, NULL);
+        fhash_str_foreach(g_log->phash, _log_process_timeout, NULL);
         pthread_mutex_unlock(&g_log->lock);
     }
 
@@ -719,7 +717,7 @@ void _log_init()
     }
 
     t_log->epfd = epfd;
-    t_log->phash = fhash_str_create(0, NULL, FHASH_MASK_NONE);
+    t_log->phash = fhash_str_create(0, FHASH_MASK_NONE);
     pthread_mutex_init(&t_log->lock, NULL);
     pthread_key_create(&t_log->key, _user_thread_destroy);
     t_log->event_cb = NULL;
