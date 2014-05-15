@@ -66,7 +66,7 @@ void*      fhash_fetch_and_del(fhash* phash,
 fhash_iter fhash_iter_new(fhash*);
 void       fhash_iter_release(fhash_iter*);
 void*      fhash_next(fhash_iter*);
-void       fhash_foreach(fhash*, fhash_each_cb);
+void       fhash_foreach(fhash*, fhash_each_cb, void* ud);
 
 int        fhash_rehash(fhash*, uint32_t new_size);
 

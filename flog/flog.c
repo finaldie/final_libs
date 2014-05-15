@@ -643,7 +643,7 @@ LOG_LOOP:
     // timeout
     if ( unlikely(nums == 0) ) {
         pthread_mutex_lock(&g_log->lock);
-        fhash_foreach(g_log->phash, _log_process_timeout);
+        fhash_foreach(g_log->phash, _log_process_timeout, NULL);
         pthread_mutex_unlock(&g_log->lock);
     }
 

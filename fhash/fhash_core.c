@@ -863,13 +863,13 @@ void* fhash_next(fhash_iter* iter)
     return _hash_tbl_next(iter);
 }
 
-void fhash_foreach(fhash* phash, fhash_each_cb cb)
+void fhash_foreach(fhash* phash, fhash_each_cb cb, void* ud)
 {
     fhash_iter iter = fhash_iter_new(phash);
 
     void* data = NULL;
     while ((data = fhash_next(&iter))) {
-        if (cb(phash->ud, iter.key, iter.key_sz, iter.value, iter.value_sz)) {
+        if (cb(ud, iter.key, iter.key_sz, iter.value, iter.value_sz)) {
             break;
         }
     }

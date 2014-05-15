@@ -3,12 +3,6 @@
 
 #include "fhash_int.h"
 
-// fhash_int is the same as fhash
-struct fhash_int {
-    fhash* phash;
-    void*  ud;
-};
-
 // INTERNAL
 static
 int _hash_int_compare(const void* key1, key_sz_t key_sz1,
@@ -22,34 +16,28 @@ int _hash_int_compare(const void* key1, key_sz_t key_sz1,
 }
 
 // API
-fhash_int* fhash_int_create(uint32_t init_size, void* ud, uint32_t flags)
+fhash* fhash_int_create(uint32_t init_size, uint32_t flags)
 {
     fhash_opt opt;
     opt.hash_alg = NULL;
     opt.compare = _hash_int_compare;
 
-    fhash* phash = fhash_create(init_size, opt, ud, flags);
-    fhash_int* hash_int = malloc(sizeof(*hash_int));
-    hash_int->phash = phash;
-    hash_int->ud = ud;
-    return hash_int;
+    return fhash_create(init_size, opt, NULL, flags);
 }
 
-void fhash_int_delete(fhash_int* hash_int)
+void fhash_int_delete(fhash* phash)
 {
-    fhash_delete(hash_int->phash);
-    free(hash_int);
+    fhash_delete(phash);
 }
 
-void fhash_int_set(fhash_int* hash_int, int key, void* value)
+void fhash_int_set(fhash* phash, int key, void* value)
 {
-    fhash_set(hash_int->phash, (void*)&key, sizeof(key), &value, sizeof(value));
+    fhash_set(phash, (void*)&key, sizeof(key), &value, sizeof(value));
 }
 
-void* fhash_int_get(fhash_int* hash_int, int key)
+void* fhash_int_get(fhash* phash, int key)
 {
-    void** value = fhash_get(hash_int->phash, (void*)&key, sizeof(key),
-                                     NULL);
+    void** value = fhash_get(phash, (void*)&key, sizeof(key), NULL);
     if (value) {
         return *value;
     } else {
@@ -57,18 +45,18 @@ void* fhash_int_get(fhash_int* hash_int, int key)
     }
 }
 
-void* fhash_int_del(fhash_int* hash_int, int key)
+void* fhash_int_del(fhash* phash, int key)
 {
     void* value = NULL;
-    fhash_fetch_and_del(hash_int->phash, (void*)&key, sizeof(key),
+    fhash_fetch_and_del(phash, (void*)&key, sizeof(key),
                         &value, sizeof(value));
     return value;
 }
 
-fhash_int_iter fhash_int_iter_new(fhash_int* hash_int)
+fhash_int_iter fhash_int_iter_new(fhash* phash)
 {
     fhash_int_iter iter;
-    iter.iter = fhash_iter_new(hash_int->phash);
+    iter.iter = fhash_iter_new(phash);
     iter.key = 0;
     iter.value = NULL;
 
@@ -92,13 +80,13 @@ void* fhash_int_next(fhash_int_iter* iter)
     return iter->value;
 }
 
-void fhash_int_foreach(fhash_int* hash_int, fhash_int_each_cb cb)
+void fhash_int_foreach(fhash* phash, fhash_int_each_cb cb, void* ud)
 {
-    fhash_int_iter iter = fhash_int_iter_new(hash_int);
+    fhash_int_iter iter = fhash_int_iter_new(phash);
 
     void* data = NULL;
     while ((data = fhash_int_next(&iter))) {
-        if (cb(hash_int->ud, iter.key, iter.value)) {
+        if (cb(ud, iter.key, iter.value)) {
             break;
         }
     }

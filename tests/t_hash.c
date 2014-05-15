@@ -13,10 +13,6 @@
 #include "fhash/fhash_int.h"
 #include "inc.h"
 
-#define LOOP 10000
-
-static int total_count = 0;
-
 //=====================FAKE STRUCTURE===========================================
 typedef uint64_t data_sz_t;
 
@@ -75,12 +71,16 @@ struct fhash {
 };
 //=====================FAKE STRUCTURE END=======================================
 
-int test_print(void* data __attribute__((unused)))
-{
-    //printf("key=%s(%d), value=%s\n", key, hash_atoi(key), (char*)data);
-    total_count++;
-    return 0;
-}
+typedef struct _foreach_data {
+    int test_data; // store a number for validation
+    int loop_cnt;
+    int v1_exist;
+    int v2_exist;
+    int v3_exist;
+    int v4_exist;
+    int v5_exist;
+    int v6_exist;
+} _foreach_data;
 
 // return 0: key1 is same as key2
 // return non-zero: key1 is different with key2
@@ -94,17 +94,42 @@ int hash_core_compare(const void* key1, key_sz_t key_sz1,
     return memcmp(key1, key2, key_sz1);
 }
 
+int hash_int_each(void* ud, int key, void* value)
+{
+    _foreach_data* data = (_foreach_data*)ud;
+    FTU_ASSERT(data->test_data == 100);
+    data->loop_cnt++;
+
+    if (strcmp(value, "test_value") == 0) {
+        data->v1_exist = 1;
+    } else if (strcmp(value, "test_value2") == 0) {
+        data->v2_exist = 1;
+    } else if (strcmp(value, "test_value3") == 0) {
+        data->v3_exist = 1;
+    } else if (strcmp(value, "test_value4") == 0) {
+        data->v4_exist = 1;
+    } else if (strcmp(value, "test_value5") == 0) {
+        data->v5_exist = 1;
+    } else if (strcmp(value, "test_value6") == 0) {
+        data->v6_exist = 1;
+    } else {
+        FTU_ASSERT(0);
+    }
+
+    return 0;
+}
+
 void test_hash_int()
 {
     // create/delete
     {
-        fhash_int* phash = fhash_int_create(0, NULL, FHASH_MASK_NONE);
+        fhash* phash = fhash_int_create(0, FHASH_MASK_NONE);
         fhash_int_delete(phash);
     }
 
     // set/get/del
     {
-        fhash_int* phash = fhash_int_create(0, NULL, FHASH_MASK_NONE);
+        fhash* phash = fhash_int_create(0, FHASH_MASK_NONE);
 
         int key = 10;
         char value[] = "test_value";
@@ -119,7 +144,7 @@ void test_hash_int()
 
     // iteration
     {
-        fhash_int* phash = fhash_int_create(0, NULL, FHASH_MASK_NONE);
+        fhash* phash = fhash_int_create(0, FHASH_MASK_NONE);
 
         int key = 10;
         char value[] = "test_value";
@@ -196,7 +221,42 @@ void test_hash_int()
 
     // foreach
     {
+        fhash* phash = fhash_int_create(0, FHASH_MASK_NONE);
 
+        int key = 10;
+        char value[] = "test_value";
+        int key2 = 11;
+        char value2[] = "test_value2";
+        int key3 = 12;
+        char value3[] = "test_value3";
+        int key4 = 13;
+        char value4[] = "test_value4";
+        int key5 = 14;
+        char value5[] = "test_value5";
+        int key6 = 15;
+        char value6[] = "test_value6";
+
+        fhash_int_set(phash, key, value);
+        fhash_int_set(phash, key2, value2);
+        fhash_int_set(phash, key3, value3);
+        fhash_int_set(phash, key4, value4);
+        fhash_int_set(phash, key5, value5);
+        fhash_int_set(phash, key6, value6);
+
+        _foreach_data ud;
+        memset(&ud, 0, sizeof(ud));
+        ud.test_data = 100;
+        fhash_int_foreach(phash, hash_int_each, &ud);
+
+        FTU_ASSERT(ud.loop_cnt == 6);
+        FTU_ASSERT(ud.v1_exist == 1);
+        FTU_ASSERT(ud.v2_exist == 1);
+        FTU_ASSERT(ud.v3_exist == 1);
+        FTU_ASSERT(ud.v4_exist == 1);
+        FTU_ASSERT(ud.v5_exist == 1);
+        FTU_ASSERT(ud.v6_exist == 1);
+
+        fhash_int_delete(phash);
     }
 
     // rehash
