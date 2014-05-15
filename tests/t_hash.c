@@ -119,6 +119,31 @@ int hash_int_each(void* ud, int key, void* value)
     return 0;
 }
 
+int hash_u64_each(void* ud, uint64_t key, void* value)
+{
+    _foreach_data* data = (_foreach_data*)ud;
+    FTU_ASSERT(data->test_data == 100);
+    data->loop_cnt++;
+
+    if (strcmp(value, "test_value") == 0) {
+        data->v1_exist = 1;
+    } else if (strcmp(value, "test_value2") == 0) {
+        data->v2_exist = 1;
+    } else if (strcmp(value, "test_value3") == 0) {
+        data->v3_exist = 1;
+    } else if (strcmp(value, "test_value4") == 0) {
+        data->v4_exist = 1;
+    } else if (strcmp(value, "test_value5") == 0) {
+        data->v5_exist = 1;
+    } else if (strcmp(value, "test_value6") == 0) {
+        data->v6_exist = 1;
+    } else {
+        FTU_ASSERT(0);
+    }
+
+    return 0;
+}
+
 void test_hash_int()
 {
     // create/delete
@@ -330,6 +355,210 @@ void test_hash_int()
 
 void test_hash_uint64()
 {
+    // create/delete
+    {
+        fhash* phash = fhash_u64_create(0, FHASH_MASK_NONE);
+        fhash_u64_delete(phash);
+    }
+
+    // set/get/del
+    {
+        fhash* phash = fhash_u64_create(0, FHASH_MASK_NONE);
+
+        int key = 10;
+        char value[] = "test_value";
+        fhash_u64_set(phash, key, value);
+        char* ret = fhash_u64_get(phash, key);
+        FTU_ASSERT(strcmp(ret, value) == 0);
+        char* ret1 = fhash_u64_del(phash, key);
+        FTU_ASSERT(strcmp(ret1, value) == 0);
+
+        fhash_u64_delete(phash);
+    }
+
+    // iteration
+    {
+        fhash* phash = fhash_u64_create(0, FHASH_MASK_NONE);
+
+        int key = 10;
+        char value[] = "test_value";
+        int key2 = 11;
+        char value2[] = "test_value2";
+        int key3 = 12;
+        char value3[] = "test_value3";
+        int key4 = 13;
+        char value4[] = "test_value4";
+        int key5 = 14;
+        char value5[] = "test_value5";
+        int key6 = 15;
+        char value6[] = "test_value6";
+
+        fhash_u64_set(phash, key, value);
+        fhash_u64_set(phash, key2, value2);
+        fhash_u64_set(phash, key3, value3);
+        fhash_u64_set(phash, key4, value4);
+        fhash_u64_set(phash, key5, value5);
+        fhash_u64_set(phash, key6, value6);
+
+        fhash_u64_iter iter = fhash_u64_iter_new(phash);
+        char* data = NULL;
+        int v1_exist = 0;
+        int v2_exist = 0;
+        int v3_exist = 0;
+        int v4_exist = 0;
+        int v5_exist = 0;
+        int v6_exist = 0;
+        int loop_cnt = 0;
+
+        while ((data = fhash_u64_next(&iter))) {
+            loop_cnt++;
+
+            if (strcmp(data, value) == 0) {
+                v1_exist = 1;
+                FTU_ASSERT(iter.key == 10);
+                FTU_ASSERT(strcmp(iter.value, value) == 0);
+            } else if (strcmp(data, value2) == 0) {
+                v2_exist = 1;
+                FTU_ASSERT(iter.key == 11);
+                FTU_ASSERT(strcmp(iter.value, value2) == 0);
+            } else if (strcmp(data, value3) == 0) {
+                v3_exist = 1;
+                FTU_ASSERT(iter.key == 12);
+                FTU_ASSERT(strcmp(iter.value, value3) == 0);
+            } else if (strcmp(data, value4) == 0) {
+                v4_exist = 1;
+                FTU_ASSERT(iter.key == 13);
+                FTU_ASSERT(strcmp(iter.value, value4) == 0);
+            } else if (strcmp(data, value5) == 0) {
+                v5_exist = 1;
+                FTU_ASSERT(iter.key == 14);
+                FTU_ASSERT(strcmp(iter.value, value5) == 0);
+            } else if (strcmp(data, value6) == 0) {
+                v6_exist = 1;
+                FTU_ASSERT(iter.key == 15);
+                FTU_ASSERT(strcmp(iter.value, value6) == 0);
+            } else {
+                FTU_ASSERT(0);
+            }
+        }
+
+        FTU_ASSERT(loop_cnt == 6);
+        FTU_ASSERT(v1_exist == 1);
+        FTU_ASSERT(v2_exist == 1);
+        FTU_ASSERT(v3_exist == 1);
+        FTU_ASSERT(v4_exist == 1);
+        FTU_ASSERT(v5_exist == 1);
+        FTU_ASSERT(v6_exist == 1);
+
+        fhash_u64_delete(phash);
+    }
+
+    // foreach
+    {
+        fhash* phash = fhash_u64_create(0, FHASH_MASK_NONE);
+
+        int key = 10;
+        char value[] = "test_value";
+        int key2 = 11;
+        char value2[] = "test_value2";
+        int key3 = 12;
+        char value3[] = "test_value3";
+        int key4 = 13;
+        char value4[] = "test_value4";
+        int key5 = 14;
+        char value5[] = "test_value5";
+        int key6 = 15;
+        char value6[] = "test_value6";
+
+        fhash_u64_set(phash, key, value);
+        fhash_u64_set(phash, key2, value2);
+        fhash_u64_set(phash, key3, value3);
+        fhash_u64_set(phash, key4, value4);
+        fhash_u64_set(phash, key5, value5);
+        fhash_u64_set(phash, key6, value6);
+
+        _foreach_data ud;
+        memset(&ud, 0, sizeof(ud));
+        ud.test_data = 100;
+        fhash_u64_foreach(phash, hash_u64_each, &ud);
+
+        FTU_ASSERT(ud.loop_cnt == 6);
+        FTU_ASSERT(ud.v1_exist == 1);
+        FTU_ASSERT(ud.v2_exist == 1);
+        FTU_ASSERT(ud.v3_exist == 1);
+        FTU_ASSERT(ud.v4_exist == 1);
+        FTU_ASSERT(ud.v5_exist == 1);
+        FTU_ASSERT(ud.v6_exist == 1);
+
+        fhash_u64_delete(phash);
+    }
+
+    // rehash
+    {
+        fhash* phash = fhash_u64_create(0, FHASH_MASK_NONE);
+
+        int key = 10;
+        char value[] = "test_value";
+        int key2 = 11;
+        char value2[] = "test_value2";
+        int key3 = 12;
+        char value3[] = "test_value3";
+        int key4 = 13;
+        char value4[] = "test_value4";
+        int key5 = 14;
+        char value5[] = "test_value5";
+        int key6 = 15;
+        char value6[] = "test_value6";
+
+        fhash_u64_set(phash, key, value);
+        fhash_u64_set(phash, key2, value2);
+        fhash_u64_set(phash, key3, value3);
+        fhash_u64_set(phash, key4, value4);
+        fhash_u64_set(phash, key5, value5);
+        fhash_u64_set(phash, key6, value6);
+
+        // before rehash
+        {
+            _foreach_data ud;
+            memset(&ud, 0, sizeof(ud));
+            ud.test_data = 100;
+            fhash_u64_foreach(phash, hash_u64_each, &ud);
+
+            FTU_ASSERT(ud.loop_cnt == 6);
+            FTU_ASSERT(ud.v1_exist == 1);
+            FTU_ASSERT(ud.v2_exist == 1);
+            FTU_ASSERT(ud.v3_exist == 1);
+            FTU_ASSERT(ud.v4_exist == 1);
+            FTU_ASSERT(ud.v5_exist == 1);
+            FTU_ASSERT(ud.v6_exist == 1);
+        }
+
+        int ret = fhash_rehash(phash, 20);
+        FTU_ASSERT(ret == 0);
+        FTU_ASSERT(phash->temporary == NULL);
+        FTU_ASSERT(phash->current->index_size == 20);
+        FTU_ASSERT(phash->current->slots_used == 6);
+        FTU_ASSERT(phash->delayed_actions.size == 0);
+        FTU_ASSERT(phash->delayed_actions.used == 0);
+
+        // after rehash
+        {
+            _foreach_data ud;
+            memset(&ud, 0, sizeof(ud));
+            ud.test_data = 100;
+            fhash_u64_foreach(phash, hash_u64_each, &ud);
+
+            FTU_ASSERT(ud.loop_cnt == 6);
+            FTU_ASSERT(ud.v1_exist == 1);
+            FTU_ASSERT(ud.v2_exist == 1);
+            FTU_ASSERT(ud.v3_exist == 1);
+            FTU_ASSERT(ud.v4_exist == 1);
+            FTU_ASSERT(ud.v5_exist == 1);
+            FTU_ASSERT(ud.v6_exist == 1);
+        }
+
+        fhash_u64_delete(phash);
+    }
 
 }
 

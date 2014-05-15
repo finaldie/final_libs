@@ -72,7 +72,7 @@ uint64_t fsession_key(uint32_t ip, uint16_t port)
 static inline
 session_t* fsession_find(fhash* hash_tbl, uint64_t id)
 {
-    return fhash_uint64_get(hash_tbl, id);
+    return fhash_u64_get(hash_tbl, id);
 }
 
 static
@@ -88,7 +88,7 @@ session_t* fsession_create(uint64_t session_id)
 static
 void fsession_del(fhash* hash_tbl, uint64_t session_id)
 {
-    void* session = fhash_uint64_del(hash_tbl, session_id);
+    void* session = fhash_u64_del(hash_tbl, session_id);
     free(session);
 }
 
@@ -99,7 +99,7 @@ int fsession_add(fhash* hash_tbl, session_t* session)
         return 1;
     }
 
-    fhash_uint64_set(hash_tbl, session->id, session);
+    fhash_u64_set(hash_tbl, session->id, session);
     return 0;
 }
 
@@ -221,14 +221,14 @@ static
 void fpcap_session_cleanup(fopt_action_t* action)
 {
     fhash* phash = action->phash;
-    fhash_iter iter = fhash_iter_new(phash);
+    fhash_u64_iter iter = fhash_u64_iter_new(phash);
     session_t* session = NULL;
 
-    while ((session = (session_t*)fhash_next(&iter))) {
+    while ((session = (session_t*)fhash_u64_next(&iter))) {
         action->iaction->cleanup(session, action->iaction->ud);
     }
 
-    fhash_iter_release(&iter);
+    fhash_u64_iter_release(&iter);
 }
 
 FPCAP_STATUS fpcap_convert(convert_action_t action)
@@ -256,8 +256,7 @@ FPCAP_STATUS fpcap_convert(convert_action_t action)
 
     fopt_action_t opt_action;
     opt_action.iaction = &action;
-    opt_action.phash = fhash_uint64_create(SESSION_HASH_SIZE, NULL,
-                                           FHASH_MASK_NONE);
+    opt_action.phash = fhash_u64_create(SESSION_HASH_SIZE, FHASH_MASK_NONE);
 
     int st = pcap_loop(p, 0, dump_cb, (u_char*)&opt_action);
     if( st != 0 ) {
@@ -272,7 +271,7 @@ cleanup:
         fpcap_session_cleanup(&opt_action);
     }
 
-    fhash_delete(opt_action.phash);
+    fhash_u64_delete(opt_action.phash);
     pcap_close(p);
     return ret;
 }

@@ -68,7 +68,7 @@ void    fthpool_init(int num)
     if ( g_th_pool ) return;
     if ( num <= 0 ) return;
 
-    g_th_pool = fhash_uint64_create(TH_POOL_HASH_SIZE, 0, FHASH_MASK_NONE);
+    g_th_pool = fhash_u64_create(TH_POOL_HASH_SIZE, FHASH_MASK_NONE);
     pth_pool = (thread_data**)malloc( sizeof(thread_data*) * num );
 
     max_num = num;
@@ -90,7 +90,7 @@ int     fthpool_add_thread(void* pri_arg)
         return -1;
     }
 
-    fhash_uint64_set(g_th_pool, th_data->tid, th_data);
+    fhash_u64_set(g_th_pool, th_data->tid, th_data);
     pth_pool[curr_num++] = th_data;
 
     return th_data->tid;

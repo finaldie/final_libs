@@ -38,8 +38,6 @@ void           fhash_int_iter_release(fhash_int_iter*);
 void*          fhash_int_next(fhash_int_iter*);
 void           fhash_int_foreach(fhash*, fhash_int_each_cb, void* ud);
 
-int            fhash_int_rehash(fhash*, uint32_t new_size);
-
 #ifdef __cplusplus
 }
 #endif

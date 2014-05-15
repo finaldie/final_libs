@@ -5,6 +5,7 @@ TARGET = libfhash
 INCLUDE_FILES = \
     fhash_core.h \
     fhash_int.h \
+    fhash_uint64.h \
     fhash.h
 
 INC =
