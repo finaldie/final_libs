@@ -48,7 +48,7 @@ void fhash_int_set(fhash_int* hash_int, int key, void* value)
 
 void* fhash_int_get(fhash_int* hash_int, int key)
 {
-    void** value = (void**)fhash_get(hash_int->phash, (void*)&key, sizeof(key),
+    void** value = fhash_get(hash_int->phash, (void*)&key, sizeof(key),
                                      NULL);
     if (value) {
         return *value;
@@ -88,7 +88,7 @@ void* fhash_int_next(fhash_int_iter* iter)
     }
 
     iter->key = *(int*)iter->iter.key;
-    iter->value = iter->iter.value;
+    iter->value = *(void**)iter->iter.value;
     return iter->value;
 }
 

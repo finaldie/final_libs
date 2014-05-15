@@ -10,6 +10,7 @@
 
 #include "ftu/ftu_inc.h"
 #include "fhash/fhash.h"
+#include "fhash/fhash_int.h"
 #include "inc.h"
 
 #define LOOP 10000
@@ -95,7 +96,113 @@ int hash_core_compare(const void* key1, key_sz_t key_sz1,
 
 void test_hash_int()
 {
+    // create/delete
+    {
+        fhash_int* phash = fhash_int_create(0, NULL, FHASH_MASK_NONE);
+        fhash_int_delete(phash);
+    }
 
+    // set/get/del
+    {
+        fhash_int* phash = fhash_int_create(0, NULL, FHASH_MASK_NONE);
+
+        int key = 10;
+        char value[] = "test_value";
+        fhash_int_set(phash, key, value);
+        char* ret = fhash_int_get(phash, key);
+        FTU_ASSERT(strcmp(ret, value) == 0);
+        char* ret1 = fhash_int_del(phash, key);
+        FTU_ASSERT(strcmp(ret1, value) == 0);
+
+        fhash_int_delete(phash);
+    }
+
+    // iteration
+    {
+        fhash_int* phash = fhash_int_create(0, NULL, FHASH_MASK_NONE);
+
+        int key = 10;
+        char value[] = "test_value";
+        int key2 = 11;
+        char value2[] = "test_value2";
+        int key3 = 12;
+        char value3[] = "test_value3";
+        int key4 = 13;
+        char value4[] = "test_value4";
+        int key5 = 14;
+        char value5[] = "test_value5";
+        int key6 = 15;
+        char value6[] = "test_value6";
+
+        fhash_int_set(phash, key, value);
+        fhash_int_set(phash, key2, value2);
+        fhash_int_set(phash, key3, value3);
+        fhash_int_set(phash, key4, value4);
+        fhash_int_set(phash, key5, value5);
+        fhash_int_set(phash, key6, value6);
+
+        fhash_int_iter iter = fhash_int_iter_new(phash);
+        char* data = NULL;
+        int v1_exist = 0;
+        int v2_exist = 0;
+        int v3_exist = 0;
+        int v4_exist = 0;
+        int v5_exist = 0;
+        int v6_exist = 0;
+        int loop_cnt = 0;
+
+        while ((data = fhash_int_next(&iter))) {
+            loop_cnt++;
+
+            if (strcmp(data, value) == 0) {
+                v1_exist = 1;
+                FTU_ASSERT(iter.key == 10);
+                FTU_ASSERT(strcmp(iter.value, value) == 0);
+            } else if (strcmp(data, value2) == 0) {
+                v2_exist = 1;
+                FTU_ASSERT(iter.key == 11);
+                FTU_ASSERT(strcmp(iter.value, value2) == 0);
+            } else if (strcmp(data, value3) == 0) {
+                v3_exist = 1;
+                FTU_ASSERT(iter.key == 12);
+                FTU_ASSERT(strcmp(iter.value, value3) == 0);
+            } else if (strcmp(data, value4) == 0) {
+                v4_exist = 1;
+                FTU_ASSERT(iter.key == 13);
+                FTU_ASSERT(strcmp(iter.value, value4) == 0);
+            } else if (strcmp(data, value5) == 0) {
+                v5_exist = 1;
+                FTU_ASSERT(iter.key == 14);
+                FTU_ASSERT(strcmp(iter.value, value5) == 0);
+            } else if (strcmp(data, value6) == 0) {
+                v6_exist = 1;
+                FTU_ASSERT(iter.key == 15);
+                FTU_ASSERT(strcmp(iter.value, value6) == 0);
+            } else {
+                FTU_ASSERT(0);
+            }
+        }
+
+        FTU_ASSERT(loop_cnt == 6);
+        FTU_ASSERT(v1_exist == 1);
+        FTU_ASSERT(v2_exist == 1);
+        FTU_ASSERT(v3_exist == 1);
+        FTU_ASSERT(v4_exist == 1);
+        FTU_ASSERT(v5_exist == 1);
+        FTU_ASSERT(v6_exist == 1);
+
+        fhash_int_delete(phash);
+    }
+
+    // foreach
+    {
+
+    }
+
+    // rehash
+    {
+
+    }
 }
 
 void test_hash_uint64()

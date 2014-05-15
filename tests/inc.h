@@ -20,6 +20,7 @@
 
 // all test fun declare write here
 void    test_hash_core();
+void    test_hash_int();
 
 void    test_mem();
 void    test_realloc();

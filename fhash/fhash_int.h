@@ -1,5 +1,5 @@
-#ifndef _HASH_H_FINAL_
-#define _HASH_H_FINAL_
+#ifndef HASH_INT_H
+#define HASH_INT_H
 
 #ifdef __cplusplus
 extern "C" {
