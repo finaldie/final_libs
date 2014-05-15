@@ -6,9 +6,9 @@
 #include "inc.h"
 #include "fread_conf.h"
 
-#define TEST_CONF1 "./t1.conf"
-#define TEST_CONF2 "./t2.conf"
-#define TEST_CONF3 "./t3.conf"
+#define TEST_CONF1 "./config/t1.conf"
+#define TEST_CONF2 "./config/t2.conf"
+#define TEST_CONF3 "./config/t3.conf"
 
 void config_lookup(const char* key, const char* value)
 {

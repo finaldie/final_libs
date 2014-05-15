@@ -7,3 +7,5 @@ types_c.taghl
 *.a
 .ycm_extra_conf.pyc
 *.so
+
+tests/test

@@ -43,7 +43,10 @@ LDFLAGS += $(LIBS)
 
 .PHONY: all $(TARGET) check valgrind-gensup valgrind-nosup valgrind-check clean help
 
-all: $(TARGET)
+all: prepare $(TARGET)
+
+prepare:
+	test -d logs || mkdir logs
 
 $(TARGET): $(OBJS)
 	$(CC) $(FL_FLAGS) $(INC) $(LL) -o $(TARGET) $(OBJS) $(LDFLAGS)
@@ -65,8 +68,7 @@ valgrind-check:
 
 clean:
 	rm -f $(OBJS) $(TARGET)
-	rm -f test_async_log*
-	rm -f test_log*
+	rm -rf ./logs
 
 help:
 	@echo "The information represents in the program:"
