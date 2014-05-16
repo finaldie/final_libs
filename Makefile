@@ -37,9 +37,9 @@ endif
 # debug or not
 DEBUG ?= false
 ifeq ($(MODE), debug)
-	EXT_FLAGS += -DNDEBUG
+	EXT_FLAGS += -DNDEBUG -Wstack-protector
 else
-	EXT_FLAGS += -O2
+	EXT_FLAGS += -O2 -Werror
 endif
 
 # expose the CC

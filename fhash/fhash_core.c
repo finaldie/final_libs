@@ -3,6 +3,7 @@
 #include <string.h>
 #include <assert.h>
 #include <inttypes.h>
+
 #include "fhash_core.h"
 
 typedef uint64_t data_sz_t;

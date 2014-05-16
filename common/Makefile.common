@@ -3,4 +3,4 @@
 
 AR = ar -rcs
 
-COMMON_FLAGS += -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -Wfloat-equal -Wpadded -Winline -Wdisabled-optimization -g -Werror -Wstack-protector -pipe
+COMMON_FLAGS += -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -Wfloat-equal -Wpadded -Winline -Wdisabled-optimization -g -pipe
