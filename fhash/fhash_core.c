@@ -172,6 +172,7 @@ void _hash_node_delete(_fhash_node* node)
 {
     node->valid = NODE_INVALID;
     free(node->data);
+    node->data = NULL;
 }
 
 static
@@ -186,6 +187,13 @@ void _hash_node_set(_fhash_node* node,
 
     _hash_node_set_key(node, key, key_sz);
     _hash_node_set_value(node, value, value_sz);
+}
+
+static
+void _hash_node_move(_fhash_node* dst, _fhash_node* src)
+{
+    free(dst->data);
+    memcpy(dst, src, sizeof(*src));
 }
 
 //-----------------------------------NODE_MGR-----------------------------------
@@ -357,6 +365,47 @@ void _hash_nodemgr_add(_fhash_node_mgr* mgr,
 }
 
 static
+void _hash_nodemgr_add_node(_fhash_node_mgr* mgr, _fhash_node* node)
+{
+    _fhash_node* dst = NULL;
+    if (mgr->used == mgr->size) {
+        // no enough space, enlarge it
+        size_t slot_idx = mgr->size;
+        _hash_nodemgr_enlarge(mgr);
+        dst = &mgr->node_list[slot_idx];
+    } else {
+        dst = _hash_nodemgr_first(mgr, NODE_INVALID, NULL);
+        assert(dst);
+    }
+
+    _hash_node_move(dst, node);
+    mgr->used++;
+}
+
+static
+void* _hash_nodemgr_get(_fhash_node_mgr* mgr, fhash_opt* opt,
+                        const void* key, key_sz_t key_sz,
+                        value_sz_t* value_sz)
+{
+    _fhash_node* node = _hash_nodemgr_find(mgr, opt, key, key_sz, NODE_VALID);
+
+    // try to update value_sz
+    if (value_sz) {
+        if (node) {
+            *value_sz = _hash_node_valuesz(node);
+        } else {
+            *value_sz = 0;
+        }
+    }
+
+    if (node) {
+        return _hash_node_value(node);
+    } else {
+        return NULL;
+    }
+}
+
+static
 void  _hash_nodemgr_set(_fhash_node_mgr* mgr, _fhash_node* node,
                         const void* key, key_sz_t key_sz,
                         const void* value, value_sz_t value_sz)
@@ -398,6 +447,7 @@ _fhash_node* _hash_nodemgr_next(_fhash_node_mgr* mgr, fhash_iter* iter,
     iter->key_sz   = _hash_node_keysz(node);
     iter->value    = _hash_node_value(node);
     iter->value_sz = _hash_node_valuesz(node);
+    iter->node     = node;
 
     return node;
 }
@@ -469,6 +519,32 @@ void _hash_tbl_set(_fhash* table, fhash_opt* opt,
     }
 }
 
+static
+void _hash_tbl_set_node(_fhash* table, fhash_opt* opt, _fhash_node* node)
+{
+    // if reach to the max size, the program should exit ASAP
+    // technically, it cannot be happened
+    assert(table->slots_used != SIZE_MAX);
+
+    void* key       = _hash_node_key(node);
+    key_sz_t key_sz = _hash_node_keysz(node);
+    uint32_t idx = _hash_tbl_calculate_idx(table, opt, key, key_sz);
+    _fhash_node_mgr* mgr = &table->node_mgr[idx];
+
+    _fhash_node* dst = _hash_nodemgr_find(mgr, opt, key, key_sz, NODE_VALID);
+    if (!dst) {
+        size_t old_used = _hash_nodemgr_size(mgr);
+        _hash_nodemgr_add_node(mgr, node);
+        table->slots_used++;
+
+        if (old_used == 0) {
+            table->index_used++;
+        }
+    } else {
+        _hash_node_move(dst, node);
+    }
+}
+
 // only set value if the node exist
 // return 1 if success
 // return 0 when the node not exist
@@ -496,22 +572,7 @@ void* _hash_tbl_get(_fhash* table, fhash_opt* opt,
     uint32_t idx = _hash_tbl_calculate_idx(table, opt, key, key_sz);
     _fhash_node_mgr* mgr = &table->node_mgr[idx];
 
-    _fhash_node* node = _hash_nodemgr_find(mgr, opt, key, key_sz, NODE_VALID);
-
-    // try to update value_sz
-    if (value_sz) {
-        if (node) {
-            *value_sz = _hash_node_valuesz(node);
-        } else {
-            *value_sz = 0;
-        }
-    }
-
-    if (node) {
-        return _hash_node_value(node);
-    } else {
-        return NULL;
-    }
+    return _hash_nodemgr_get(mgr, opt, key, key_sz, value_sz);
 }
 
 static
@@ -615,9 +676,9 @@ void _hash_rehash(fhash* phash, uint32_t new_size)
     fhash_iter iter = fhash_iter_new(phash);
     void* data = NULL;
     while ((data = fhash_next(&iter))) {
-        _hash_tbl_set(new_table, &phash->opt,
-                      iter.key, iter.key_sz,
-                      iter.value, iter.value_sz);
+        _fhash_node* node = iter.node;
+        _hash_tbl_set_node(new_table, &phash->opt, node);
+        _hash_node_init(node);
     }
 
     fhash_iter_release(&iter);
@@ -713,13 +774,9 @@ void _hash_perform_actions(fhash* phash)
             continue;
         }
 
-        void* key       = _hash_node_key(node);
-        key_sz_t key_sz = _hash_node_keysz(node);
-        void* value     = _hash_node_value(node);
-        value_sz_t value_sz = _hash_node_valuesz(node);
-
-        _hash_tbl_set(table, &phash->opt, key, key_sz, value, value_sz);
+        _hash_tbl_set_node(table, &phash->opt, node);
         _hash_nodemgr_del(actions, node);
+        _hash_node_init(node);
     }
 
 performing_end:
@@ -733,7 +790,7 @@ fhash* fhash_create(uint32_t init_size,
                     void* ud,
                     uint32_t flags)
 {
-    if( init_size == 0 ) {
+    if ( init_size == 0 ) {
         init_size = DEFAULT_TABLE_SIZE;
     }
 
@@ -794,7 +851,13 @@ void* fhash_get(fhash* phash, const void* key, key_sz_t key_sz,
     }
 
     _fhash* table = phash->current;
-    return _hash_tbl_get(table, &phash->opt, key, key_sz, value_sz);
+    void* data = _hash_tbl_get(table, &phash->opt, key, key_sz, value_sz);
+    if (data) {
+        return data;
+    } else {
+        return _hash_nodemgr_get(&phash->delayed_actions, &phash->opt,
+                                 key, key_sz, value_sz);
+    }
 }
 
 void fhash_del(fhash* phash, const void* key, key_sz_t key_sz)

@@ -31,6 +31,7 @@ typedef struct {
 typedef struct {
     // private
     fhash*   phash;
+    void*    node;
     size_t   slot;    // the last location of node slot
     uint32_t index;   // the last location of hash table index
 

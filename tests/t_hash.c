@@ -1155,6 +1155,11 @@ void test_hash_core()
                 FTU_ASSERT(phash->current->index_size == 10);
                 FTU_ASSERT(phash->current->index_used == 2);
                 FTU_ASSERT(phash->current->slots_used == 2);
+
+                value_sz_t value_sz = 0;
+                char* retv = fhash_get(phash, key3, strlen(key3), &value_sz);
+                FTU_ASSERT(strcmp(retv, value3) == 0);
+                FTU_ASSERT(value_sz == (value_sz_t)strlen(value3));
             } else if (strcmp(data, value2) == 0) {
                 key2_exist = 1;
 
@@ -1162,6 +1167,11 @@ void test_hash_core()
                 FTU_ASSERT(phash->current->index_size == 10);
                 FTU_ASSERT(phash->current->index_used == 2);
                 FTU_ASSERT(phash->current->slots_used == 2);
+
+                value_sz_t value_sz = 0;
+                char* retv = fhash_get(phash, key4, strlen(key4), &value_sz);
+                FTU_ASSERT(strcmp(retv, value4) == 0);
+                FTU_ASSERT(value_sz == (value_sz_t)strlen(value4));
             } else {
                 // shouldn't reach here
                 printf("FATAL: data: %s\n", data);
