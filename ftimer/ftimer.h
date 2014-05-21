@@ -6,7 +6,7 @@
 */
 
 #ifndef _F_TIMER_H_
-#define _F_TIMER_H_ 
+#define _F_TIMER_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,6 +41,10 @@ int    ftimerfd_create();
 int    ftimerfd_start(int fd, long long nsecs, long long alter);
 int    ftimerfd_stop(int fd);
 #endif
+
+// return a time value its format is:
+// current time * 1000000 + current usec
+unsigned long long fgettime();
 
 #ifdef __cplusplus
 }

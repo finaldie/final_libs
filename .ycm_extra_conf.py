@@ -34,6 +34,9 @@ import ycm_core
 # These are the compilation flags that will be used in case there's no
 # compilation database set (by default, one is not set).
 # CHANGE THIS LIST OF FLAGS. YES, THIS IS THE DROID YOU HAVE BEEN LOOKING FOR.
+# NOTES: if there are some system type cannot be recognized, try the command
+# "echo | clang -v -E -x c -"
+# to fix the flags table
 flags = [
 '-Wall',
 '-Wextra',
@@ -59,7 +62,13 @@ flags = [
 '-x',
 'c',
 '-I',
-'.'
+'.',
+'-isystem',
+'/usr/bin/../lib/gcc/x86_64-linux-gnu/4.8/include',
+'-isystem',
+'/usr/bin/../lib/clang/3.4/include',
+'-isystem',
+'/usr/include/x86_64-linux-gnu',
 ]
 
 
