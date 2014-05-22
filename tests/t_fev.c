@@ -37,10 +37,12 @@
 
 #include "inc.h"
 
+#pragma pack(4)
 typedef struct {
     fev_state* fev;
     int fd;
-}test_arg;
+} test_arg;
+#pragma pack()
 
 typedef struct fake_fev_event {
     int         mask;   //READ OR WRITE
@@ -48,7 +50,7 @@ typedef struct fake_fev_event {
     pfev_read   pread;
     pfev_write  pwrite;
     void*       arg;
-}fake_fev_event;
+} fake_fev_event;
 
 typedef struct fake_fev_state{
     void*           state;
@@ -58,14 +60,17 @@ typedef struct fake_fev_state{
     int             max_ev_size;
     int             fire_num;
     int             in_processing;
-}fake_fev_state;
+    int             reserved;       // unused
+} fake_fev_state;
 
+#pragma pack(4)
 typedef struct fake_fev_conn_info {
     int         fd;
     fev_timer*  timer;
     pfev_conn   conn_cb;
     conn_arg_t  arg;
-}fake_fev_conn_info;
+} fake_fev_conn_info;
+#pragma pack()
 
 void test_fev_read(fev_state* fev, int fd, int mask, void* arg)
 {

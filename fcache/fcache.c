@@ -27,11 +27,8 @@ fcache_t* fcache_create(size_t max_size, cache_obj_free obj_free)
     if ( !pcache ) return NULL;
     memset(pcache, 0, sizeof(fcache_t));
 
-    pcache->phash_node_index = fhash_create(max_size * 1.5);
-    if ( !pcache->phash_node_index ) {
-        fcache_destroy(pcache);
-        return NULL;
-    }
+    pcache->phash_node_index = fhash_str_create(max_size * 1.5,
+                                                FHASH_MASK_NONE);
 
     pcache->pactive_list = fcache_list_create();
     if ( !pcache->pactive_list ) {
@@ -70,7 +67,7 @@ void      _fcache_destroy_list(fc_list* plist, cache_obj_free obj_free)
 void      fcache_destroy(fcache_t* pcache)
 {
     if ( !pcache ) return;
-    fhash_delete(pcache->phash_node_index);
+    fhash_str_delete(pcache->phash_node_index);
     _fcache_destroy_list(pcache->pactive_list, pcache->obj_free);
     _fcache_destroy_list(pcache->pinactive_list, pcache->obj_free);
     free(pcache);
@@ -88,9 +85,9 @@ int       _fcache_add_node(fcache_t* pcache, const char* key, size_t key_size,
     // for a new node
     // 1. add into hash table
     // 2. add into inactive node
-    fhash_set_str(pcache->phash_node_index, key, add_node);
+    fhash_str_set(pcache->phash_node_index, key, add_node);
     if ( fcache_list_push(pcache->pinactive_list, add_node, value_size) ) {
-        fhash_del_str(pcache->phash_node_index, key);
+        fhash_str_del(pcache->phash_node_index, key);
         fcache_list_destroy_node(add_node);
     }
 
@@ -123,7 +120,7 @@ void      _fcache_del_node(fcache_t* pcache, fcache_node_t* node)
         fprintf(stderr, "[WARNING]: data delete may cause memory leak, key = %s\n", key);
     }
 
-    fhash_del_str(pcache->phash_node_index, key);
+    fhash_str_del(pcache->phash_node_index, key);
     fcache_list_delete_node(node);
     fcache_list_destroy_node(node);
 }
@@ -235,7 +232,7 @@ int       fcache_set_obj(fcache_t* pcache, const char* key, size_t key_size,
     if ( value && !value_size ) return 1;
     if ( value_size > pcache->max_size ) return 1;
 
-    fcache_node_t* node = fhash_get_str(pcache->phash_node_index, key);
+    fcache_node_t* node = fhash_str_get(pcache->phash_node_index, key);
     if ( _fcache_check_and_drop_nodes(pcache, node, value_size) ) {
         return 1;
     }
@@ -281,7 +278,7 @@ void*     fcache_get_obj(fcache_t* pcache, const char* key)
         }
     }
 
-    fcache_node_t* node = fhash_get_str(pcache->phash_node_index, key);
+    fcache_node_t* node = fhash_str_get(pcache->phash_node_index, key);
     if ( unlikely(!node) )
         return NULL;
 

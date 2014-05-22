@@ -10,7 +10,7 @@ extern "C" {
 
 #include <pthread.h>
 typedef struct _cond_var {
-    unsigned int    _count;
+    unsigned long   _count;
     pthread_mutex_t _mutex;
     pthread_cond_t  _cond;
 } cond_var;
@@ -24,5 +24,5 @@ void    cond_del(cond_var*);
 }
 #endif
 
-#endif 
+#endif
 

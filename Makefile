@@ -3,6 +3,7 @@ MAKE = make
 INCLUDE_FOLDER = include/flibs
 LIB32_FOLDER = lib
 LIB64_FOLDER = lib64
+BENCHMARK_FOLDER = benchmark
 
 ASSEMBLY_LOCAL_FOLDER := $(shell pwd)/final_libraries
 ASSEMBLY_LOCAL32 := INSTALL_PATH=$(ASSEMBLY_LOCAL_FOLDER) INCLUDE_PATH=$(INCLUDE_FOLDER) LIBS_PATH=$(LIB32_FOLDER)
@@ -10,6 +11,10 @@ ASSEMBLY_LOCAL64 := INSTALL_PATH=$(ASSEMBLY_LOCAL_FOLDER) INCLUDE_PATH=$(INCLUDE
 
 prefix ?= $(ASSEMBLY_LOCAL_FOLDER)
 ASSEMBLY_FOLDERS := $(prefix)/$(INCLUDE_FOLDER) $(prefix)/$(LIB32_FOLDER) $(prefix)/$(LIB64_FOLDER)
+
+BENCHMARK_SUFFIX = mail.txt
+BENCHMARK = \
+    ./benchmark/fhash
 
 # PLAT_BIT is one of the 32 or 64
 PLAT_BIT = $(shell getconf LONG_BIT)
@@ -37,9 +42,9 @@ endif
 # debug or not
 DEBUG ?= false
 ifeq ($(MODE), debug)
-	EXT_FLAGS += -DNDEBUG
+	EXT_FLAGS += -DNDEBUG -Wstack-protector
 else
-	EXT_FLAGS += -O2
+	EXT_FLAGS += -O2 -Werror
 endif
 
 # expose the CC
@@ -83,7 +88,7 @@ LIB_FOLDERS = \
 
 TEST_FOLDERS = tests
 
-.PHONY: clean all check valgrind-check install help
+.PHONY: clean all check valgrind-check install help benchmark
 
 all:
 	@echo "[Compiling $(BUILD_BIT)bit libraries SHARED=$(SHARED)]";
@@ -120,9 +125,26 @@ install:
 	@cp $(ASSEMBLY_LOCAL_FOLDER)/$(LIB_FOLDER)/* $(prefix)/$(LIB_FOLDER);
 	@echo "Liraries installed in $(prefix)";
 
+benchmark: ASSEMBLY_LOCAL += BENCHMARK_SUFFIX=$(BENCHMARK_SUFFIX)
+benchmark: ASSEMBLY_LOCAL += BENCHMARK_FOLDER=$(BENCHMARK_FOLDER)
+benchmark:
+	@for bm in $(BENCHMARK); do \
+	    echo "benchmark for $$bm"; \
+	    $(MAKE) $(MAKE_FLAGS) -C $(BENCHMARK) $(ASSEMBLY_LOCAL); \
+	done;
+
+benchmark-clean:
+	@for bm in $(BENCHMARK); do \
+	    echo "benchmark-clean for $$bm"; \
+	    $(MAKE) $(MAKE_FLAGS) -C $(BENCHMARK) clean; \
+	done;
+	@rm -rf $(ASSEMBLY_LOCAL_FOLDER)/$(BENCHMARK_FOLDER)
+
 help:
 	@echo "make [CC=gcc] [SHARED=true] [MODE=debug[,release]] [BIT=32] [VERBOSE=true]"
 	@echo "make check [CC=gcc] [BIT=32] [VERBOSE=true]"
 	@echo "make valgrind-check [CC=gcc] [BIT=32] [VERBOSE=true]"
 	@echo "make install [BIT=32] [prefix=/usr/local] "
 	@echo "make clean"
+	@echo "make benchmark"
+	@echo "make benchmark-clean"

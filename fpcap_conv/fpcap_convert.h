@@ -1,5 +1,5 @@
 /*
- * =====================================================================================
+ * =============================================================================
  *
  *       Filename:  pcap_convert.h
  *
@@ -12,7 +12,7 @@
  *
  *         Author:  finaldie
  *
- * =====================================================================================
+ * =============================================================================
  */
 
 #ifndef _PCAP_CONVERT_H_
@@ -37,6 +37,7 @@ typedef enum {
     FPCAP_CONV_SERVER = 0x2
 } FPCAP_CONV_TYPE;
 
+#pragma pack(4)
 typedef struct {
     struct timeval ts;
     char*  data;
@@ -44,6 +45,7 @@ typedef struct {
     uint32_t ack;
     uint32_t seq;
 } fapp_data_t;
+#pragma pack()
 
 typedef struct session_t {
     uint64_t id;
@@ -59,14 +61,16 @@ typedef enum {
 typedef void (*fconv_handler)(fsession_event, session_t*, fapp_data_t*, void* ud);
 typedef void (*fsession_end)(session_t*, void* ud);
 
+#pragma pack(4)
 typedef struct convert_action_t {
     const char*   pcap_filename;
     const char*   filter_rules;
-    uint32_t      type; //convertion type:CLIENT, SERVER, CLIENT|SERVER
     fconv_handler handler;
     fsession_end  cleanup;
     void*         ud;
+    uint32_t      type; //convertion type:CLIENT, SERVER, CLIENT|SERVER
 } convert_action_t;
+#pragma pack()
 
 FPCAP_STATUS fpcap_convert(convert_action_t);
 

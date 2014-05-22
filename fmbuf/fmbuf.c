@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
-#include "compiler.h"
+#include "common/compiler.h"
 #include "fmbuf.h"
 
 #define MBUF_START(pbuf)    ( (char*)(pbuf->buf) )
@@ -17,7 +17,7 @@ struct _mbuf {
     size_t size;
     char*  head;
     char*  tail;
-    char   buf[1];
+    char   buf[0];
 };
 
 fmbuf*    fmbuf_create(size_t size)

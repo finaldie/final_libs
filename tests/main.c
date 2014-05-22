@@ -5,15 +5,18 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "ftu_inc.h"
+#include "ftu/ftu_inc.h"
 #include "inc.h"
 
 void register_module(){
+    tu_register_module(test_hash_core,      "for testing fhash_core");
+    tu_register_module(test_hash_int,       "for testing fhash_int");
+    tu_register_module(test_hash_uint64,    "for testing fhash_uint64");
+    tu_register_module(test_hash_str,       "for testing fhash_str");
+
     tu_register_module(test_conf,         "for testing fconf");
     tu_register_module(test_list,         "for testing flist");
     tu_register_module(test_list_sort,    "for testing flist_sort method");
-    tu_register_module(test_hash,         "for testing fhash set and get");
-    tu_register_module(test_hash_del,     "for testing hash_del method");
     tu_register_module(test_mem,          "for testing mempool alloc and free");
     tu_register_module(test_realloc,      "for testing mempool realloc");
     tu_register_module(test_log,          "for testing log system");

@@ -80,7 +80,7 @@ typedef struct _sys_fb {
 typedef struct {
     size_t      block_size;
     size_t      count;
-    int         gc_measure;
+    size_t      gc_measure;
     free_block* head;
 } free_list;
 
@@ -101,6 +101,7 @@ typedef struct {
 #endif
 } fl_mgr;
 
+#pragma pack(4)
 typedef struct {
     fl_mgr*  pcenter_mgr;   // center free list
 
@@ -112,6 +113,7 @@ typedef struct {
     pthread_spinlock_t center_lock[FMEM_BLOCK_TYPE_SIZE];
     pthread_key_t key;
 } fmem_pool;
+#pragma pack()
 
 // global memory pool
 fmem_pool* volatile pmem = NULL;

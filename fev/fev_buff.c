@@ -3,7 +3,7 @@
  *
  *       Filename:  fnet_buff.c
  *
- *    Description:  
+ *    Description:
  *
  *        Version:  1.0
  *        Created:  11/18/2011 10:43:52
@@ -25,6 +25,7 @@
 
 #define FEV_BUFF_DEFAULT_SIZE   (1024 * 4)
 
+#pragma pack(4)
 struct fev_buff {
     int             fd;
     fev_state*      fstate;
@@ -34,6 +35,7 @@ struct fev_buff {
     fev_buff_error  error_cb;
     void*           arg;
 };
+#pragma pack()
 
 static
 int fev_read(int fd, void* pbuf, size_t len)

@@ -1,5 +1,5 @@
 /*
- * =====================================================================================
+ * =============================================================================
  *
  *       Filename:  t_list.c
  *
@@ -11,13 +11,13 @@
  *       Compiler:  gcc
  *
  *         Author:  finaldie
- *        Company:  
+ *        Company:
  *
- * =====================================================================================
+ * =============================================================================
  */
 
-#include "ftu_inc.h"
-#include "flist.h"
+#include "ftu/ftu_inc.h"
+#include "flist/flist.h"
 #include "inc.h"
 
 typedef struct {
@@ -72,8 +72,8 @@ void test_list_sort()
 void test_list()
 {
     flist* plist = flist_create();
-    FTU_ASSERT_EXPRESS(plist!=NULL);
-    int is_empty = flist_isempty(plist);
+    FTU_ASSERT(plist!=NULL);
+    int is_empty = flist_empty(plist);
     FTU_ASSERT_EQUAL_INT(1, is_empty);
 
     tnode* tn = (tnode*)malloc(sizeof(tnode));
@@ -88,7 +88,7 @@ void test_list()
         tnode* thead = (tnode*)flist_head(plist);
         FTU_ASSERT_EQUAL_INT(100, thead->i);
 
-        is_empty = flist_isempty(plist);
+        is_empty = flist_empty(plist);
         FTU_ASSERT_EQUAL_INT(0, is_empty);
 
         ret = flist_push(plist, tn1);
@@ -106,7 +106,7 @@ void test_list()
         tnode* tp1 = (tnode*)flist_pop(plist);
         FTU_ASSERT_EQUAL_INT(200, tp1->i);
 
-        is_empty = flist_isempty(plist);
+        is_empty = flist_empty(plist);
         FTU_ASSERT_EQUAL_INT(1, is_empty);
     }
 

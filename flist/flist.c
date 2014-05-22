@@ -57,7 +57,7 @@ int     flist_push(flist* pmgr, void* data)
 
 void*   flist_pop(flist* pmgr)
 {
-    if ( !pmgr || flist_isempty(pmgr) )
+    if ( !pmgr || flist_empty(pmgr) )
         return NULL;
 
     pmgr->head = pmgr->head->next;
@@ -65,7 +65,7 @@ void*   flist_pop(flist* pmgr)
     return pmgr->head->data;
 }
 
-int     flist_isempty(flist* pmgr)
+int     flist_empty(flist* pmgr)
 {
     if (pmgr->head == pmgr->tail)
         return 1;
@@ -75,7 +75,7 @@ int     flist_isempty(flist* pmgr)
 void*   flist_foreach(flist* pmgr, flist_each_cb pfunc)
 {
     if ( !pfunc ) return NULL;
-    if ( flist_isempty(pmgr) ) return NULL;
+    if ( flist_empty(pmgr) ) return NULL;
 
     pnode node = LIST_HEAD(pmgr)->next;
     while ( node ) {
@@ -87,11 +87,12 @@ void*   flist_foreach(flist* pmgr, flist_each_cb pfunc)
 
     return NULL;
 }
+
 //insertion sort, sort list in increasing order
 int flist_sort(flist* pmgr, flist_compare pfunc)
 {
     if ( !pfunc ) return 1;
-    if ( flist_isempty(pmgr) ) return 1;
+    if ( flist_empty(pmgr) ) return 1;
 
     //init node_i at 2nd data struct
     pnode node_i = LIST_HEAD(pmgr)->next->next;
@@ -146,7 +147,7 @@ flist_iter   flist_new_iter(flist* pmgr)
 void*   flist_each(flist_iter* iter)
 {
     flist* pmgr = (flist*)iter;
-    if ( flist_isempty(pmgr) ) return NULL;
+    if ( flist_empty(pmgr) ) return NULL;
 
     pnode node = LIST_HEAD(pmgr)->next;
 
@@ -159,13 +160,13 @@ void*   flist_each(flist_iter* iter)
 }
 
 void*   flist_head(flist* pmgr){
-    if ( flist_isempty(pmgr) ) return NULL;
+    if ( flist_empty(pmgr) ) return NULL;
 
     return LIST_HEAD(pmgr)->next->data;
 }
 
 void*   flist_tail(flist* pmgr){
-    if ( flist_isempty(pmgr) ) return NULL;
+    if ( flist_empty(pmgr) ) return NULL;
 
     return LIST_TAIL(pmgr)->data;
 }

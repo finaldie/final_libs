@@ -30,7 +30,7 @@ int        flist_push(flist*, void* data);
 void*      flist_pop(flist*);
 void*      flist_head(flist*);
 void*      flist_tail(flist*);
-int        flist_isempty(flist*);
+int        flist_empty(flist*);
 
 void*      flist_foreach(flist*, flist_each_cb);
 int        flist_sort(flist*, flist_compare);

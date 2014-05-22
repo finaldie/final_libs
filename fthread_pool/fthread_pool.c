@@ -16,17 +16,19 @@ typedef enum {
 } TH_EVENT;
 
 typedef struct {
-    int      tid;
+    unsigned long tid;
     cond_var cond;
-    fmbuf*    pbuf;
+    fmbuf*   pbuf;
     void*    parg;
 } thread_data;
 
+#pragma pack(4)
 typedef struct {
-    int      ev;
     fth_task pf;
     void*    arg;
+    TH_EVENT ev;
 } th_msg_t;
+#pragma pack()
 
 static int th_id = 0;
 static int max_num = 0;
@@ -66,7 +68,7 @@ void    fthpool_init(int num)
     if ( g_th_pool ) return;
     if ( num <= 0 ) return;
 
-    g_th_pool = fhash_create(TH_POOL_HASH_SIZE);
+    g_th_pool = fhash_u64_create(TH_POOL_HASH_SIZE, FHASH_MASK_NONE);
     pth_pool = (thread_data**)malloc( sizeof(thread_data*) * num );
 
     max_num = num;
@@ -88,7 +90,7 @@ int     fthpool_add_thread(void* pri_arg)
         return -1;
     }
 
-    fhash_set_int(g_th_pool, th_data->tid, th_data);
+    fhash_u64_set(g_th_pool, th_data->tid, th_data);
     pth_pool[curr_num++] = th_data;
 
     return th_data->tid;

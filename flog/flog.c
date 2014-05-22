@@ -9,6 +9,7 @@
 #include <fcntl.h>
 #include <sys/eventfd.h>
 #include <sys/epoll.h>
+#include <assert.h>
 
 #include "common/compiler.h"
 #include "fmbuf/fmbuf.h"
@@ -54,41 +55,43 @@ typedef unsigned char pto_id_t;
 typedef struct {
     log_file_t*    f;
     unsigned short len;
-}log_msg_head_t;
+} log_msg_head_t;
 
 typedef struct {
     pto_id_t       id;
     log_msg_head_t msgh;
-}log_fetch_msg_head_t;
+} log_fetch_msg_head_t;
 #pragma pack()
 
 // every thread have a private thread_data for containing logbuf
 // when we write log messages, data will fill into this buffer
+#pragma pack(4)
 typedef struct _thread_data_t {
     fmbuf*       plog_buf;
     int          efd;       // eventfd
     time_t       last_time;
-    char         last_time_str[LOG_TIME_STR_LEN + 1];
+    char         last_time_str[LOG_TIME_STR_LEN + 4];
     char         tmp_buf[LOG_MAX_LEN_PER_MSG];
-}thread_data_t;
+} thread_data_t;
 
 typedef void (*ptofunc)(thread_data_t*);
 
 // global log system data
 typedef struct _log_t {
     fhash*          phash;       // mapping filename <--> log_file structure
+    plog_event_func event_cb;    // event callback
     pthread_mutex_t lock;        // protect some scences resource competion
     pthread_key_t   key;
-    plog_event_func event_cb;    // event callback
-    LOG_MODE        mode;        // global log flag
     size_t          roll_size;
     size_t          buffer_size; // buffer size per user thread
+    LOG_MODE        mode;        // global log flag
     int             is_background_thread_started;
     int             flush_interval;
     int             epfd;        // epoll fd
     time_t          last_time;
-    char            last_time_str[LOG_TIME_STR_LEN + 1];
-}f_log;
+    char            last_time_str[LOG_TIME_STR_LEN + 4];
+} f_log;
+#pragma pack()
 
 // define global log struct
 static f_log* g_log = NULL;
@@ -180,7 +183,7 @@ void _log_get_time(time_t tm_time, char* time_str)
              now.tm_hour, now.tm_min, now.tm_sec);
 }
 
-static inline
+static
 void _log_flush_file(log_file_t* lf, time_t now)
 {
     if ( fflush(lf->pf) ) {
@@ -191,7 +194,7 @@ void _log_flush_file(log_file_t* lf, time_t now)
     lf->last_flush_time = now;
 }
 
-static inline
+static
 void _log_roll_file(log_file_t* lf)
 {
     _log_generate_filename(lf->pfilename, lf->poutput_filename);
@@ -454,7 +457,7 @@ void _log_async_write_f(log_file_t* f, const char* file_sig, size_t sig_len,
     }
 }
 
-static inline
+static
 size_t _log_write(log_file_t* f, const char* log, size_t len)
 {
     size_t real_writen_len = _log_write_unlocked(f, log, len);
@@ -476,7 +479,7 @@ size_t _log_write(log_file_t* f, const char* log, size_t len)
     return real_writen_len;
 }
 
-static inline
+static
 size_t _log_wrap_sync_head(char* buf, const char* file_sig, size_t sig_len)
 {
     time_t now = time(NULL);
@@ -610,9 +613,11 @@ void _log_async_process(thread_data_t* th_data, unsigned int process_num)
 }
 
 static inline
-int _log_process_timeout(void* arg)
+int _log_process_timeout(void* ud,
+                         const char* key,
+                         void* value)
 {
-    log_file_t* f = (log_file_t*)arg;
+    log_file_t* f = (log_file_t*)value;
     time_t now = time(NULL);
     if ( now - f->last_flush_time >= g_log->flush_interval ) {
         _log_flush_file(f, now);
@@ -636,7 +641,7 @@ LOG_LOOP:
     // timeout
     if ( unlikely(nums == 0) ) {
         pthread_mutex_lock(&g_log->lock);
-        fhash_foreach(g_log->phash, _log_process_timeout);
+        fhash_str_foreach(g_log->phash, _log_process_timeout, NULL);
         pthread_mutex_unlock(&g_log->lock);
     }
 
@@ -712,7 +717,7 @@ void _log_init()
     }
 
     t_log->epfd = epfd;
-    t_log->phash = fhash_create(0);
+    t_log->phash = fhash_str_create(0, FHASH_MASK_NONE);
     pthread_mutex_init(&t_log->lock, NULL);
     pthread_key_create(&t_log->key, _user_thread_destroy);
     t_log->event_cb = NULL;
@@ -739,7 +744,7 @@ log_file_t* log_create(const char* filename){
     {
         // check whether log file data has been created
         // if not, create it, or return its pointer
-        log_file_t* created_file = fhash_get_str(g_log->phash, filename);
+        log_file_t* created_file = fhash_str_get(g_log->phash, filename);
         if ( created_file ) {
             created_file->ref_count++;
             pthread_mutex_unlock(&g_log->lock);
@@ -768,7 +773,7 @@ log_file_t* log_create(const char* filename){
         f->file_size = 0;
         f->last_flush_time = time(NULL);
         snprintf(f->pfilename, LOG_MAX_FILE_NAME, "%s", filename);
-        fhash_set_str(g_log->phash, filename, f);
+        fhash_str_set(g_log->phash, filename, f);
         f->ref_count = 1;
     }
     pthread_mutex_unlock(&g_log->lock);
@@ -784,7 +789,7 @@ void log_destroy(log_file_t* lf)
 
         if ( lf->ref_count == 0 ) {
             fclose(lf->pf);
-            fhash_del_str(g_log->phash, lf->pfilename);
+            fhash_str_del(g_log->phash, lf->pfilename);
             free(lf);
         }
     }

@@ -36,6 +36,11 @@ fpcap    | Pcap file convertion lib |
 2. make check
 3. make valgrind-check
 
+## Benchmark
+```
+make benchmark
+```
+
 ## Flags
 * Change the compiler, such as using clang:
 ```

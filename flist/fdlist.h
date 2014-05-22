@@ -1,9 +1,9 @@
 /*
- * =====================================================================================
+ * =============================================================================
  *
  *       Filename:  fdlist.h
  *
- *    Description:  
+ *    Description:
  *
  *        Version:  1.0
  *        Created:  07/25/2013 12:40:55 AM
@@ -11,9 +11,9 @@
  *       Compiler:  gcc
  *
  *         Author:  finaldie
- *        Company:  
+ *        Company:
  *
- * =====================================================================================
+ * =============================================================================
  */
 
 #ifndef _FD_LIST_H_
@@ -22,6 +22,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <stddef.h>
 
 typedef struct _fdlist_node_t fdlist_node_t;
 typedef struct _fdlist_mgr    fdlist;
