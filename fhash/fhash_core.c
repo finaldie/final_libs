@@ -946,7 +946,12 @@ int fhash_rehash(fhash* phash, uint32_t new_size)
         return 1;
     }
 
+
     _fhash* table = phash->current;
+    if (new_size == table->index_size) {
+        return 0;
+    }
+
     if (new_size == 0) {
         new_size = FHASH_REHASH_SIZE(table);
         assert(new_size > 0);
@@ -956,7 +961,7 @@ int fhash_rehash(fhash* phash, uint32_t new_size)
     return 0;
 }
 
-void fhash_profile(fhash* phash, fhash_profile_data* profile_data)
+void fhash_profile(fhash* phash, fhash_profile_data* profile_data, int flags)
 {
     _fhash* table = phash->current;
     size_t total_slots = 0;
@@ -968,30 +973,34 @@ void fhash_profile(fhash* phash, fhash_profile_data* profile_data)
         size_t used = _hash_nodemgr_used(mgr);
         size_t size = _hash_nodemgr_size(mgr);
         if (used > 0) {
-            printf("index: %u -- used: %zu, size: %zu, usage rate: %f\n",
-                   index,
-                   used,
-                   size,
-                   size > 0 ? (double)used / (double)size : 0.0);
+            if (flags & FHASH_PROF_VERBOSE) {
+                printf("index: %u -- used: %zu, size: %zu, usage rate: %f\n",
+                       index,
+                       used,
+                       size,
+                       size > 0 ? (double)used / (double)size : 0.0);
+            }
 
             used_slots += used;
             total_slots += size;
         }
     }
 
-    printf("[index]: used: %u, total: %u, usage rate: %f\n",
-           table->index_used,
-           table->index_size,
-           table->index_size > 0
-            ? (double)(table->index_used) / (double)(table->index_size)
-            : 0.0);
+    if (flags & FHASH_PROF_VERBOSE) {
+        printf("[index]: used: %u, total: %u, usage rate: %f\n",
+               table->index_used,
+               table->index_size,
+               table->index_size > 0
+                ? (double)(table->index_used) / (double)(table->index_size)
+                : 0.0);
 
-    printf("[slots]: used: %zu, total: %zu, usage rate: %f\n",
-           used_slots,
-           total_slots,
-           total_slots > 0
-            ? (double)used_slots / (double)total_slots
-            : 0.0);
+        printf("[slots]: used: %zu, total: %zu, usage rate: %f\n",
+               used_slots,
+               total_slots,
+               total_slots > 0
+                ? (double)used_slots / (double)total_slots
+                : 0.0);
+    }
 
     if (!profile_data) {
         return;

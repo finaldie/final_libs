@@ -12,6 +12,10 @@ extern "C" {
 #define FHASH_MASK_NONE         0x0
 #define FHASH_MASK_AUTO_REHASH  0x1
 
+// fhash_profile flags
+#define FHASH_PROF_SILENT       0x0
+#define FHASH_PROF_VERBOSE      0x1
+
 typedef int32_t key_sz_t;
 typedef int64_t value_sz_t;
 
@@ -79,7 +83,7 @@ typedef struct fhash_profile_data {
     uint32_t index_used;
 } fhash_profile_data;
 
-void       fhash_profile(fhash*, fhash_profile_data*);
+void       fhash_profile(fhash*, fhash_profile_data*, int flags);
 
 #ifdef __cplusplus
 }

@@ -109,7 +109,7 @@ valgrind-check:
 	@$(MAKE) $(MAKE_FLAGS) -C $(TEST_FOLDERS) EXT_FLAGS="$(EXT_FLAGS)" $(ASSEMBLY_LOCAL) || exit "$$?";
 	@$(MAKE) $(MAKE_FLAGS) -C $(TEST_FOLDERS) valgrind-check;
 
-clean:
+clean: benchmark-clean
 	@$(MAKE) $(MAKE_FLAGS) -C $(TEST_FOLDERS) $(ASSEMBLY_LOCAL) clean;
 	@for lib in $(LIB_FOLDERS); \
 	do \
