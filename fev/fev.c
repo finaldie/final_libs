@@ -1,5 +1,5 @@
 /*
- * =====================================================================================
+ * =============================================================================
  *
  *       Filename:  fev.c
  *
@@ -10,10 +10,10 @@
  *       Revision:  none
  *       Compiler:  gcc
  *
- *         Author:  finaldie 
- *        Company:  
+ *         Author:  finaldie
+ *        Company:
  *
- * =====================================================================================
+ * =============================================================================
  */
 
 #include <stdio.h>
@@ -22,7 +22,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <errno.h>
-#include <fcntl.h> 
+#include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include "fev.h"
@@ -31,8 +31,9 @@
 #define FEV_MAX_EVENT_NUM   (1024 * 10)
 
 typedef struct fev_event {
-    int         mask;       //READ OR WRITE
-    int         fire_idx;   //we set the idx when the event has been disabled in one loop
+    int         mask;       // READ OR WRITE
+    int         fire_idx;   // we set the idx when the event has been disabled
+                            // in one loop
     pfev_read   pread;
     pfev_write  pwrite;
     void*       arg;
@@ -46,6 +47,7 @@ struct fev_state {
     int         max_ev_size;
     int         fire_num;
     int         in_processing;
+    int         reserved;       // unused
 };
 
 static void fev_add_firelist(fev_state* fev, int fd)
@@ -79,11 +81,6 @@ fev_state*    fev_create(int max_ev_size)
     if( max_ev_size <= 0 ) max_ev_size = FEV_MAX_EVENT_NUM;
 
     fev_state* fev = (fev_state*)malloc(sizeof(fev_state));
-    if( !fev ){
-        perror("fev create malloc");
-        return NULL;
-    }
-
     if( fev_state_create(fev, max_ev_size) ) {
         perror("fev create state");
         free(fev);
@@ -92,16 +89,8 @@ fev_state*    fev_create(int max_ev_size)
 
     fev->fevents = (fev_event*)malloc( sizeof(fev_event) * max_ev_size );
     fev->firelist = (int*)malloc( sizeof(int) * max_ev_size );
-    fev->module_tbl = fhash_create(FEV_DEFAULT_MODULE_CNT);
-    if( !fev->fevents || !fev->firelist || !fev->module_tbl ) {
-        perror("fev create events pool failed");
-        fev_state_destroy(fev);
-        free(fev->fevents);
-        free(fev->firelist);
-        fhash_delete(fev->module_tbl);
-        free(fev);
-        return NULL;
-    }
+    fev->module_tbl = fhash_str_create(FEV_DEFAULT_MODULE_CNT,
+                                       FHASH_MASK_AUTO_REHASH);
 
     fev->max_ev_size = max_ev_size;
     fev_clear_firelist(fev);
@@ -125,16 +114,17 @@ void    fev_destroy(fev_state* fev)
 
     // delete module's private data first
     fev_module_t* module = NULL;
-    fhash_iter iter = fhash_new_iter(fev->module_tbl);
-    while ((module = (fev_module_t*)fhash_next(&iter))) {
+    fhash_str_iter iter = fhash_str_iter_new(fev->module_tbl);
+    while ((module = (fev_module_t*)fhash_str_next(&iter))) {
         if( module->fev_module_unload ) {
             module->fev_module_unload(fev, module->ud);
         }
 
         free(module);
     }
+    fhash_str_iter_release(&iter);
 
-    fhash_delete(fev->module_tbl);
+    fhash_str_delete(fev->module_tbl);
     fev_state_destroy(fev);
     free(fev->fevents);
     free(fev->firelist);
@@ -142,9 +132,12 @@ void    fev_destroy(fev_state* fev)
 }
 
 // return -1 : fev is null
-// return -2 : reg event failed
+// return -2 : mask flag must be one of FEV_READ or FEV_WRITE
+// return -3 : fd already been registered
+// return -4 : register event failed
 // return > 0 : sucess
-int     fev_reg_event(fev_state* fev, int fd, int mask, pfev_read pread, pfev_write pwrite, void* arg)
+int     fev_reg_event(fev_state* fev, int fd, int mask,
+                      pfev_read pread, pfev_write pwrite, void* arg)
 {
     if( !fev ) return -1;
 
@@ -167,19 +160,19 @@ int     fev_reg_event(fev_state* fev, int fd, int mask, pfev_read pread, pfev_wr
 
 int fev_add_event(fev_state* fev, int fd, int mask)
 {
-    if( !fev ) return -1; 
+    if( !fev ) return -1;
 
-    // only reversed FEV_READ & FEV_WRITE state 
+    // only reversed FEV_READ & FEV_WRITE state
     mask &= FEV_READ | FEV_WRITE;
     if( mask == FEV_NIL ) return 0;
 
-    if( fev->fevents[fd].mask == FEV_NIL ) 
+    if( fev->fevents[fd].mask == FEV_NIL )
         return -2;
 
     if( fev->fevents[fd].mask == mask )
         return 0;
 
-    if( fev_state_addevent(fev, fd, mask) == -1 ) 
+    if( fev_state_addevent(fev, fd, mask) == -1 )
         return -3;
 
     return 0;
@@ -192,7 +185,7 @@ int     fev_del_event(fev_state* fev, int fd, int mask)
 {
     if( !fev ) return -1;
 
-    // only reversed FEV_READ & FEV_WRITE state 
+    // only reversed FEV_READ & FEV_WRITE state
     mask &= FEV_READ | FEV_WRITE;
     if( mask == FEV_NIL ) return 0;
 
@@ -243,13 +236,13 @@ int  fev_register_module(fev_state* fev, fev_module_t* module)
     fev_module_t* new_module = malloc(sizeof(fev_module_t));
     memcpy(new_module, module, sizeof(fev_module_t));
 
-    fhash_set_str(fev->module_tbl, new_module->name, new_module);
+    fhash_str_set(fev->module_tbl, new_module->name, new_module);
     return 0;
 }
 
 void* fev_get_module_data(fev_state* fev, const char* module_name)
 {
-    fev_module_t* module = fhash_get_str(fev->module_tbl, module_name);
+    fev_module_t* module = fhash_str_get(fev->module_tbl, module_name);
     if( !module ) {
         return NULL;
     }

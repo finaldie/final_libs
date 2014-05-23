@@ -49,7 +49,7 @@ void    _test_log(){
 }
 
 void    test_log(){
-    log_handler = flog_create("test_log");
+    log_handler = flog_create("./logs/test_log");
     FTU_ASSERT_EXPRESS(log_handler);
     _test_log();
     flog_destroy(log_handler);
@@ -105,7 +105,7 @@ void test_async_log()
     FTU_ASSERT_EXPRESS(buffer_size == (1024*1024));
     flog_register_event_callback(_test_async_event);
 
-    log_handler = flog_create("test_async_log");
+    log_handler = flog_create("./logs/test_async_log");
     FTU_ASSERT_EXPRESS(log_handler);
 
     pthread_t tid;

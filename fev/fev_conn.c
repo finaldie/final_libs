@@ -1,9 +1,9 @@
 /*
- * =====================================================================================
+ * =============================================================================
  *
  *       Filename:  fev_conn.c
  *
- *    Description:  
+ *    Description:
  *
  *        Version:  1.0
  *        Created:  11/23/2011 01:59:17
@@ -12,7 +12,7 @@
  *
  *         Author:  yuzhang hu(finaldie)
  *
- * =====================================================================================
+ * =============================================================================
  */
 
 #include <stdio.h>
@@ -28,12 +28,14 @@
 #define FEV_CONN_MODULE_NAME "__fev_connection_module__"
 #define FEV_CONN_TIME_SERVICE_INTERVAL 1
 
+#pragma pack(4)
 typedef struct fev_conn_info {
     int          fd;
     ftimer_node* timer;
     pfev_conn    conn_cb;
     conn_arg_t   arg;
 } fev_conn_info;
+#pragma pack()
 
 static
 void    on_connect(fev_state* fev,
