@@ -787,7 +787,6 @@ performing_end:
 //===================================OPEN API===================================
 fhash* fhash_create(uint32_t init_size,
                     fhash_opt opt,
-                    void* ud,
                     uint32_t flags)
 {
     if ( init_size == 0 ) {
@@ -795,7 +794,6 @@ fhash* fhash_create(uint32_t init_size,
     }
 
     fhash* phash = calloc(1, sizeof(*phash));
-    phash->ud = ud;
     phash->mask.value = flags;
     phash->opt = opt;
     phash->current = _hash_tbl_create(init_size);
@@ -949,7 +947,7 @@ int fhash_rehash(fhash* phash, uint32_t new_size)
 
     _fhash* table = phash->current;
     if (new_size == table->index_size) {
-        return 0;
+        return 1;
     }
 
     if (new_size == 0) {
@@ -961,7 +959,7 @@ int fhash_rehash(fhash* phash, uint32_t new_size)
     return 0;
 }
 
-void fhash_profile(fhash* phash, fhash_profile_data* profile_data, int flags)
+void fhash_profile(fhash* phash, int flags, fhash_profile_data* profile_data)
 {
     _fhash* table = phash->current;
     size_t total_slots = 0;

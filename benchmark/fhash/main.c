@@ -77,7 +77,7 @@ void test_without_autorehash()
     opt.hash_alg = NULL;
     opt.compare = hash_core_compare;
 
-    fhash* phash = fhash_create(0, opt, NULL, FHASH_MASK_NONE);
+    fhash* phash = fhash_create(0, opt, FHASH_MASK_NONE);
 
     // test set
     {
@@ -128,7 +128,7 @@ void test_without_autorehash()
     }
 
     fhash_profile_data profile_data;
-    fhash_profile(phash, &profile_data, 0);
+    fhash_profile(phash, 0, &profile_data);
     print_profile(&profile_data);
 
     // test delete
@@ -154,7 +154,7 @@ void test_with_autorehash()
     opt.hash_alg = NULL;
     opt.compare = hash_core_compare;
 
-    fhash* phash = fhash_create(0, opt, NULL, FHASH_MASK_AUTO_REHASH);
+    fhash* phash = fhash_create(0, opt, FHASH_MASK_AUTO_REHASH);
 
     // test set
     {
@@ -205,7 +205,7 @@ void test_with_autorehash()
     }
 
     fhash_profile_data profile_data;
-    fhash_profile(phash, &profile_data, 0);
+    fhash_profile(phash, 0, &profile_data);
     print_profile(&profile_data);
 
     // test delete

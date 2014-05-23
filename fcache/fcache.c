@@ -28,7 +28,7 @@ fcache_t* fcache_create(size_t max_size, cache_obj_free obj_free)
     memset(pcache, 0, sizeof(fcache_t));
 
     pcache->phash_node_index = fhash_str_create(max_size * 1.5,
-                                                FHASH_MASK_NONE);
+                                                FHASH_MASK_AUTO_REHASH);
 
     pcache->pactive_list = fcache_list_create();
     if ( !pcache->pactive_list ) {

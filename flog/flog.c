@@ -717,7 +717,7 @@ void _log_init()
     }
 
     t_log->epfd = epfd;
-    t_log->phash = fhash_str_create(0, FHASH_MASK_NONE);
+    t_log->phash = fhash_str_create(0, FHASH_MASK_AUTO_REHASH);
     pthread_mutex_init(&t_log->lock, NULL);
     pthread_key_create(&t_log->key, _user_thread_destroy);
     t_log->event_cb = NULL;

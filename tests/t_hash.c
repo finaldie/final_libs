@@ -817,7 +817,7 @@ void test_hash_core()
         fhash_opt opt;
         opt.hash_alg = NULL;
         opt.compare = hash_core_compare;
-        fhash* phash = fhash_create(0, opt, NULL, FHASH_MASK_NONE);
+        fhash* phash = fhash_create(0, opt, FHASH_MASK_NONE);
         FTU_ASSERT(phash != NULL);
         FTU_ASSERT(phash->ud == NULL);
         FTU_ASSERT(phash->iter_refs == 0);
@@ -833,7 +833,7 @@ void test_hash_core()
         fhash_opt opt;
         opt.hash_alg = NULL;
         opt.compare = hash_core_compare;
-        fhash* phash = fhash_create(0, opt, NULL, FHASH_MASK_NONE);
+        fhash* phash = fhash_create(0, opt, FHASH_MASK_NONE);
 
         char key[] = "test_key";
         char value[] = "test_value";
@@ -871,7 +871,7 @@ void test_hash_core()
         fhash_opt opt;
         opt.hash_alg = NULL;
         opt.compare = hash_core_compare;
-        fhash* phash = fhash_create(0, opt, NULL, FHASH_MASK_NONE);
+        fhash* phash = fhash_create(0, opt, FHASH_MASK_NONE);
 
         char key[] = "test_key";
         char value[] = "test_value";
@@ -918,7 +918,7 @@ void test_hash_core()
         opt.hash_alg = NULL;
         opt.compare = hash_core_compare;
         uint32_t index_size = 1;
-        fhash* phash = fhash_create(index_size, opt, NULL, FHASH_MASK_NONE);
+        fhash* phash = fhash_create(index_size, opt, FHASH_MASK_NONE);
 
         // set items
         char key1[] = "test_key1";
@@ -1047,7 +1047,7 @@ void test_hash_core()
         fhash_opt opt;
         opt.hash_alg = NULL;
         opt.compare = hash_core_compare;
-        fhash* phash = fhash_create(0, opt, NULL, FHASH_MASK_NONE);
+        fhash* phash = fhash_create(0, opt, FHASH_MASK_NONE);
 
         char key1[] = "test_key1";
         char key2[] = "test_key2";
@@ -1119,7 +1119,7 @@ void test_hash_core()
         fhash_opt opt;
         opt.hash_alg = NULL;
         opt.compare = hash_core_compare;
-        fhash* phash = fhash_create(0, opt, NULL, FHASH_MASK_NONE);
+        fhash* phash = fhash_create(0, opt, FHASH_MASK_NONE);
 
         char key1[] = "test_key1";
         char key2[] = "test_key2";
@@ -1200,7 +1200,7 @@ void test_hash_core()
         fhash_opt opt;
         opt.hash_alg = NULL;
         opt.compare = hash_core_compare;
-        fhash* phash = fhash_create(0, opt, NULL, FHASH_MASK_NONE);
+        fhash* phash = fhash_create(0, opt, FHASH_MASK_NONE);
 
         char key1[] = "test_key1";
         char key2[] = "test_key2";
@@ -1282,7 +1282,7 @@ void test_hash_core()
         fhash_opt opt;
         opt.hash_alg = NULL;
         opt.compare = hash_core_compare;
-        fhash* phash = fhash_create(0, opt, NULL, FHASH_MASK_NONE);
+        fhash* phash = fhash_create(0, opt, FHASH_MASK_NONE);
 
         char key1[] = "test_key1";
         char key2[] = "test_key2";
@@ -1359,7 +1359,7 @@ void test_hash_core()
         fhash_opt opt;
         opt.hash_alg = NULL;
         opt.compare = hash_core_compare;
-        fhash* phash = fhash_create(0, opt, NULL, FHASH_MASK_NONE);
+        fhash* phash = fhash_create(0, opt, FHASH_MASK_NONE);
 
         char key1[] = "test_key1";
         char key2[] = "test_key2";
@@ -1411,7 +1411,7 @@ void test_hash_core()
         fhash_opt opt;
         opt.hash_alg = NULL;
         opt.compare = hash_core_compare;
-        fhash* phash = fhash_create(1, opt, NULL, FHASH_MASK_AUTO_REHASH);
+        fhash* phash = fhash_create(1, opt, FHASH_MASK_AUTO_REHASH);
 
         char key1[] = "test_key1";
         char key2[] = "test_key2";
@@ -1479,7 +1479,7 @@ void test_hash_core()
         fhash_opt opt;
         opt.hash_alg = NULL;
         opt.compare = hash_core_compare;
-        fhash* phash = fhash_create(0, opt, NULL, FHASH_MASK_NONE);
+        fhash* phash = fhash_create(0, opt, FHASH_MASK_NONE);
 
         char key1[] = "test_key1";
         char key2[] = "test_key2";
@@ -1568,7 +1568,7 @@ void test_hash_core()
         fhash_opt opt;
         opt.hash_alg = NULL;
         opt.compare = hash_core_compare;
-        fhash* phash = fhash_create(0, opt, NULL, FHASH_MASK_NONE);
+        fhash* phash = fhash_create(0, opt, FHASH_MASK_NONE);
 
         char key[] = "test_key";
         char value[] = "test_value";
@@ -1613,7 +1613,7 @@ void test_hash_core()
         fhash_opt opt;
         opt.hash_alg = NULL;
         opt.compare = hash_core_compare;
-        fhash* phash = fhash_create(0, opt, NULL, FHASH_MASK_NONE);
+        fhash* phash = fhash_create(0, opt, FHASH_MASK_NONE);
 
         char key[] = "";
         char value[] = "test_value";
@@ -1659,7 +1659,7 @@ void test_hash_core()
         fhash_opt opt;
         opt.hash_alg = NULL;
         opt.compare = hash_core_compare;
-        fhash* phash = fhash_create(0, opt, NULL, FHASH_MASK_NONE);
+        fhash* phash = fhash_create(0, opt, FHASH_MASK_NONE);
 
         char key[] = "test_key";
         char value[] = "test_value";
@@ -1698,7 +1698,7 @@ void test_hash_core()
         fhash_opt opt;
         opt.hash_alg = NULL;
         opt.compare = hash_core_compare;
-        fhash* phash = fhash_create(0, opt, NULL, FHASH_MASK_NONE);
+        fhash* phash = fhash_create(0, opt, FHASH_MASK_NONE);
 
         char key[] = "test_key";
         char value[] = "test_value";
@@ -1737,7 +1737,7 @@ void test_hash_core()
         fhash_opt opt;
         opt.hash_alg = NULL;
         opt.compare = hash_core_compare;
-        fhash* phash = fhash_create(0, opt, NULL, FHASH_MASK_NONE);
+        fhash* phash = fhash_create(0, opt, FHASH_MASK_NONE);
 
         char key[] = "test_key";
         char value[] = "test_value";

@@ -1,6 +1,6 @@
 include ../../common/Makefile.common
 
-TARGET = fhash_benchmark
+TARGET = fhash.bm
 
 MAIL_FILE_NAME = fhash
 OUTPUT_FOLDER := $(INSTALL_PATH)/$(BENCHMARK_FOLDER)
@@ -24,7 +24,7 @@ LDFLAGS = \
 
 benchmark: prepare
 	$(CC) -O2 $(COMMON_FLAGS) $(INC) $(LL) -o $(TARGET) $(SRCS) $(LDFLAGS)
-	./$(TARGET) | tee -a $(OUTPUT_FILE)
+	./$(TARGET) | tee $(OUTPUT_FILE)
 
 prepare:
 	@echo "generate random key/values..."

@@ -22,7 +22,7 @@ fhash* fhash_int_create(uint32_t init_size, uint32_t flags)
     opt.hash_alg = NULL;
     opt.compare = _hash_int_compare;
 
-    return fhash_create(init_size, opt, NULL, flags);
+    return fhash_create(init_size, opt, flags);
 }
 
 void fhash_int_delete(fhash* phash)

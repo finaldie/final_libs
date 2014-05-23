@@ -89,7 +89,8 @@ fev_state*    fev_create(int max_ev_size)
 
     fev->fevents = (fev_event*)malloc( sizeof(fev_event) * max_ev_size );
     fev->firelist = (int*)malloc( sizeof(int) * max_ev_size );
-    fev->module_tbl = fhash_str_create(FEV_DEFAULT_MODULE_CNT, FHASH_MASK_NONE);
+    fev->module_tbl = fhash_str_create(FEV_DEFAULT_MODULE_CNT,
+                                       FHASH_MASK_AUTO_REHASH);
 
     fev->max_ev_size = max_ev_size;
     fev_clear_firelist(fev);

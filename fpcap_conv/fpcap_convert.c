@@ -256,7 +256,8 @@ FPCAP_STATUS fpcap_convert(convert_action_t action)
 
     fopt_action_t opt_action;
     opt_action.iaction = &action;
-    opt_action.phash = fhash_u64_create(SESSION_HASH_SIZE, FHASH_MASK_NONE);
+    opt_action.phash = fhash_u64_create(SESSION_HASH_SIZE,
+                                        FHASH_MASK_AUTO_REHASH);
 
     int st = pcap_loop(p, 0, dump_cb, (u_char*)&opt_action);
     if( st != 0 ) {

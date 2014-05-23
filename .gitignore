@@ -9,3 +9,4 @@ types_c.taghl
 *.so
 
 tests/test
+benchmark/fhash/fhash.bm
