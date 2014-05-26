@@ -51,110 +51,131 @@ typedef int (*fhash_each_cb)(void* ud,
 
 // APIs
 
-
-/// @brief create a fhash table
-///
-/// @param init_size The hash table index size, if it's 0, the default value 10
-///                  will be used
-/// @param opt       The operation structure which contain hash algorithm and
-///                  comparison call back functions
-/// @param flags     FHASH_MASK_NONE - the default value, no feature enabled
-///                  FHASH_MASK_AUTO_REHASH - enable auto-rehash feature
-///                                           this is recommended
-/// @return          fhash table pointer
+/**
+ * @brief create a fhash table
+ *
+ * @param init_size The hash table index size, if it's 0, the default value 10
+ *                  will be used
+ * @param opt       The operation structure which contain hash algorithm and
+ *                  comparison call back functions
+ * @param flags     FHASH_MASK_NONE - the default value, no feature enabled
+ *                  FHASH_MASK_AUTO_REHASH - enable auto-rehash feature
+ *                                           this is recommended
+ * @return          fhash table pointer
+ */
 fhash*     fhash_create(uint32_t init_size, fhash_opt opt, uint32_t flags);
 
-/// @brief destroy a fhash table
-///
-/// @param table     pointer of fhash table
-//  @return          void
+/**
+ * @brief destroy a fhash table
+ *
+ * @param table     pointer of fhash table
+ * @return          void
+ */
 void       fhash_delete(fhash* table);
 
-/// @brief add or set a key-value pair into fhash table
-///
-/// @param table     pointer of fhash table
-/// @param key       key
-/// @param key_sz    key size
-/// @param value     value
-/// @param value_sz  value size
-/// @return          void
+/**
+ * @brief add or set a key-value pair into fhash table
+ *
+ * @param table     pointer of fhash table
+ * @param key       key
+ * @param key_sz    key size
+ * @param value     value
+ * @param value_sz  value size
+ * @return          void
+ */
 void       fhash_set(fhash* table,
                const void* key, key_sz_t key_sz,
                const void* value, value_sz_t value_sz);
 
-/// @brief get the value of the key
-///
-/// @param table     pointer of fhash table
-/// @param key       key
-/// @param key_sz    key size
-/// @param value_sz  a output variable, which is used for storing the value's
-///                  size if value_sz is not NULL
-/// @return          return value's pointer
+/**
+ * @brief get the value of the key
+ *
+ * @param table     pointer of fhash table
+ * @param key       key
+ * @param key_sz    key size
+ * @param value_sz  a output variable, which is used for storing the value's
+ *                  size if value_sz is not NULL
+ * @return          return value's pointer
+ */
 void*      fhash_get(fhash* table, const void* key, key_sz_t key_sz,
                value_sz_t* value_sz);
 
-/// @brief delete a key-value pair from the fhash table
-///
-/// @param table     pointer of fhash table
-/// @param key       key
-/// @param key_sz    key size
-/// @return          void
+/**
+ * @brief delete a key-value pair from the fhash table
+ *
+ * @param table     pointer of fhash table
+ * @param key       key
+ * @param key_sz    key size
+ * @return          void
+ */
 void       fhash_del(fhash* table, const void* key, key_sz_t key_sz);
 
-/// @brief fetch the key's value then delete it from fhash table
-///
-/// @param table     pointer of fhash table
-/// @param key       key
-/// @param key_sz    key size
-/// @param value     value
-/// @param value_sz  value size
-/// @return          key's value if the key is exist
-///                  NULL if the key is non-exist
+/**
+ * @brief fetch the key's value then delete it from fhash table
+ *
+ * @param table     pointer of fhash table
+ * @param key       key
+ * @param key_sz    key size
+ * @param value     value
+ * @param value_sz  value size
+ * @return          key's value if the key is exist
+ *                  NULL if the key is non-exist
+ */
 void*      fhash_fetch_and_del(fhash* table,
                const void* key, key_sz_t key_sz,
                void* value, value_sz_t value_sz);
 
-/// @brief create a iterator of the fhash table
-///
-/// @param table     pointer of fhash table
-/// @return          a iterator of this table
+/**
+ * @brief create a iterator of the fhash table
+ *
+ * @param table     pointer of fhash table
+ * @return          a iterator of this table
+ */
 fhash_iter fhash_iter_new(fhash* table);
 
-/// @brief release a iterator of the fhash table
-///
-/// @param          a pointer of iterator
-/// @return         void
-///
-/// @note           user must call this api if the iteration operation is done
-void       fhash_iter_release(fhash_iter*);
+/**
+ * @brief release a iterator of the fhash table
+ *
+ * @param iter     a pointer of iterator
+ * @return         void
+ *
+ * @note           user must call this api if the iteration operation is done
+ */
+void       fhash_iter_release(fhash_iter* iter);
 
-/// @brief get the next element
-///
-/// @param iter     pointer of the iterator
-/// @return         the next element
-///                 NULL if reach the end
+/**
+ * @brief get the next element
+ *
+ * @param iter     pointer of the iterator
+ * @return         the next element
+ *                 NULL if reach the end
+ */
 void*      fhash_next(fhash_iter* iter);
 
-/// @brief another iteration way
-///
-/// @param table    pointer of fhash table
-/// @param cb       the callback function of the iteration
-/// @param ud       user private data, it will be passed to the callback
-///                 function
-/// @return         void
+/**
+ * @brief another iteration way
+ *
+ * @param table    pointer of fhash table
+ * @param cb       the callback function of the iteration
+ * @param ud       user private data, it will be passed to the callback
+ *                 function
+ * @return         void
+ */
 void       fhash_foreach(fhash* table, fhash_each_cb cb, void* ud);
 
-/// @brief do the re-hash operation
-///
-/// @param table    pointer of fhash table
-/// @param new_size the new index size for this rehash operation
-/// @return         0 - if operation is successful
-///                 1 - if the operation is failed
-///
-/// @note           generally, the rehash will fail if:
-///                 1. there are still some iteration operations ongoing
-///                 2. the index size has already reach to UINT32_MAX
-///                 3. the new_size parameter is equal to current index size
+/**
+ * @brief do the re-hash operation
+ *
+ * @param table    pointer of fhash table
+ * @param new_size the new index size for this rehash operation
+ * @return         0 - if operation is successful
+ *                 1 - if the operation is failed
+ *
+ * @note           generally, the rehash will fail if:
+ *                 1. there are still some iteration operations ongoing
+ *                 2. the index size has already reach to UINT32_MAX
+ *                 3. the new_size parameter is equal to current index size
+ */
 int        fhash_rehash(fhash* table, uint32_t new_size);
 
 
@@ -169,13 +190,15 @@ typedef struct fhash_profile_data {
     uint32_t index_used;
 } fhash_profile_data;
 
-/// @brief profile the hash table, fill the profiling data to the
-///        fhash_profile_data structure
-///
-/// @param table    pointer of fhash table
-/// @param flags    FHASH_PROF_SILENT - won't print to stdout, only fill data
-///                 FHASH_PROF_VERBOSE - will print more detail to stdout
-/// @return         void
+/**
+ * @brief profile the hash table, fill the profiling data to the
+ *        fhash_profile_data structure
+ *
+ * @param table    pointer of fhash table
+ * @param flags    FHASH_PROF_SILENT - won't print to stdout, only fill data
+ *                 FHASH_PROF_VERBOSE - will print more detail to stdout
+ * @return         void
+ */
 void       fhash_profile(fhash* table, int flags, fhash_profile_data* data);
 
 #ifdef __cplusplus
