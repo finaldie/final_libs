@@ -34,9 +34,14 @@ fpcap    | Pcap file convertion lib |
 See [Wiki][1]
 
 ## Compile and INSTALL
-1. make
-2. make check
-3. make valgrind-check
+```c
+git clone git@github.com:finaldie/final_libs.git flibs
+cd flibs
+git submodule update --init --recursive
+make
+make check
+make valgrind-check
+```
 
 ## Benchmark
 ```
