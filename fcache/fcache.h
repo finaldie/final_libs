@@ -32,7 +32,7 @@ typedef void (*cache_obj_free)(void* data);
  *                    in the cache
  *  @return a pointer of fcache structure
  */
-fcache_t* fcache_create(size_t max_size, cache_obj_free);
+fcache_t* fcache_create(size_t max_size, cache_obj_free obj_free);
 
 /**
  *  @brief Destroy fcache

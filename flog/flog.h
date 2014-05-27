@@ -14,6 +14,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <stddef.h>
 #include <stdarg.h>
 
 typedef enum {
@@ -32,60 +34,77 @@ typedef struct _log_file_t log_file_t;
 
 /**
  *  @brief Create Logger
+ *
  *  @param filename
+ *
  *  @return a pointer of log_file structure
  */
 log_file_t* log_create(const char* filename);
 
 /**
  *  @brief Destroy Logger
- *  @param logger - which will be destroy
- *  @return void
+ *
+ *  @param logger   which will be destroy
+ *
+ *  @return         void
  */
 void log_destroy(log_file_t* logger);
 
 /**
  *  @brief Write log
- *  @param file_sig - the signature of log message
- *  @param sig_len - length of signature
- *  @param log - log message
- *  @param len - length of message
- *  @return 0 - success
- *  @return 1 - failed
+ *
+ *  @param file_sig the signature of log message
+ *  @param sig_len  length of signature
+ *  @param log      log message
+ *  @param len      length of message
+ *
+ *  @return
+ *                  - 0: success
+ *                  - 1: failed
  */
 size_t log_file_write(log_file_t*, const char* file_sig, size_t sig_len,
                         const char* log, size_t len);
 
 /**
  *  @brief Write log with format
- *  @param file_sig - the signature of log message
- *  @param sig_len - length of signature
- *  @param fmt - format string
- *  @param ... - dynamic args for format
+ *
+ *  @param file_sig the signature of log message
+ *  @param sig_len  length of signature
+ *  @param fmt      format string
+ *  @param ...      dynamic args for format
+ *
+ *  @return         void
  */
 void log_file_write_f(log_file_t*, const char* file_sig, size_t sig_len,
                         const char* fmt, ...);
 
 /**
  *  @brief Set log mode
- *  @param LOG_SYNC_MODE - set synchronization mode
- *  @param LOG_ASYNC_MODE - set asynchronization mode
- *  @return mode before setting
+ *
+ *  @param mode
+ *                  - LOG_SYNC_MODE: set synchronization mode
+ *                  - LOG_ASYNC_MODE: set asynchronization mode
+ *
+ *  @return         mode before setting
  */
 LOG_MODE log_set_mode(LOG_MODE mode);
 
 /**
  *  @brief Set file roll size, when greater than the given size, log system
- *  will roll a new file to continue writing messages, default value is 2G
- *  @param size - set max size for rolling
- *  @return void
+ *      will roll a new file to continue writing messages, default value is 2G
+ *
+ *  @param size     set max size for rolling
+ *
+ *  @return         void
  */
 void log_set_roll_size(size_t size);
 
 /**
  *  @brief Set max flush interval, unit msec
- *  @param sec - after given time, it will force to flush, default value is 0
- *  @return void
+ *
+ *  @param sec      after given time, it will force to flush, default value is 0
+ *
+ *  @return         void
  */
 void log_set_flush_interval(size_t sec);
 
@@ -93,21 +112,26 @@ void log_set_flush_interval(size_t sec);
  *  @brief Set buffer size for per user thread, should set before async writing
  *    The default buffer size per thread is 10M, call this interface if you
  *    want to change it
- *  @param size - buffer size per thread
- *  @return void
+ *
+ *  @param size     buffer size per thread
+ *
+ *  @return         void
  */
 void log_set_buffer_size(size_t size);
 
 /**
  *  @brief Get buffer size of per user thread
- *  @return buffer size
+ *
+ *  @return         buffer size
  */
 size_t log_get_buffer_size();
 
 /**
  *  @brief Register a callback function for notifying user some important status
- *  @param pfunc - user callback function
- *  @return void
+ *
+ *  @param pfunc    user callback function
+ *
+ *  @return         void
  */
 void log_register_event_callback(plog_event_func pfunc);
 
