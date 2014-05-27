@@ -30,6 +30,9 @@ fpcap    | Pcap file convertion lib |
 
 **NOTE:** After run as above, you can find the libraries have been installed in the specified folder or current folder, which named as "final_libraries"
 
+## API Documents
+See [Wiki][1]
+
 ## Compile and INSTALL
 1. make
 2. make check
@@ -102,3 +105,5 @@ make BIT=32
    * Issue #11 fix dead loop when no space on disk
 * 2012-11-28 0.3.2
    * Add new interface -- fev_add_listener_byfd
+
+[1]: https://github.com/finaldie/final_libs/wiki
