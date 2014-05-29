@@ -3,7 +3,7 @@
 Common Libraries (Linux Platform)
 =========================================
 
-## Lastest Versions
+## Lastest Release
 | Branch | Lastest Stable Tag |  Released  | Description                             |
 ---------|--------------------|------------|-----------------------------------------|
 |  0.4   | 0.4.9              | 2014-05-24 | Full 32 & 64 bit support                |

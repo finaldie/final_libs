@@ -4,6 +4,7 @@ INCLUDE_FOLDER = include/flibs
 LIB32_FOLDER = lib
 LIB64_FOLDER = lib64
 BENCHMARK_FOLDER = benchmark
+API_DOC = doc
 
 ASSEMBLY_LOCAL_FOLDER := $(shell pwd)/final_libraries
 ASSEMBLY_LOCAL32 := INSTALL_PATH=$(ASSEMBLY_LOCAL_FOLDER) INCLUDE_PATH=$(INCLUDE_FOLDER) LIBS_PATH=$(LIB32_FOLDER)
@@ -88,7 +89,7 @@ LIB_FOLDERS = \
 
 TEST_FOLDERS = tests
 
-.PHONY: clean all check valgrind-check install help benchmark
+.PHONY: clean all check valgrind-check install help benchmark doc doc-clean run_doxygen
 
 all:
 	@echo "[Compiling $(BUILD_BIT)bit libraries SHARED=$(SHARED)]";
@@ -109,7 +110,7 @@ valgrind-check:
 	@$(MAKE) $(MAKE_FLAGS) -C $(TEST_FOLDERS) EXT_FLAGS="$(EXT_FLAGS)" $(ASSEMBLY_LOCAL) || exit "$$?";
 	@$(MAKE) $(MAKE_FLAGS) -C $(TEST_FOLDERS) valgrind-check;
 
-clean: benchmark-clean
+clean: benchmark-clean doc-clean
 	@$(MAKE) $(MAKE_FLAGS) -C $(TEST_FOLDERS) $(ASSEMBLY_LOCAL) clean;
 	@for lib in $(LIB_FOLDERS); \
 	do \
@@ -140,6 +141,28 @@ benchmark-clean:
 	done;
 	@rm -rf $(ASSEMBLY_LOCAL_FOLDER)/$(BENCHMARK_FOLDER)
 
+doc: doc-clean doc-prepare run_doxygen
+	cd doc/xml \
+	    && ls | grep .xml | grep -vE "dir_|struct|union|index.xml" > doc.list \
+	    && for xml_file in `cat doc.list`; \
+		do \
+		    echo "generate api doc for $$xml_file"; \
+		    output_path=$(ASSEMBLY_LOCAL_FOLDER)/$(API_DOC); \
+		    output_file_name=`echo "$$xml_file" | sed 's/_8h//g' | sed 's/__/_/g' | sed 's/.xml//g'`; \
+		    output_file=$$output_path/$$output_file_name.md; \
+		    $(shell pwd)/3rds/convert2markdown/src/xml2markdown.py -f $$xml_file > $$output_file; \
+		done;
+
+doc-prepare:
+	test -d $(ASSEMBLY_LOCAL_FOLDER)/$(API_DOC) || mkdir -p $(ASSEMBLY_LOCAL_FOLDER)/$(API_DOC)
+
+run_doxygen:
+	doxygen .api_doxyfile
+
+doc-clean:
+	@rm -rf doc $(ASSEMBLY_LOCAL_FOLDER)/$(API_DOC)
+	@echo "doc clean done"
+
 help:
 	@echo "make [CC=gcc] [SHARED=true] [MODE=debug[,release]] [BIT=32] [VERBOSE=true]"
 	@echo "make check [CC=gcc] [BIT=32] [VERBOSE=true]"
@@ -148,3 +171,5 @@ help:
 	@echo "make clean"
 	@echo "make benchmark"
 	@echo "make benchmark-clean"
+	@echo "make doc"
+	@echo "make doc-clean"

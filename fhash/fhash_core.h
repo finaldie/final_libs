@@ -17,17 +17,28 @@ typedef int64_t value_sz_t;
 
 typedef struct fhash fhash;
 
-// hash table operation functions, all the function will be called
-// on demand by hash table itself
+/**
+ * hash table operation functions, all the function will be called
+ * on demand by hash table itself
+ */
 typedef struct {
     uint32_t (*hash_alg) (const void* key,  key_sz_t key_sz);
 
-    // return 0: key1 is same as key2
-    // return non-zero: key1 is different with key2
+    /**
+     * return
+     *   - **0**: key1 is same as key2
+     *   - **non-zero**: key1 is different with key2
+     */
     int      (*compare)  (const void* key1, key_sz_t key_sz1,
                           const void* key2, key_sz_t key_sz2);
 } fhash_opt;
 
+/**
+ * fhash iterator
+ *
+ * @note DO NOT modify any member's data, user only need to read the data of
+ *       **read only** part
+ */
 typedef struct {
     // private
     fhash*   phash;
@@ -42,9 +53,12 @@ typedef struct {
     void*       value;
 } fhash_iter;
 
-// foreach call back function
-// return 0 to continue iterate
-// return non-zero to stop iterating
+/**
+ * foreach call back function
+ * @return
+ *   - **0**: continue iterate
+ *   - **non-zero**: stop iterating
+ */
 typedef int (*fhash_each_cb)(void* ud,
                const void* key, key_sz_t key_sz,
                void* value, value_sz_t value_sz);
@@ -58,9 +72,10 @@ typedef int (*fhash_each_cb)(void* ud,
  *                  will be used
  * @param opt       The operation structure which contain hash algorithm and
  *                  comparison call back functions
- * @param flags     FHASH_MASK_NONE - the default value, no feature enabled
- *                  FHASH_MASK_AUTO_REHASH - enable auto-rehash feature
- *                                           this is recommended
+ * @param flags
+ *                  - FHASH_MASK_NONE: the default value, no feature enabled
+ *                  - FHASH_MASK_AUTO_REHASH: enable auto-rehash (recommended)
+ *
  * @return          fhash table pointer
  */
 fhash*     fhash_create(uint32_t init_size, fhash_opt opt, uint32_t flags);
@@ -118,8 +133,9 @@ void       fhash_del(fhash* table, const void* key, key_sz_t key_sz);
  * @param key_sz    key size
  * @param value     value
  * @param value_sz  value size
- * @return          key's value if the key is exist
- *                  NULL if the key is non-exist
+ * @return
+ *                  - key's value if the key is exist
+ *                  - NULL if the key is non-exist
  */
 void*      fhash_fetch_and_del(fhash* table,
                const void* key, key_sz_t key_sz,
@@ -147,8 +163,9 @@ void       fhash_iter_release(fhash_iter* iter);
  * @brief get the next element
  *
  * @param iter     pointer of the iterator
- * @return         the next element
- *                 NULL if reach the end
+ * @return
+ *                 - the next element
+ *                 - NULL if reach the end
  */
 void*      fhash_next(fhash_iter* iter);
 
@@ -168,13 +185,14 @@ void       fhash_foreach(fhash* table, fhash_each_cb cb, void* ud);
  *
  * @param table    pointer of fhash table
  * @param new_size the new index size for this rehash operation
- * @return         0 - if operation is successful
- *                 1 - if the operation is failed
+ * @return
+ *                 - **0**: if operation is successful
+ *                 - **1**: if the operation is failed
  *
  * @note           generally, the rehash will fail if:
- *                 1. there are still some iteration operations ongoing
- *                 2. the index size has already reach to UINT32_MAX
- *                 3. the new_size parameter is equal to current index size
+ *                 -# there are still some iteration operations ongoing
+ *                 -# the index size has already reach to UINT32_MAX
+ *                 -# the new_size parameter is equal to current index size
  */
 int        fhash_rehash(fhash* table, uint32_t new_size);
 
@@ -195,8 +213,10 @@ typedef struct fhash_profile_data {
  *        fhash_profile_data structure
  *
  * @param table    pointer of fhash table
- * @param flags    FHASH_PROF_SILENT - won't print to stdout, only fill data
- *                 FHASH_PROF_VERBOSE - will print more detail to stdout
+ * @param flags
+ *                 - FHASH_PROF_SILENT: won't print to stdout, only fill data
+ *                 - FHASH_PROF_VERBOSE: will print more detail to stdout
+ *
  * @return         void
  */
 void       fhash_profile(fhash* table, int flags, fhash_profile_data* data);
