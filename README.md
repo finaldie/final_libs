@@ -6,7 +6,7 @@ Common Libraries (Linux Platform)
 ## Lastest Release
 | Branch | Lastest Stable Tag |  Released  | Description                             |
 ---------|--------------------|------------|-----------------------------------------|
-|  0.4   | 0.4.9              | 2014-05-24 | Full 32 & 64 bit support                |
+|  0.4   | 0.4.10             | 2014-05-24 | Full 32 & 64 bit support                |
 
 
 ## Library contains
@@ -71,6 +71,8 @@ make BIT=32
 ```
 
 ## ChangeLog
+* 2014-05-29 0.4.10
+   * Add `make doc` to generate api wiki
 * 2014-05-24 0.4.9
    * Refactor fhash
 * 2014-05-04 0.4.8
