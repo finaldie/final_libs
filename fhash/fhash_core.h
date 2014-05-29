@@ -17,17 +17,28 @@ typedef int64_t value_sz_t;
 
 typedef struct fhash fhash;
 
-// hash table operation functions, all the function will be called
-// on demand by hash table itself
+/**
+ * hash table operation functions, all the function will be called
+ * on demand by hash table itself
+ */
 typedef struct {
     uint32_t (*hash_alg) (const void* key,  key_sz_t key_sz);
 
-    // return 0: key1 is same as key2
-    // return non-zero: key1 is different with key2
+    /**
+     * return
+     *   - **0**: key1 is same as key2
+     *   - **non-zero**: key1 is different with key2
+     */
     int      (*compare)  (const void* key1, key_sz_t key_sz1,
                           const void* key2, key_sz_t key_sz2);
 } fhash_opt;
 
+/**
+ * fhash iterator
+ *
+ * @note DO NOT modify any member's data, user only need to read the data of
+ *       **read only** part
+ */
 typedef struct {
     // private
     fhash*   phash;
@@ -42,9 +53,12 @@ typedef struct {
     void*       value;
 } fhash_iter;
 
-// foreach call back function
-// return 0 to continue iterate
-// return non-zero to stop iterating
+/**
+ * foreach call back function
+ * @return
+ *   - **0**: continue iterate
+ *   - **non-zero**: stop iterating
+ */
 typedef int (*fhash_each_cb)(void* ud,
                const void* key, key_sz_t key_sz,
                void* value, value_sz_t value_sz);
@@ -172,8 +186,8 @@ void       fhash_foreach(fhash* table, fhash_each_cb cb, void* ud);
  * @param table    pointer of fhash table
  * @param new_size the new index size for this rehash operation
  * @return
- *                 - 0: if operation is successful
- *                 - 1: if the operation is failed
+ *                 - **0**: if operation is successful
+ *                 - **1**: if the operation is failed
  *
  * @note           generally, the rehash will fail if:
  *                 -# there are still some iteration operations ongoing
