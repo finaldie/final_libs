@@ -10,20 +10,21 @@ KEY_VALUE_SOURCE = /tmp/fhash_kv.txt
 
 INC = -I../../
 LL := -L$(INSTALL_PATH)/$(LIBS_PATH) -Wl,-rpath,$(INSTALL_PATH)/$(LIBS_PATH)
+FLAGS = -std=c99
 
 SRCS = \
     main.c
 
 LDFLAGS = \
-    -lrt \
-    -lpthread \
-    -lftimer \
     -lfhash \
+    -lftimer \
+    -lrt \
+    -lpthread
 
 .PHONY: benchmark prepare clean $(TARGET)
 
 benchmark: prepare
-	$(CC) -O2 $(COMMON_FLAGS) $(INC) $(LL) -o $(TARGET) $(SRCS) $(LDFLAGS)
+	$(CC) -O2 $(COMMON_FLAGS) $(FLAGS) $(INC) $(LL) -o $(TARGET) $(SRCS) $(LDFLAGS)
 	./$(TARGET) | tee $(OUTPUT_FILE)
 
 prepare:
