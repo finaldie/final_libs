@@ -34,9 +34,9 @@ typedef struct fev_event {
     int         mask;       // READ OR WRITE
     int         fire_idx;   // we set the idx when the event has been disabled
                             // in one loop
-    pfev_read   pread;
-    pfev_write  pwrite;
-    void*       arg;
+    fev_read_cb  pread;
+    fev_write_cb pwrite;
+    void*        arg;
 } fev_event;
 
 struct fev_state {
@@ -137,7 +137,7 @@ void    fev_destroy(fev_state* fev)
 // return -4 : register event failed
 // return > 0 : sucess
 int     fev_reg_event(fev_state* fev, int fd, int mask,
-                      pfev_read pread, pfev_write pwrite, void* arg)
+                      fev_read_cb pread, fev_write_cb pwrite, void* arg)
 {
     if( !fev ) return -1;
 

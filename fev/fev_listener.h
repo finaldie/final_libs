@@ -1,5 +1,5 @@
 /*
- * =====================================================================================
+ * =============================================================================
  *
  *       Filename:  fev_listen.h
  *
@@ -11,9 +11,9 @@
  *       Compiler:  gcc
  *
  *         Author:  finaldie
- *        Company:  
+ *        Company:
  *
- * =====================================================================================
+ * =============================================================================
  */
 
 #ifndef _FEV_LISTEN_H_
@@ -26,10 +26,10 @@ extern "C" {
 #include "fev.h"
 
 typedef struct fev_listen_info fev_listen_info;
-typedef void (*pfev_accept)(fev_state*, int fd, void* ud);
+typedef void (*fev_accept_cb)(fev_state*, int fd, void* ud);
 
-fev_listen_info* fev_add_listener(fev_state*, int port, pfev_accept, void* ud);
-fev_listen_info* fev_add_listener_byfd(fev_state*, int listen_fd, pfev_accept,
+fev_listen_info* fev_add_listener(fev_state*, int port, fev_accept_cb, void* ud);
+fev_listen_info* fev_add_listener_byfd(fev_state*, int listen_fd, fev_accept_cb,
                                        void* ud);
 void fev_del_listener(fev_state*, fev_listen_info*);
 

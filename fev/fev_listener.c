@@ -1,9 +1,9 @@
 /*
- * =====================================================================================
+ * =============================================================================
  *
  *       Filename:  fev_listen.c
  *
- *    Description:  
+ *    Description:
  *
  *        Version:  1.0
  *        Created:  11/23/2011 16:47:59
@@ -11,9 +11,9 @@
  *       Compiler:  gcc
  *
  *         Author:  finaldie
- *        Company:  
+ *        Company:
  *
- * =====================================================================================
+ * =============================================================================
  */
 
 #include <stdlib.h>
@@ -25,9 +25,9 @@
 
 #pragma pack(4)
 struct fev_listen_info {
-    int         fd;
-    pfev_accept accept_cb;
-    void*       ud;
+    int           fd;
+    fev_accept_cb accept_cb;
+    void*         ud;
 };
 #pragma pack()
 
@@ -47,12 +47,12 @@ static void on_listen_port(fev_state* fev,
     }
 }
 
-fev_listen_info* fev_add_listener(fev_state* fev, 
-        int port, pfev_accept accept_cb, void* ud)
+fev_listen_info* fev_add_listener(fev_state* fev,
+        int port, fev_accept_cb accept_cb, void* ud)
 {
     if( !fev ) return NULL;
 
-    fev_listen_info* listen_info = (fev_listen_info*)malloc(sizeof(fev_listen_info)); 
+    fev_listen_info* listen_info = malloc(sizeof(fev_listen_info));
     if( !listen_info ) return NULL;
 
     int listen_fd = fnet_create_listen(NULL, port, FEV_LISTEN_QUEUE_NUM, 0);
@@ -75,12 +75,12 @@ fev_listen_info* fev_add_listener(fev_state* fev,
 }
 
 fev_listen_info* fev_add_listener_byfd(fev_state* fev, int listen_fd,
-                                  pfev_accept accept_cb, void* ud)
+                                  fev_accept_cb accept_cb, void* ud)
 {
     if( !fev ) return NULL;
     if( listen_fd < 0 || !accept_cb) return NULL;
 
-    fev_listen_info* listen_info = (fev_listen_info*)malloc(sizeof(fev_listen_info)); 
+    fev_listen_info* listen_info = malloc(sizeof(fev_listen_info));
     if( !listen_info ) return NULL;
 
     listen_info->fd = listen_fd;
@@ -98,7 +98,7 @@ fev_listen_info* fev_add_listener_byfd(fev_state* fev, int listen_fd,
 
 void fev_del_listener(fev_state* fev, fev_listen_info* listen_info)
 {
-    if( !fev || !listen_info ) return;   
+    if( !fev || !listen_info ) return;
 
     fev_del_event(fev, listen_info->fd, FEV_READ | FEV_WRITE );
     close(listen_info->fd);

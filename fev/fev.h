@@ -1,5 +1,5 @@
 /*
- * =====================================================================================
+ * =============================================================================
  *
  *       Filename:  fev.h
  *
@@ -11,9 +11,9 @@
  *       Compiler:  gcc
  *
  *         Author:  finaldie
- *        Company:  
+ *        Company:
  *
- * =====================================================================================
+ * =============================================================================
  */
 
 #ifndef _FEV_H_
@@ -31,14 +31,14 @@ typedef struct fev_state fev_state;
 #define FEV_WRITE   0x2
 #define FEV_ERROR   0x4
 
-typedef void (*pfev_read)(fev_state*, int fd, int mask, void* arg);
-typedef void (*pfev_write)(fev_state*, int fd, int mask, void* arg);
+typedef void (*fev_read_cb)(fev_state*, int fd, int mask, void* arg);
+typedef void (*fev_write_cb)(fev_state*, int fd, int mask, void* arg);
 
 fev_state* fev_create(int max_ev_size);
 void fev_destroy(fev_state*);
 int  fev_poll(fev_state*, int timeout);
 
-int  fev_reg_event(fev_state*, int fd, int mask, pfev_read, pfev_write, void* arg);
+int  fev_reg_event(fev_state*, int fd, int mask, fev_read_cb, fev_write_cb, void* arg);
 int  fev_add_event(fev_state*, int fd, int mask);
 int  fev_del_event(fev_state*, int fd, int mask);
 int  fev_get_mask(fev_state*, int fd);

@@ -32,7 +32,7 @@
 typedef struct fev_conn_info {
     int          fd;
     ftimer_node* timer;
-    pfev_conn    conn_cb;
+    fev_conn_cb  conn_cb;
     conn_arg_t   arg;
 } fev_conn_info;
 #pragma pack()
@@ -88,7 +88,7 @@ int    fev_conn(fev_state* fev,
             const char* ip,
             int port,
             int timeout, /* unit ms */
-            pfev_conn pfunc,
+            fev_conn_cb pfunc,
             conn_arg_t arg)
 {
     int sockfd = -1;

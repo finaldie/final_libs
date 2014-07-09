@@ -1,5 +1,5 @@
 /*
- * =====================================================================================
+ * =============================================================================
  *
  *       Filename:  t_fev.c
  *
@@ -11,9 +11,9 @@
  *       Compiler:  gcc
  *
  *         Author:  finaldie
- *        Company:  
+ *        Company:
  *
- * =====================================================================================
+ * =============================================================================
  */
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -45,11 +45,11 @@ typedef struct {
 #pragma pack()
 
 typedef struct fake_fev_event {
-    int         mask;   //READ OR WRITE
-    int         fire_idx;
-    pfev_read   pread;
-    pfev_write  pwrite;
-    void*       arg;
+    int          mask;   //READ OR WRITE
+    int          fire_idx;
+    fev_read_cb  pread;
+    fev_write_cb pwrite;
+    void*        arg;
 } fake_fev_event;
 
 typedef struct fake_fev_state{
@@ -67,7 +67,7 @@ typedef struct fake_fev_state{
 typedef struct fake_fev_conn_info {
     int         fd;
     fev_timer*  timer;
-    pfev_conn   conn_cb;
+    fev_conn_cb conn_cb;
     conn_arg_t  arg;
 } fake_fev_conn_info;
 #pragma pack()
