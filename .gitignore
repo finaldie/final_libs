@@ -1,5 +1,7 @@
 tags
 cscope.*
+.tags
+.cscope.*
 *.swp
 types_c.taghl
 *.d
