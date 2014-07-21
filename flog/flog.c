@@ -433,16 +433,16 @@ void _log_async_write_f(log_file_t* f, const char* file_sig, size_t sig_len,
         return;
     }
 
-    char* head = fmbuf_get_head(th_data->plog_buf);
-    char* tail = fmbuf_get_tail(th_data->plog_buf);
+    char* head = fmbuf_head(th_data->plog_buf);
+    char* tail = fmbuf_tail(th_data->plog_buf);
     size_t tail_free_size = tail < head ? total_free :
                                   fmbuf_tail_free(th_data->plog_buf);
     if ( tail_free_size >= max_msg_len ) {
         // fill log message in mbuf directly
-        char* buf = fmbuf_get_tail(th_data->plog_buf);
+        char* buf = fmbuf_tail(th_data->plog_buf);
         int buff_size = _log_fill_async_msg(f, th_data, buf, file_sig, sig_len,
                                             fmt, ap);
-        fmbuf_tail_seek(th_data->plog_buf, buff_size);
+        fmbuf_tail_seek(th_data->plog_buf, buff_size, FMBUF_SEEK_RIGHT);
     } else {
         // fill log message in tmp buffer
         char* buf = th_data->tmp_buf;
@@ -574,7 +574,7 @@ void _log_pto_fetch_msg(thread_data_t* th_data)
         return;
     }
 
-    tmsg = fmbuf_getraw(pbuf, tmp_buf, (size_t)header.len);
+    tmsg = fmbuf_rawget(pbuf, tmp_buf, (size_t)header.len);
     if ( !tmsg ) {
         return;
     }
@@ -584,7 +584,7 @@ void _log_pto_fetch_msg(thread_data_t* th_data)
         _log_event_notice(LOG_EVENT_ERROR_WRITE);
     }
 
-    fmbuf_head_move(pbuf, (size_t)header.len);
+    fmbuf_pop(pbuf, NULL, (size_t)header.len);
 }
 
 inline

@@ -99,7 +99,7 @@ void*   fmbuf_alloc(fmbuf* mbuf, size_t size);
 // @param pbuf      mbuf
 // @param bytes     the distance of user want to move,
 // @param direction - FMBUF_SEEK_LEFT: move left the header
-//                  - FMBUF_SEEK_LEFT: move right the header
+//                  - FMBUF_SEEK_RIGHT: move right the header
 //
 // @return void
 void    fmbuf_head_seek(fmbuf* mbuf, size_t offset, int direction);
@@ -109,7 +109,7 @@ void    fmbuf_head_seek(fmbuf* mbuf, size_t offset, int direction);
 // @param pbuf      mbuf
 // @param offset    the distance of user want to move,
 // @param direction - FMBUF_SEEK_LEFT: move left the tailer
-//                  - FMBUF_SEEK_LEFT: move right the tailer
+//                  - FMBUF_SEEK_RIGHT: move right the tailer
 //
 // @return void
 void    fmbuf_tail_seek(fmbuf* mbuf, size_t offset, int direction);
