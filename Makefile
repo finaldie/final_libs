@@ -146,11 +146,11 @@ doc: doc-clean doc-prepare run_doxygen
 	    && ls | grep .xml | grep -vE "dir_|struct|union|index.xml" > doc.list \
 	    && for xml_file in `cat doc.list`; \
 		do \
-		    echo "generate api doc for $$xml_file"; \
 		    output_path=$(ASSEMBLY_LOCAL_FOLDER)/$(API_DOC); \
 		    output_file_name=`echo "$$xml_file" | sed 's/_8h//g' | sed 's/__/_/g' | sed 's/.xml//g'`; \
 		    output_file=$$output_path/$$output_file_name.md; \
 		    $(shell pwd)/3rds/convert2markdown/src/xml2markdown.py -f $$xml_file > $$output_file; \
+		    echo "generate api doc for $$xml_file, output doc -> $$output_file_name"; \
 		done;
 
 doc-prepare:
