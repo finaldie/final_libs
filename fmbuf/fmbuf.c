@@ -10,20 +10,20 @@
 // 1. the mbuf is empty: when the header == tailer
 // 2. the mbuf is full: when the next location of tailer == header
 
-#define MBUF_START(pbuf)    ( (char*)(pbuf->buf) )
+#define MBUF_START(pbuf)    ( pbuf->buf )
 #define MBUF_END(pbuf)      ( pbuf->buf + pbuf->size )
 #define MBUF_HEAD(pbuf)     ( pbuf->head )
 #define MBUF_TAIL(pbuf)     ( pbuf->tail )
 #define MBUF_SIZE(pbuf)     ( pbuf->size )
 #define MBUF_USED(pbuf) \
     ( MBUF_HEAD(pbuf) <= MBUF_TAIL(pbuf) \
-      ? MBUF_TAIL(pbuf) - MBUF_HEAD(pbuf) \
+      ? (uintptr_t)MBUF_TAIL(pbuf) - (uintptr_t)MBUF_HEAD(pbuf) \
       : MBUF_SIZE(pbuf) - (MBUF_HEAD(pbuf) - MBUF_TAIL(pbuf)) + 1 )
 
 #define MBUF_FREE(pbuf) \
     ( MBUF_HEAD(pbuf) <= MBUF_TAIL(pbuf) \
       ? MBUF_SIZE(pbuf) - (MBUF_TAIL(pbuf) - MBUF_HEAD(pbuf)) \
-      : MBUF_HEAD(pbuf) - MBUF_TAIL(pbuf) - 1 )
+      : MBUF_HEAD(pbuf) - MBUF_TAIL(pbuf) - (size_t)1 )
 
 #define MBUF_COPY(dst, src, sz) \
     if (sz > 0 && dst && src) { \
@@ -34,12 +34,13 @@ struct _mbuf {
     size_t size;
     char*  head;
     char*  tail;
-    char   buf[1];
+    char   buf[0];
 };
 
 fmbuf*    fmbuf_create(size_t size)
 {
-    fmbuf* pmbuf = malloc(sizeof(fmbuf) + size);
+    // must reserve 1 byte for mbuf
+    fmbuf* pmbuf = malloc(sizeof(fmbuf) + size + 1);
     pmbuf->size = size;
     pmbuf->head = pmbuf->tail = pmbuf->buf;
 
@@ -61,7 +62,7 @@ void    fmbuf_delete(fmbuf* pbuf)
 
 int     fmbuf_push(fmbuf* pbuf, const void* data, size_t size)
 {
-    if (data && size > 0 && (size_t)MBUF_FREE(pbuf) >= size) {
+    if (data && size > 0 && MBUF_FREE(pbuf) >= size) {
         size_t tail_free = fmbuf_tail_free(pbuf);
 
         if (tail_free >= size) {
@@ -87,7 +88,7 @@ int     fmbuf_push(fmbuf* pbuf, const void* data, size_t size)
 //if head to end space is less than size then go on to pop from start
 int        fmbuf_pop(fmbuf* pbuf, void* data, size_t size)
 {
-    if (size > 0 && size <= (size_t)MBUF_USED(pbuf)) {
+    if (size > 0 && size <= MBUF_USED(pbuf)) {
         size_t tail_use = MBUF_END(pbuf) - MBUF_HEAD(pbuf) + 1;
 
         if (tail_use >= size) {
@@ -136,7 +137,7 @@ void*    fmbuf_vpop(fmbuf* pbuf, void* data, size_t size)
 
 void*   fmbuf_rawget(fmbuf* pbuf, void* data, size_t size)
 {
-    if (data && size > 0 && size <= (size_t)MBUF_USED(pbuf)) {
+    if (data && size > 0 && size <= MBUF_USED(pbuf)) {
         size_t tail_use = MBUF_END(pbuf) - MBUF_HEAD(pbuf) + 1;
 
         if (tail_use >= size) {
@@ -230,7 +231,7 @@ fmbuf*  _increase_buf(fmbuf* pbuf, size_t size)
     size_t tail_offset = MBUF_TAIL(pbuf) - MBUF_START(pbuf);
 
     if (MBUF_HEAD(pbuf) <= MBUF_TAIL(pbuf)) {
-        fmbuf* new_buf = realloc(pbuf, sizeof(fmbuf) + size);
+        fmbuf* new_buf = realloc(pbuf, sizeof(fmbuf) + size + 1);
         MBUF_HEAD(new_buf) = MBUF_START(new_buf) + head_offset;
         MBUF_TAIL(new_buf) = MBUF_START(new_buf) + tail_offset;
         MBUF_SIZE(new_buf) = size;
@@ -245,7 +246,7 @@ fmbuf*  _increase_buf(fmbuf* pbuf, size_t size)
         size_t increased_sz = size - MBUF_SIZE(pbuf);
         size_t left_used = tail_offset;
         size_t right_used = MBUF_USED(pbuf) - left_used;
-        fmbuf* new_buf = realloc(pbuf, sizeof(fmbuf) + size);
+        fmbuf* new_buf = realloc(pbuf, sizeof(fmbuf) + size + 1);
         MBUF_HEAD(new_buf) = MBUF_START(new_buf) + head_offset;
         MBUF_TAIL(new_buf) = MBUF_START(new_buf) + tail_offset;
 
@@ -281,7 +282,7 @@ fmbuf* _decrease_buf(fmbuf* pbuf, size_t size)
         }
 
         size_t head_offset = MBUF_HEAD(pbuf) - MBUF_START(pbuf);
-        fmbuf* new_buf = realloc(pbuf, sizeof(fmbuf) + size);
+        fmbuf* new_buf = realloc(pbuf, sizeof(fmbuf) + size + 1);
         MBUF_HEAD(new_buf) = MBUF_START(new_buf) + head_offset;
         MBUF_TAIL(new_buf) = MBUF_START(new_buf) + tail_offset;
         MBUF_SIZE(new_buf) = size;
@@ -302,7 +303,7 @@ fmbuf* _decrease_buf(fmbuf* pbuf, size_t size)
         MBUF_HEAD(pbuf) -= move_sz;
         head_offset = MBUF_HEAD(pbuf) - MBUF_START(pbuf);
 
-        fmbuf* new_buf = realloc(pbuf, sizeof(fmbuf) + actual_sz);
+        fmbuf* new_buf = realloc(pbuf, sizeof(fmbuf) + actual_sz + 1);
         MBUF_HEAD(new_buf) = MBUF_START(new_buf) + head_offset;
         MBUF_TAIL(new_buf) = MBUF_START(new_buf) + tail_offset;
         MBUF_SIZE(new_buf) = actual_sz;
