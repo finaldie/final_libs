@@ -31,6 +31,7 @@ void    test_log();
 void    test_async_log();
 void    test_mbuf();
 void    test_mbuf1();
+void    test_mbuf2();
 void    test_timer();
 void    test_list();
 void    test_list_sort();

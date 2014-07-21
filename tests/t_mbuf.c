@@ -21,6 +21,7 @@
 #include "fmbuf/fmbuf.h"
 #include "inc.h"
 
+// mbuf as a array
 void test_mbuf()
 {
     fmbuf* pbuf = fmbuf_create(100);
@@ -42,10 +43,11 @@ void test_mbuf()
         FTU_ASSERT_EQUAL_INT(100, size);
     }
 
-    fmbuf_head_seek(pbuf, 10, FMBUF_SEEK_RIGHT);
-    fmbuf_tail_seek(pbuf, 20, FMBUF_SEEK_RIGHT);
-
+    // setup mbuf, header at 10, tailer at 20 (10 bytes used)
     {
+        fmbuf_head_seek(pbuf, 10, FMBUF_SEEK_RIGHT);
+        fmbuf_tail_seek(pbuf, 20, FMBUF_SEEK_RIGHT);
+
         int used = fmbuf_used(pbuf);
         FTU_ASSERT_EQUAL_INT(10, used);
 
@@ -62,9 +64,9 @@ void test_mbuf()
         FTU_ASSERT_EQUAL_INT(100, size);
     }
 
-    fmbuf_rewind(pbuf);
-
+    // rewind it
     {
+        fmbuf_rewind(pbuf);
         int used = fmbuf_used(pbuf);
         FTU_ASSERT_EQUAL_INT(10, used);
 
@@ -81,14 +83,16 @@ void test_mbuf()
         FTU_ASSERT_EQUAL_INT(100, size);
     }
 
-    fmbuf* new_buf = fmbuf_realloc(pbuf, 100);
+    // realloc it with same size
     {
+        fmbuf* new_buf = fmbuf_realloc(pbuf, 100);
         FTU_ASSERT_EXPRESS((new_buf==pbuf));
     }
 
-    pbuf = fmbuf_realloc(new_buf, 200);
-
+    // increase the mbuf size
     {
+        fmbuf* new_buf = pbuf;
+        pbuf = fmbuf_realloc(new_buf, 200);
         int used = fmbuf_used(pbuf);
         FTU_ASSERT_EQUAL_INT(10, used);
 
@@ -105,8 +109,9 @@ void test_mbuf()
         FTU_ASSERT_EQUAL_INT(200, size);
     }
 
-    pbuf = fmbuf_realloc(pbuf, 5);
+    // decrease the buff size < data size
     {
+        pbuf = fmbuf_realloc(pbuf, 5);
         int used = fmbuf_used(pbuf);
         FTU_ASSERT_EQUAL_INT(10, used);
 
@@ -123,12 +128,12 @@ void test_mbuf()
         FTU_ASSERT_EQUAL_INT(10, size);
     }
 
-    pbuf = fmbuf_realloc(pbuf, 100);
-    fmbuf_head_seek(pbuf, 10, FMBUF_SEEK_RIGHT);
-    fmbuf_tail_seek(pbuf, 10, FMBUF_SEEK_RIGHT);
-    pbuf = fmbuf_realloc(pbuf, 15);
-
+    // realloc it, new buffer size > data size
     {
+        pbuf = fmbuf_realloc(pbuf, 100);
+        fmbuf_head_seek(pbuf, 10, FMBUF_SEEK_RIGHT);
+        fmbuf_tail_seek(pbuf, 10, FMBUF_SEEK_RIGHT);
+        pbuf = fmbuf_realloc(pbuf, 15);
         int used = fmbuf_used(pbuf);
         FTU_ASSERT_EQUAL_INT(10, used);
 
@@ -148,8 +153,140 @@ void test_mbuf()
     fmbuf_delete(pbuf);
 }
 
+// mbuf as a ring-buffer (the tailer location < header location)
+void test_mbuf2()
+{
+    // mbuf: size = 10b, used = 2b
+    // realloc it with same size
+    {
+        fmbuf* mbuf = fmbuf_create(10);
+        int ret = fmbuf_push(mbuf, "11", 2);
+        FTU_ASSERT(ret == 0);
+
+        fmbuf* new_buf = fmbuf_realloc(mbuf, 10);
+        FTU_ASSERT(new_buf == mbuf);
+        fmbuf_delete(mbuf);
+    }
+
+    // mbuf: size = 10b, used = 9b
+    // realloc it with new size = 20b
+    // note: left used <= right used and left used <= increased sz
+    {
+        fmbuf* mbuf = fmbuf_create(10);
+        fmbuf_head_seek(mbuf, 4, FMBUF_SEEK_RIGHT);
+        fmbuf_tail_seek(mbuf, 2, FMBUF_SEEK_RIGHT);
+        FTU_ASSERT(fmbuf_used(mbuf) == 9);
+
+        fmbuf* new_buf = fmbuf_realloc(mbuf, 20);
+        FTU_ASSERT(9 == fmbuf_used(new_buf));
+        FTU_ASSERT(11 == fmbuf_free(new_buf));
+        FTU_ASSERT(20 == fmbuf_size(new_buf));
+        FTU_ASSERT(4 == fmbuf_head_free(new_buf));
+        FTU_ASSERT(7 == fmbuf_tail_free(new_buf));
+        fmbuf_delete(new_buf);
+    }
+
+    // mbuf: size = 10b, used = 9b
+    // realloc it with new size = 20b
+    // note: left used > right used, left used <= increased sz
+    {
+        fmbuf* mbuf = fmbuf_create(10);
+        fmbuf_head_seek(mbuf, 8, FMBUF_SEEK_RIGHT);
+        fmbuf_tail_seek(mbuf, 6, FMBUF_SEEK_RIGHT);
+        FTU_ASSERT(fmbuf_used(mbuf) == 9);
+
+        fmbuf* new_buf = fmbuf_realloc(mbuf, 20);
+        FTU_ASSERT(9 == fmbuf_used(new_buf));
+        FTU_ASSERT(11 == fmbuf_free(new_buf));
+        FTU_ASSERT(20 == fmbuf_size(new_buf));
+        FTU_ASSERT(18 == fmbuf_head_free(new_buf));
+        FTU_ASSERT(14 == fmbuf_tail_free(new_buf));
+        fmbuf_delete(new_buf);
+    }
+
+    // mbuf: size = 10b, used = 9b
+    // realloc it with new size = 11b
+    // note: left used <= right used, left used > increased sz
+    {
+        fmbuf* mbuf = fmbuf_create(10);
+        fmbuf_head_seek(mbuf, 4, FMBUF_SEEK_RIGHT);
+        fmbuf_tail_seek(mbuf, 2, FMBUF_SEEK_RIGHT);
+        FTU_ASSERT(fmbuf_used(mbuf) == 9);
+
+        fmbuf* new_buf = fmbuf_realloc(mbuf, 11);
+        FTU_ASSERT(9 == fmbuf_used(new_buf));
+        FTU_ASSERT(2 == fmbuf_free(new_buf));
+        FTU_ASSERT(11 == fmbuf_size(new_buf));
+        FTU_ASSERT(5 == fmbuf_head_free(new_buf));
+        FTU_ASSERT(9 == fmbuf_tail_free(new_buf));
+        fmbuf_delete(new_buf);
+    }
+
+    // mbuf: size = 10b, used = 9b
+    // realloc it with new size = 11b
+    // note: left used > right used, left used > increased sz
+    {
+        fmbuf* mbuf = fmbuf_create(10);
+        fmbuf_head_seek(mbuf, 8, FMBUF_SEEK_RIGHT);
+        fmbuf_tail_seek(mbuf, 6, FMBUF_SEEK_RIGHT);
+        FTU_ASSERT(fmbuf_used(mbuf) == 9);
+
+        fmbuf* new_buf = fmbuf_realloc(mbuf, 11);
+        FTU_ASSERT(9 == fmbuf_used(new_buf));
+        FTU_ASSERT(2 == fmbuf_free(new_buf));
+        FTU_ASSERT(11 == fmbuf_size(new_buf));
+        FTU_ASSERT(9 == fmbuf_head_free(new_buf));
+        FTU_ASSERT(5 == fmbuf_tail_free(new_buf));
+        fmbuf_delete(new_buf);
+    }
+
+    // mbuf: size = 10b, used = 2b
+    // realloc it with new size = 5b
+    {
+        fmbuf* mbuf = fmbuf_create(10);
+        fmbuf_head_seek(mbuf, 10, FMBUF_SEEK_RIGHT);
+        fmbuf_tail_seek(mbuf, 1, FMBUF_SEEK_RIGHT);
+        FTU_ASSERT(fmbuf_used(mbuf) == 2);
+
+        fmbuf* new_buf = fmbuf_realloc(mbuf, 5);
+        FTU_ASSERT(2 == fmbuf_used(new_buf));
+        FTU_ASSERT(3 == fmbuf_free(new_buf));
+        FTU_ASSERT(5 == fmbuf_size(new_buf));
+        FTU_ASSERT(5 == fmbuf_head_free(new_buf));
+        FTU_ASSERT(4 == fmbuf_tail_free(new_buf));
+        fmbuf_delete(new_buf);
+    }
+
+    // mbuf: size = 10b, used = 2b
+    // realloc it with new size = 1b
+    {
+        fmbuf* mbuf = fmbuf_create(10);
+        fmbuf_head_seek(mbuf, 10, FMBUF_SEEK_RIGHT);
+        fmbuf_tail_seek(mbuf, 1, FMBUF_SEEK_RIGHT);
+        FTU_ASSERT(fmbuf_used(mbuf) == 2);
+
+        fmbuf* new_buf = fmbuf_realloc(mbuf, 1);
+        FTU_ASSERT(2 == fmbuf_used(new_buf));
+        FTU_ASSERT(0 == fmbuf_free(new_buf));
+        FTU_ASSERT(2 == fmbuf_size(new_buf));
+        FTU_ASSERT(2 == fmbuf_head_free(new_buf));
+        FTU_ASSERT(1 == fmbuf_tail_free(new_buf));
+        fmbuf_delete(new_buf);
+    }
+}
+
 void test_mbuf1()
 {
+    // create a mbuf with size == 0
+    {
+        fmbuf* pbuf = fmbuf_create(0);
+        FTU_ASSERT(pbuf != NULL);
+        FTU_ASSERT(0 == fmbuf_size(pbuf));
+        FTU_ASSERT(0 == fmbuf_used(pbuf));
+        FTU_ASSERT(0 == fmbuf_free(pbuf));
+        fmbuf_delete(pbuf);
+    }
+
     fmbuf* pbuf = fmbuf_create(10);
     FTU_ASSERT_EXPRESS(pbuf!=NULL);
 

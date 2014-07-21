@@ -40,19 +40,19 @@ struct _mbuf {
 fmbuf*    fmbuf_create(size_t size)
 {
     // must reserve 1 byte for mbuf
-    fmbuf* pmbuf = malloc(sizeof(fmbuf) + size + 1);
-    pmbuf->size = size;
-    pmbuf->head = pmbuf->tail = pmbuf->buf;
+    fmbuf* mbuf = malloc(sizeof(fmbuf) + size + 1);
+    mbuf->size = size;
+    mbuf->head = mbuf->tail = mbuf->buf;
 
-    return pmbuf;
+    return mbuf;
 }
 
 fmbuf*    fmbuf_create1(size_t size, int fill)
 {
-    fmbuf* pmbuf = fmbuf_create(size);
-    memset(pmbuf->buf, fill, size);
+    fmbuf* mbuf = fmbuf_create(size);
+    memset(mbuf->buf, fill, size + 1);
 
-    return pmbuf;
+    return mbuf;
 }
 
 void    fmbuf_delete(fmbuf* pbuf)
@@ -263,6 +263,7 @@ fmbuf*  _increase_buf(fmbuf* pbuf, size_t size)
             void* dst = MBUF_HEAD(new_buf) + increased_sz;
             memmove(dst, MBUF_HEAD(new_buf), right_used);
             MBUF_HEAD(new_buf) += increased_sz;
+            MBUF_SIZE(new_buf) = size;
         }
 
         return new_buf;
