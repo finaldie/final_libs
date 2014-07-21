@@ -1,3 +1,5 @@
+* 2014-07-21 0.5.1
+   * Refactor `fmbuf`, make the api more user friendly
 * 2014-05-29 0.4.10
    * Add `make doc` to generate api wiki
 * 2014-05-24 0.4.9
