@@ -63,7 +63,7 @@ void    fmbuf_delete(fmbuf* pbuf)
 int     fmbuf_push(fmbuf* pbuf, const void* data, size_t size)
 {
     if (data && size > 0 && MBUF_FREE(pbuf) >= size) {
-        size_t tail_free = fmbuf_tail_free(pbuf);
+        size_t tail_free = fmbuf_tail_free(pbuf) + 1;
 
         if (tail_free >= size) {
             memcpy(MBUF_TAIL(pbuf), data, size);
