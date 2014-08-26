@@ -5,6 +5,9 @@ compiler:
     - gcc
 
 before_install:
+    - uname -a
+    - cat /etc/issue
+    - sudo apt-get update
     - sudo apt-get install libpcap0.8 libpcap0.8-dev valgrind
 
 install: true
