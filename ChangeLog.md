@@ -1,3 +1,5 @@
+* 2014-08-27 0.5.2
+   * Remove the lib64 folder, both 32 and 64bit library will be installed in the lib folder
 * 2014-07-21 0.5.1
    * Refactor `fmbuf`, make the api more user friendly
 * 2014-05-29 0.4.10
