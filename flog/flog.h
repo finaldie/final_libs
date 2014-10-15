@@ -8,29 +8,31 @@
  *   It could be very fast, simple and strong. have a fun :)
  *****************************************************************************/
 
-#ifndef _LOG_SYSTEM_H_
-#define _LOG_SYSTEM_H_
+#ifndef FLOG_SYSTEM_H
+#define FLOG_SYSTEM_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #include <stddef.h>
-#include <stdarg.h>
+
+#include "flog_level.h"
+#include "flog_helpers.h"
 
 typedef enum {
-    LOG_SYNC_MODE,
-    LOG_ASYNC_MODE
-} LOG_MODE;
+    FLOG_SYNC_MODE,
+    FLOG_ASYNC_MODE
+} FLOG_MODE;
 
 typedef enum {
-    LOG_EVENT_ERROR_WRITE,
-    LOG_EVENT_BUFF_FULL,
-    LOG_EVENT_USER_BUFFER_RELEASED
-} LOG_EVENT;
+    FLOG_EVENT_ERROR_WRITE,
+    FLOG_EVENT_BUFF_FULL,
+    FLOG_EVENT_USER_BUFFER_RELEASED
+} FLOG_EVENT;
 
-typedef void (*plog_event_func)(LOG_EVENT);
-typedef struct _log_file_t log_file_t;
+typedef void (*flog_event_func)(FLOG_EVENT);
+typedef struct flog_file_t flog_file_t;
 
 /**
  *  @brief Create Logger
@@ -39,7 +41,7 @@ typedef struct _log_file_t log_file_t;
  *
  *  @return a pointer of log_file structure
  */
-log_file_t* log_create(const char* filename);
+flog_file_t* flog_create(const char* filename);
 
 /**
  *  @brief Destroy Logger
@@ -48,7 +50,7 @@ log_file_t* log_create(const char* filename);
  *
  *  @return         void
  */
-void log_destroy(log_file_t* logger);
+void flog_destroy(flog_file_t* logger);
 
 /**
  *  @brief Write log
@@ -62,7 +64,7 @@ void log_destroy(log_file_t* logger);
  *                  - 0: success
  *                  - 1: failed
  */
-size_t log_file_write(log_file_t*, const char* file_sig, size_t sig_len,
+size_t flog_file_write(flog_file_t*, const char* file_sig, size_t sig_len,
                         const char* log, size_t len);
 
 /**
@@ -75,7 +77,7 @@ size_t log_file_write(log_file_t*, const char* file_sig, size_t sig_len,
  *
  *  @return         void
  */
-void log_file_write_f(log_file_t*, const char* file_sig, size_t sig_len,
+void flog_file_write_f(flog_file_t*, const char* file_sig, size_t sig_len,
                         const char* fmt, ...);
 
 /**
@@ -87,7 +89,7 @@ void log_file_write_f(log_file_t*, const char* file_sig, size_t sig_len,
  *
  *  @return         mode before setting
  */
-LOG_MODE log_set_mode(LOG_MODE mode);
+FLOG_MODE flog_set_mode(FLOG_MODE mode);
 
 /**
  *  @brief Set file roll size, when greater than the given size, log system
@@ -97,7 +99,7 @@ LOG_MODE log_set_mode(LOG_MODE mode);
  *
  *  @return         void
  */
-void log_set_roll_size(size_t size);
+void flog_set_roll_size(size_t size);
 
 /**
  *  @brief Set max flush interval, unit msec
@@ -106,7 +108,7 @@ void log_set_roll_size(size_t size);
  *
  *  @return         void
  */
-void log_set_flush_interval(size_t sec);
+void flog_set_flush_interval(size_t sec);
 
 /**
  *  @brief Set buffer size for per user thread, should set before async writing
@@ -117,14 +119,14 @@ void log_set_flush_interval(size_t sec);
  *
  *  @return         void
  */
-void log_set_buffer_size(size_t size);
+void flog_set_buffer_size(size_t size);
 
 /**
  *  @brief Get buffer size of per user thread
  *
  *  @return         buffer size
  */
-size_t log_get_buffer_size();
+size_t flog_get_buffer_size();
 
 /**
  *  @brief Register a callback function for notifying user some important status
@@ -133,7 +135,7 @@ size_t log_get_buffer_size();
  *
  *  @return         void
  */
-void log_register_event_callback(plog_event_func pfunc);
+void flog_register_event_callback(flog_event_func pfunc);
 
 #ifdef __cplusplus
 }

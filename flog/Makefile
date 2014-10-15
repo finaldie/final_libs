@@ -2,13 +2,16 @@
 
 TARGET = libflog
 
-INCLUDE_FILES = flog_inc.h flog.h
+INCLUDE_FILES = \
+    flog.h \
+    flog_level.h \
+    flog_helpers.h
 
 INC = -I../
 LL =
 LIBS =
 
-SRCS = flog_inc.c flog.c
+SRCS = flog_level.c flog.c
 OBJS = $(patsubst %.c,%.o,$(SRCS))
 
 FL_FLAGS = $(COMMON_FLAGS) $(CFLAGS) $(EXT_FLAGS)

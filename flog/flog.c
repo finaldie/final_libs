@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <string.h>
 #include <stdint.h>
 #include <pthread.h>
@@ -36,7 +37,7 @@
 #define LOG_PTO_THREAD_QUIT        1
 
 // every file have only one log_file structure data
-struct _log_file_t {
+struct flog_file_t {
     FILE*  pf;
     size_t file_size;
     time_t last_flush_time;
@@ -53,7 +54,7 @@ typedef unsigned char pto_id_t;
 
 // fetch log header
 typedef struct {
-    log_file_t*    f;
+    flog_file_t*   f;
     unsigned short len;
 } log_msg_head_t;
 
@@ -79,12 +80,12 @@ typedef void (*ptofunc)(thread_data_t*);
 // global log system data
 typedef struct _log_t {
     fhash*          phash;       // mapping filename <--> log_file structure
-    plog_event_func event_cb;    // event callback
+    flog_event_func event_cb;    // event callback
     pthread_mutex_t lock;        // protect some scences resource competion
     pthread_key_t   key;
     size_t          roll_size;
     size_t          buffer_size; // buffer size per user thread
-    LOG_MODE        mode;        // global log flag
+    FLOG_MODE       mode;        // global log flag
     int             is_background_thread_started;
     int             flush_interval;
     int             epfd;        // epoll fd
@@ -126,7 +127,7 @@ int _log_set_nonblocking(int fd)
 }
 
 static inline
-void _log_event_notice(LOG_EVENT event)
+void _log_event_notice(FLOG_EVENT event)
 {
     if ( g_log->event_cb ) {
         g_log->event_cb(event);
@@ -184,7 +185,7 @@ void _log_get_time(time_t tm_time, char* time_str)
 }
 
 static
-void _log_flush_file(log_file_t* lf, time_t now)
+void _log_flush_file(flog_file_t* lf, time_t now)
 {
     if ( fflush(lf->pf) ) {
         printError("cannot flush file");
@@ -195,7 +196,7 @@ void _log_flush_file(log_file_t* lf, time_t now)
 }
 
 static
-void _log_roll_file(log_file_t* lf)
+void _log_roll_file(flog_file_t* lf)
 {
     _log_generate_filename(lf->pfilename, lf->poutput_filename);
     FILE* pf = _log_open(lf->poutput_filename, lf->filebuf,
@@ -211,7 +212,7 @@ void _log_roll_file(log_file_t* lf)
 }
 
 static inline
-size_t _log_write_unlocked(log_file_t* lf, const char* log, size_t len)
+size_t _log_write_unlocked(flog_file_t* lf, const char* log, size_t len)
 {
     if ( !lf || !log || (len == 0) ) {
         printError("cannot log any msg");
@@ -297,7 +298,7 @@ thread_data_t* _log_create_thread_data()
  * log_file_ptr(4/8 bytes) | len(2 bytes) | log message(len bytes)
  */
 static
-size_t _log_async_write(log_file_t* f, const char* file_sig, size_t sig_len,
+size_t _log_async_write(flog_file_t* f, const char* file_sig, size_t sig_len,
                         const char* log, size_t len)
 {
     if ( !f || !log || len == 0 ) {
@@ -323,7 +324,7 @@ size_t _log_async_write(log_file_t* f, const char* file_sig, size_t sig_len,
     size_t total_msg_len = sizeof(log_fetch_msg_head_t) + msg_body_len +
                             LOG_PTO_RESERVE_SIZE;
     if ( fmbuf_free(th_data->plog_buf) < total_msg_len ) {
-        _log_event_notice(LOG_EVENT_BUFF_FULL);
+        _log_event_notice(FLOG_EVENT_BUFF_FULL);
         return 0;
     }
 
@@ -365,7 +366,7 @@ size_t _log_async_write(log_file_t* f, const char* file_sig, size_t sig_len,
 }
 
 static inline
-int _log_fill_async_msg(log_file_t* f, thread_data_t* th_data, char* buff,
+int _log_fill_async_msg(flog_file_t* f, thread_data_t* th_data, char* buff,
                         const char* file_sig, size_t sig_len, const char* fmt,
                         va_list ap)
 {
@@ -407,7 +408,7 @@ int _log_fill_async_msg(log_file_t* f, thread_data_t* th_data, char* buff,
 }
 
 static
-void _log_async_write_f(log_file_t* f, const char* file_sig, size_t sig_len,
+void _log_async_write_f(flog_file_t* f, const char* file_sig, size_t sig_len,
                         const char* fmt, va_list ap)
 {
     if ( !f || !fmt ) return;
@@ -429,7 +430,7 @@ void _log_async_write_f(log_file_t* f, const char* file_sig, size_t sig_len,
                         LOG_PTO_RESERVE_SIZE;
     size_t total_free = fmbuf_free(th_data->plog_buf);
     if ( total_free < max_msg_len ) {
-        _log_event_notice(LOG_EVENT_BUFF_FULL);
+        _log_event_notice(FLOG_EVENT_BUFF_FULL);
         return;
     }
 
@@ -458,7 +459,7 @@ void _log_async_write_f(log_file_t* f, const char* file_sig, size_t sig_len,
 }
 
 static
-size_t _log_write(log_file_t* f, const char* log, size_t len)
+size_t _log_write(flog_file_t* f, const char* log, size_t len)
 {
     size_t real_writen_len = _log_write_unlocked(f, log, len);
 
@@ -508,7 +509,7 @@ size_t _log_wrap_sync_head(char* buf, const char* file_sig, size_t sig_len)
 }
 
 static
-size_t _log_sync_write(log_file_t* f, const char* file_sig, size_t sig_len,
+size_t _log_sync_write(flog_file_t* f, const char* file_sig, size_t sig_len,
                         const char* log, size_t len)
 {
     char buf[LOG_TIME_STR_LEN + sig_len + 1];
@@ -524,14 +525,14 @@ size_t _log_sync_write(log_file_t* f, const char* file_sig, size_t sig_len,
     pthread_mutex_unlock(&g_log->lock);
 
     if ( writen_len < len + head_len ) {
-        _log_event_notice(LOG_EVENT_ERROR_WRITE);
+        _log_event_notice(FLOG_EVENT_ERROR_WRITE);
     }
 
     return writen_len;
 }
 
 static
-void _log_sync_write_f(log_file_t* f, const char* file_sig, size_t sig_len,
+void _log_sync_write_f(flog_file_t* f, const char* file_sig, size_t sig_len,
                         const char* fmt, va_list ap)
 {
     if ( !f || !fmt ) return;
@@ -558,7 +559,7 @@ void _log_sync_write_f(log_file_t* f, const char* file_sig, size_t sig_len,
     pthread_mutex_unlock(&g_log->lock);
 
     if ( writen_len < len ) {
-        _log_event_notice(LOG_EVENT_ERROR_WRITE);
+        _log_event_notice(FLOG_EVENT_ERROR_WRITE);
     }
 }
 
@@ -581,7 +582,7 @@ void _log_pto_fetch_msg(thread_data_t* th_data)
 
     size_t writen_len = _log_write(header.f, tmsg, (size_t)header.len);
     if ( writen_len < (size_t)header.len) {
-        _log_event_notice(LOG_EVENT_ERROR_WRITE);
+        _log_event_notice(FLOG_EVENT_ERROR_WRITE);
     }
 
     fmbuf_pop(pbuf, NULL, (size_t)header.len);
@@ -594,7 +595,7 @@ void _log_pto_thread_quit(thread_data_t* th_data)
         fmbuf_delete(th_data->plog_buf);
     close(th_data->efd);
     free(th_data);
-    _log_event_notice(LOG_EVENT_USER_BUFFER_RELEASED);
+    _log_event_notice(FLOG_EVENT_USER_BUFFER_RELEASED);
 }
 
 static inline
@@ -617,7 +618,7 @@ int _log_process_timeout(void* ud,
                          const char* key,
                          void* value)
 {
-    log_file_t* f = (log_file_t*)value;
+    flog_file_t* f = (flog_file_t*)value;
     time_t now = time(NULL);
     if ( now - f->last_flush_time >= g_log->flush_interval ) {
         _log_flush_file(f, now);
@@ -690,7 +691,7 @@ void _user_thread_destroy(void* arg)
             fmbuf_delete(th_data->plog_buf);
         close(th_data->efd);
         free(th_data);
-        _log_event_notice(LOG_EVENT_USER_BUFFER_RELEASED);
+        _log_event_notice(FLOG_EVENT_USER_BUFFER_RELEASED);
     } else {
         // thread buffer is no empty, notice fetcher to release th_data
         pto_id_t id = LOG_PTO_THREAD_QUIT;
@@ -721,7 +722,7 @@ void _log_init()
     pthread_mutex_init(&t_log->lock, NULL);
     pthread_key_create(&t_log->key, _user_thread_destroy);
     t_log->event_cb = NULL;
-    t_log->mode = LOG_SYNC_MODE;
+    t_log->mode = FLOG_SYNC_MODE;
     t_log->roll_size = LOG_DEFAULT_ROLL_SIZE;
     t_log->buffer_size = LOG_DEFAULT_LOCAL_BUFFER_SIZE;
     t_log->is_background_thread_started = 0;
@@ -735,16 +736,16 @@ void _log_init()
 /******************************************************************************
  * Interfaces
  *****************************************************************************/
-log_file_t* log_create(const char* filename){
+flog_file_t* flog_create(const char* filename){
     // init log system global data
     pthread_once(&init_create, _log_init);
 
-    log_file_t* f = NULL;
+    flog_file_t* f = NULL;
     pthread_mutex_lock(&g_log->lock);
     {
         // check whether log file data has been created
         // if not, create it, or return its pointer
-        log_file_t* created_file = fhash_str_get(g_log->phash, filename);
+        flog_file_t* created_file = fhash_str_get(g_log->phash, filename);
         if ( created_file ) {
             created_file->ref_count++;
             pthread_mutex_unlock(&g_log->lock);
@@ -752,7 +753,7 @@ log_file_t* log_create(const char* filename){
         }
 
         // the file struct is the first to create
-        f = malloc(sizeof(log_file_t));
+        f = malloc(sizeof(flog_file_t));
         if ( !f ) {
             printError("cannot alloc memory for log_file_t");
             pthread_mutex_unlock(&g_log->lock);
@@ -780,7 +781,7 @@ log_file_t* log_create(const char* filename){
     return f;
 }
 
-void log_destroy(log_file_t* lf)
+void flog_destroy(flog_file_t* lf)
 {
     if ( !g_log || !lf ) return;
     pthread_mutex_lock(&g_log->lock);
@@ -806,7 +807,7 @@ void log_destroy(log_file_t* lf)
  * @ When we use asynchronization mode, it will push log message into thread
  * buffer, and notice the fetcher thread to fetch it
  */
-size_t log_file_write(log_file_t* f, const char* file_sig, size_t sig_len,
+size_t flog_file_write(flog_file_t* f, const char* file_sig, size_t sig_len,
                         const char* log, size_t len)
 {
     if ( !g_log || !f || !log || !len ) {
@@ -814,21 +815,21 @@ size_t log_file_write(log_file_t* f, const char* file_sig, size_t sig_len,
         return 0;
     }
 
-    if ( unlikely(g_log->mode == LOG_SYNC_MODE) ) {
+    if ( unlikely(g_log->mode == FLOG_SYNC_MODE) ) {
         return _log_sync_write(f, file_sig, sig_len, log, len);
     } else {
         return _log_async_write(f, file_sig, sig_len, log, len);
     }
 }
 
-void log_file_write_f(log_file_t* f, const char* file_sig, size_t sig_len,
+void flog_file_write_f(flog_file_t* f, const char* file_sig, size_t sig_len,
                         const char* fmt, ...)
 {
     if ( !g_log ) return;
     va_list ap;
     va_start(ap, fmt);
 
-    if ( unlikely(g_log->mode == LOG_SYNC_MODE) ) {
+    if ( unlikely(g_log->mode == FLOG_SYNC_MODE) ) {
         _log_sync_write_f(f, file_sig, sig_len, fmt, ap);
     } else {
         _log_async_write_f(f, file_sig, sig_len, fmt, ap);
@@ -837,13 +838,13 @@ void log_file_write_f(log_file_t* f, const char* file_sig, size_t sig_len,
     va_end(ap);
 }
 
-LOG_MODE log_set_mode(LOG_MODE mode)
+FLOG_MODE flog_set_mode(FLOG_MODE mode)
 {
     // init log system global data
     pthread_once(&init_create, _log_init);
-    if ( !g_log ) return LOG_SYNC_MODE;
+    if ( !g_log ) return FLOG_SYNC_MODE;
 
-    LOG_MODE last_mode;
+    FLOG_MODE last_mode;
     pthread_mutex_lock(&g_log->lock);
     {
         if ( mode == g_log->mode ) {
@@ -851,7 +852,7 @@ LOG_MODE log_set_mode(LOG_MODE mode)
             return g_log->mode;
         }
 
-        if ( (mode == LOG_ASYNC_MODE) &&
+        if ( (mode == FLOG_ASYNC_MODE) &&
              !g_log->is_background_thread_started ) {
             _create_fetcher_thread();
             g_log->is_background_thread_started = 1;
@@ -867,7 +868,7 @@ LOG_MODE log_set_mode(LOG_MODE mode)
 /**
  * If size == 0, that's a invalid argument
  */
-void log_set_roll_size(size_t size)
+void flog_set_roll_size(size_t size)
 {
     // init log system global data
     pthread_once(&init_create, _log_init);
@@ -883,7 +884,7 @@ void log_set_roll_size(size_t size)
 /**
  * If sec == 0, it will flush it immediately
  */
-void log_set_flush_interval(size_t sec)
+void flog_set_flush_interval(size_t sec)
 {
     // init log system global data
     pthread_once(&init_create, _log_init);
@@ -896,7 +897,7 @@ void log_set_flush_interval(size_t sec)
     pthread_mutex_unlock(&g_log->lock);
 }
 
-void log_set_buffer_size(size_t size)
+void flog_set_buffer_size(size_t size)
 {
     // init log system global data
     pthread_once(&init_create, _log_init);
@@ -913,13 +914,13 @@ void log_set_buffer_size(size_t size)
     pthread_mutex_unlock(&g_log->lock);
 }
 
-size_t log_get_buffer_size()
+size_t flog_get_buffer_size()
 {
     if ( !g_log ) return 0;
     return g_log->buffer_size;
 }
 
-void log_register_event_callback(plog_event_func pfunc)
+void flog_register_event_callback(flog_event_func pfunc)
 {
     // init log system global data
     pthread_once(&init_create, _log_init);
