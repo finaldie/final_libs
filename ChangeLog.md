@@ -1,3 +1,5 @@
+* 2014-10-16 0.6.0
+   * Refine flog code structure and api, split original headers to 3 new headers
 * 2014-10-15 0.5.3
    * Add -fstack-protector flag
 * 2014-08-27 0.5.2
