@@ -7,11 +7,11 @@
 #include <unistd.h>
 #include <pthread.h>
 
+#include "flog.h"
 #include "ftu_inc.h"
-#include "flog_inc.h"
 #include "inc.h"
 
-static log_file_t* log_handler = NULL;
+static flog_file_t* log_handler = NULL;
 
 typedef struct fake_log_file_t {
     FILE*  pf;
@@ -27,8 +27,8 @@ static
 void    _test_log(){
     FLOG_DEBUG(log_handler, "debug log test");
     FLOG_ERROR(log_handler, "error log test");
-    flog_set_level(LOG_LEVEL_ERROR);
-    log_file_write(log_handler, NULL, 0, "hello world", 11);
+    flog_set_level(FLOG_LEVEL_ERROR);
+    flog_file_write(log_handler, NULL, 0, "hello world", 11);
     sleep(2);   // wait for log system
 
     fake_log_file_t* ff = (fake_log_file_t*)log_handler;
@@ -62,11 +62,11 @@ void* _test_async_log(void* arg __attribute__((unused)))
 {
     FLOG_DEBUG(log_handler, "debug log test");
     FLOG_ERROR(log_handler, "error log test"); // first writen
-    flog_set_level(LOG_LEVEL_DEBUG);
+    flog_set_level(FLOG_LEVEL_DEBUG);
     sleep(2);   // wait for log system
     FLOG_DEBUG(log_handler, "debug log test1"); // second writen
     FLOG_DEBUG(log_handler, "debug log test2"); // will be writen in new file
-    log_file_write(log_handler, NULL, 0, "hello world", 11);
+    flog_file_write(log_handler, NULL, 0, "hello world", 11);
     sleep(2);   // wait for log system
 
     fake_log_file_t* ff = (fake_log_file_t*)log_handler;
@@ -90,14 +90,14 @@ void* _test_async_log(void* arg __attribute__((unused)))
 }
 
 static
-void _test_async_event(LOG_EVENT event)
+void _test_async_event(FLOG_EVENT event)
 {
     printf("receive log event:%u\n", event);
 }
 
 void test_async_log()
 {
-    flog_set_mode(LOG_ASYNC_MODE);
+    flog_set_mode(FLOG_ASYNC_MODE);
     flog_set_roll_size(100);
     flog_set_flush_interval(1);
     flog_set_buffer_size(1024 * 1024);

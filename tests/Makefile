@@ -58,7 +58,7 @@ check:
 	./$(TARGET)
 
 valgrind-gensup:
-	valgrind --tool=memcheck --leak-check=full --suppressions=./valgrind.suppress --gen-suppressions=yes ./$(TARGET)
+	valgrind --tool=memcheck --leak-check=full --suppressions=./valgrind.suppress --gen-suppressions=all ./$(TARGET)
 
 valgrind-nosup:
 	valgrind --tool=memcheck --leak-check=full ./$(TARGET)
