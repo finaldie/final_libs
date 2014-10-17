@@ -5,7 +5,6 @@
 extern "C" {
 #endif
 
-#include <stddef.h>
 #include <stdarg.h>
 
 // private, user no need to use the following 3 macros
@@ -13,47 +12,78 @@ extern "C" {
 #define FTO_STR(x) FTO_STRX(x)
 #define FEXTRACT_STR(s) s, (sizeof(s) - 1)
 
-// flog basic logger helper
-#define FLOG_TRACE(log_handler, fmt, args...) \
+// flog basic logger helper macros
+#define FLOG_RAW_TRACE(log_handler, ...) \
+    if( flog_is_trace_enable() ) { \
+        flog_file_write_f(log_handler, __VA_ARGS__); \
+    }
+
+#define FLOG_RAW_DEBUG(log_handler, ...) \
+    if( flog_is_debug_enable() ) { \
+        flog_file_write_f(log_handler, __VA_ARGS__); \
+    }
+
+#define FLOG_RAW_INFO(log_handler, ...) \
+    if( flog_is_info_enable() ) { \
+        flog_file_write_f(log_handler, __VA_ARGS__); \
+    }
+
+#define FLOG_RAW_WARN(log_handler, ...) \
+    if( flog_is_warn_enable() ) { \
+        flog_file_write_f(log_handler, __VA_ARGS__); \
+    }
+
+#define FLOG_RAW_ERROR(log_handler, ...) \
+    if( flog_is_error_enable() ) { \
+        flog_file_write_f(log_handler, __VA_ARGS__); \
+    }
+
+#define FLOG_RAW_FATAL(log_handler, ...) \
+    if( flog_is_fatal_enable() ) { \
+        flog_file_write_f(log_handler, __VA_ARGS__); \
+    }
+
+// flog advantage logger helper macros
+#define FLOG_TRACE(log_handler, ...) \
     if( flog_is_trace_enable() ) { \
         flog_file_write_f(log_handler, FEXTRACT_STR("[TRACE] " __FILE__ ":" \
-                                                   FTO_STR(__LINE__) " - "), \
-                          fmt, ##args); \
+                                                   FTO_STR(__LINE__) " - ") \
+                          __VA_ARGS__); \
     }
 
-#define FLOG_DEBUG(log_handler, fmt, args...) \
+#define FLOG_DEBUG(log_handler, ...) \
     if( flog_is_debug_enable() ) { \
         flog_file_write_f(log_handler, FEXTRACT_STR("[DEBUG] " __FILE__ ":" \
-                                                   FTO_STR(__LINE__) " - "), \
-                          fmt, ##args); \
+                                                   FTO_STR(__LINE__) " - ") \
+                          __VA_ARGS__); \
     }
 
-#define FLOG_INFO(log_handler,  fmt, args...) \
+#define FLOG_INFO(log_handler, ...) \
     if( flog_is_info_enable()  ) { \
         flog_file_write_f(log_handler, FEXTRACT_STR("[INFO] "  __FILE__ ":" \
-                                                   FTO_STR(__LINE__) " - "), \
-                          fmt, ##args); \
+                                                   FTO_STR(__LINE__) " - ") \
+                          __VA_ARGS__); \
     }
 
-#define FLOG_WARN(log_handler,  fmt, args...) \
+#define FLOG_WARN(log_handler, ...) \
     if( flog_is_warn_enable()  ) { \
         flog_file_write_f(log_handler, FEXTRACT_STR("[WARN] "  __FILE__ ":" \
-                                                   FTO_STR(__LINE__) " - "), \
-                          fmt, ##args); \
+                                                   FTO_STR(__LINE__) " - ") \
+                          __VA_ARGS__); \
     }
 
-#define FLOG_ERROR(log_handler, fmt, args...) \
+#define FLOG_ERROR(log_handler, ...) \
     if( flog_is_error_enable() ) { \
         flog_file_write_f(log_handler, FEXTRACT_STR("[ERROR] " __FILE__ ":" \
-                                                   FTO_STR(__LINE__) " - "), \
-                          fmt, ##args); \
+                                                   FTO_STR(__LINE__) " - ") \
+                          __VA_ARGS__); \
     }
 
-#define FLOG_FATAL(log_handler, fmt, args...) \
+#define FLOG_FATAL(log_handler, ...) \
     if( flog_is_fatal_enable() ) { \
         flog_file_write_f(log_handler, FEXTRACT_STR("[FATAL] " __FILE__ ":" \
-                                                   FTO_STR(__LINE__) " - "), \
-                          fmt, ##args); \
+                                                   FTO_STR(__LINE__) " - ") \
+                          __VA_ARGS__); \
     }
 
 #ifdef __cplusplus

@@ -21,6 +21,7 @@
 #define LOG_OPEN_PERMISSION           0644
 #define LOG_MAX_FILE_NAME             (64)
 #define LOG_MAX_OUTPUT_NAME           (128)
+#define LOG_COOKIE_MAX_LEN            (256)
 #define LOG_BUFFER_SIZE_PER_FILE      (1024 * 128)
 #define LOG_DEFAULT_ROLL_SIZE         (1024lu * 1024lu * 1024lu * 2lu)
 #define LOG_DEFAULT_LOCAL_BUFFER_SIZE (1024 * 1024 * 10)
@@ -73,6 +74,7 @@ typedef struct _thread_data_t {
     time_t       last_time;
     char         last_time_str[LOG_TIME_STR_LEN + 4];
     char         tmp_buf[LOG_MAX_LEN_PER_MSG];
+    char         cookie[LOG_COOKIE_MAX_LEN];
 } thread_data_t;
 
 typedef void (*ptofunc)(thread_data_t*);
@@ -115,6 +117,44 @@ static ptofunc g_pto_tbl[] = {
 /******************************************************************************
  * Internal functions
  *****************************************************************************/
+static
+void _destroy_thread_data(thread_data_t* th_data)
+{
+    if (!th_data) {
+        return;
+    }
+
+    if (th_data->efd > 0) {
+        close(th_data->efd);
+        th_data->efd = 0;
+    }
+
+    fmbuf_delete(th_data->plog_buf);
+    th_data->plog_buf = NULL;
+
+    free(th_data);
+}
+
+static
+int _log_snprintf(char* dest, size_t max_len, const char* fmt, va_list ap)
+{
+    int copy_len = vsnprintf(dest, max_len, fmt ? fmt : "", ap);
+    if (copy_len < 0) {
+        // error
+        printError("Fatal: _log_snprintf copy data ocurr errors");
+        abort();
+    } else if ((size_t)copy_len < max_len) {
+        // copy successfully
+    } else {
+        // some data be truncated, but it shouldn't be happened, since we've
+        // already checked it before call it
+        printError("Fatal: _log_snprintf copy data was truncated");
+        abort();
+    }
+
+    return copy_len;
+}
+
 static inline
 int _log_set_nonblocking(int fd)
 {
@@ -240,7 +280,7 @@ size_t _log_write_unlocked(flog_file_t* lf, const char* log, size_t len)
 static
 thread_data_t* _log_create_thread_data()
 {
-    thread_data_t* th_data = malloc( sizeof (thread_data_t) );
+    thread_data_t* th_data = calloc(1, sizeof (thread_data_t));
     if ( !th_data ) {
         printError("cannot alloc memory for thread data");
         return NULL;
@@ -249,7 +289,7 @@ thread_data_t* _log_create_thread_data()
     fmbuf* pbuf = fmbuf_create(g_log->buffer_size);
     if ( !pbuf ) {
         printError("cannot alloc memory for thread data");
-        free(th_data);
+        _destroy_thread_data(th_data);
         return NULL;
     }
     th_data->plog_buf = pbuf;
@@ -258,15 +298,21 @@ thread_data_t* _log_create_thread_data()
     // we couldn't use EFD_NONBLOCK flag, so we need to call fcntl for
     // setting nonblocking flag
     int efd = eventfd(0, 0);
+    if (!efd) {
+        printError("error in creating efd");
+        _destroy_thread_data(th_data);
+        return NULL;
+    }
+
     if ( _log_set_nonblocking(efd) == -1 ) {
         printError("error in set nonblocking flag for efd");
-        free(th_data);
+        _destroy_thread_data(th_data);
         return NULL;
     }
 
     if ( efd == -1 ) {
         printError("cannot create eventfd for thread data");
-        free(th_data);
+        _destroy_thread_data(th_data);
         return NULL;
     }
     th_data->efd = efd;
@@ -279,14 +325,35 @@ thread_data_t* _log_create_thread_data()
     ee.events |= EPOLLIN;
     if ( epoll_ctl( g_log->epfd, EPOLL_CTL_ADD, efd, &ee) ) {
         printError("cannot add eventfd into epoll for thread data");
-        close(efd);
-        free(th_data);
+        _destroy_thread_data(th_data);
         return NULL;
     }
 
     th_data->last_time = 0;
 
     return th_data;
+}
+
+static
+thread_data_t* _get_or_create_thdata()
+{
+    thread_data_t* th_data = pthread_getspecific(g_log->key);
+    if (likely(th_data)) {
+        return th_data;
+    }
+
+    th_data = _log_create_thread_data();
+    if (!th_data) {
+        printError("Fatal: create thread data failed");
+        abort();
+    }
+
+    if (pthread_setspecific(g_log->key, th_data) ) {
+        printError("error in setting key");
+        abort();
+    }
+
+    return NULL;
 }
 
 /**
@@ -301,22 +368,8 @@ static
 size_t _log_async_write(flog_file_t* f, const char* file_sig, size_t sig_len,
                         const char* log, size_t len)
 {
-    if ( !f || !log || len == 0 ) {
-        return 0;
-    }
-
     // check whether have private thread data, if not, create it
-    thread_data_t* th_data = pthread_getspecific(g_log->key);
-    if ( !th_data ) {
-        th_data = _log_create_thread_data();
-        if ( !th_data ) return 0;
-        if ( pthread_setspecific(g_log->key, th_data) ) {
-            printError("error in setting key");
-            close(th_data->efd);
-            free(th_data);
-            return 0;
-        }
-    }
+    thread_data_t* th_data = _get_or_create_thdata();
 
     if ( !file_sig ) sig_len = 0;
     if ( len > LOG_MAX_LEN_PER_MSG ) len = LOG_MAX_LEN_PER_MSG;
@@ -391,7 +444,7 @@ int _log_fill_async_msg(flog_file_t* f, thread_data_t* th_data, char* buff,
     size_t copy_len = 0;
     size_t head_len = LOG_TIME_STR_LEN + sig_len;
     size_t max_len = LOG_MAX_LEN_PER_MSG - head_len - 1;
-    copy_len = vsnprintf(tbuf + head_len, max_len, fmt, ap);
+    copy_len = _log_snprintf(tbuf + head_len, max_len, fmt, ap);
 
     // fill \n
     if ( copy_len > max_len ) {
@@ -411,20 +464,8 @@ static
 void _log_async_write_f(flog_file_t* f, const char* file_sig, size_t sig_len,
                         const char* fmt, va_list ap)
 {
-    if ( !f || !fmt ) return;
-
     // check whether have private thread data, if not, create it
-    thread_data_t* th_data = pthread_getspecific(g_log->key);
-    if ( !th_data ) {
-        th_data = _log_create_thread_data();
-        if ( !th_data ) return;
-        if ( pthread_setspecific(g_log->key, th_data) ) {
-            printError("error in setting key");
-            close(th_data->efd);
-            free(th_data);
-            return;
-        }
-    }
+    thread_data_t* th_data = _get_or_create_thdata();
 
     size_t max_msg_len = sizeof(log_fetch_msg_head_t) + LOG_MAX_LEN_PER_MSG +
                         LOG_PTO_RESERVE_SIZE;
@@ -514,6 +555,8 @@ size_t _log_sync_write(flog_file_t* f, const char* file_sig, size_t sig_len,
 {
     char buf[LOG_TIME_STR_LEN + sig_len + 1];
     size_t head_len = _log_wrap_sync_head(buf, file_sig, sig_len);
+
+    // The log will be truncated if the length > LOG_MAX_LEN_PER_MSG
     if ( len > LOG_MAX_LEN_PER_MSG ) len = LOG_MAX_LEN_PER_MSG;
     size_t writen_len = 0;
     pthread_mutex_lock(&g_log->lock);
@@ -535,14 +578,12 @@ static
 void _log_sync_write_f(flog_file_t* f, const char* file_sig, size_t sig_len,
                         const char* fmt, va_list ap)
 {
-    if ( !f || !fmt ) return;
-
     char log[LOG_MAX_LEN_PER_MSG];
     int copy_len = 0;
     size_t writen_len = 0;
     size_t head_len = _log_wrap_sync_head(log, file_sig, sig_len);
     size_t max_len = LOG_MAX_LEN_PER_MSG - head_len - 1;
-    copy_len = vsnprintf(log + head_len, max_len, fmt, ap);
+    copy_len = _log_snprintf(log + head_len, max_len, fmt, ap);
 
     // fill \n
     if ( copy_len > (int)max_len ) {
@@ -591,10 +632,7 @@ void _log_pto_fetch_msg(thread_data_t* th_data)
 inline
 void _log_pto_thread_quit(thread_data_t* th_data)
 {
-    if ( th_data->plog_buf )
-        fmbuf_delete(th_data->plog_buf);
-    close(th_data->efd);
-    free(th_data);
+    _destroy_thread_data(th_data);
     _log_event_notice(FLOG_EVENT_USER_BUFFER_RELEASED);
 }
 
@@ -609,6 +647,7 @@ void _log_async_process(thread_data_t* th_data, unsigned int process_num)
             break;
         }
 
+        // run the protocol registration function from pto_tbl
         g_pto_tbl[id](th_data);
     }
 }
@@ -681,19 +720,17 @@ void _user_thread_destroy(void* arg)
     // note: DO NOT RELEASE thread data directly when thread buffer is not
     // empty, cause thread fetcher may using this data now.
     // The correct way is that transform responsibility of release from
-    // user thread to fetcher
+    // user thread to fetcher, and the THREAD_QUIT msg will be the last msg of
+    // the dying thread
     thread_data_t* th_data = (thread_data_t*)arg;
     if ( !th_data ) return;
 
     if ( fmbuf_used(th_data->plog_buf) == 0 ) {
         // thread buffer is empty
-        if ( th_data->plog_buf )
-            fmbuf_delete(th_data->plog_buf);
-        close(th_data->efd);
-        free(th_data);
+        _destroy_thread_data(th_data);
         _log_event_notice(FLOG_EVENT_USER_BUFFER_RELEASED);
     } else {
-        // thread buffer is no empty, notice fetcher to release th_data
+        // thread buffer is not empty, notice fetcher to release th_data
         pto_id_t id = LOG_PTO_THREAD_QUIT;
         fmbuf_push(th_data->plog_buf, &id, LOG_PTO_ID_SIZE);
 
@@ -705,7 +742,7 @@ void _user_thread_destroy(void* arg)
 static
 void _log_init()
 {
-    f_log* t_log = malloc(sizeof(f_log));
+    f_log* t_log = calloc(1, sizeof(f_log));
     if ( !t_log ) {
         printError("cannot alloc memory for global log data");
         exit(1);
@@ -753,7 +790,7 @@ flog_file_t* flog_create(const char* filename){
         }
 
         // the file struct is the first to create
-        f = malloc(sizeof(flog_file_t));
+        f = calloc(1, sizeof(flog_file_t));
         if ( !f ) {
             printError("cannot alloc memory for log_file_t");
             pthread_mutex_unlock(&g_log->lock);
@@ -807,32 +844,47 @@ void flog_destroy(flog_file_t* lf)
  * @ When we use asynchronization mode, it will push log message into thread
  * buffer, and notice the fetcher thread to fetch it
  */
-size_t flog_file_write(flog_file_t* f, const char* file_sig, size_t sig_len,
-                        const char* log, size_t len)
+size_t flog_file_write(flog_file_t* f, const char* log, size_t len)
 {
-    if ( !g_log || !f || !log || !len ) {
+    if (!g_log || !f) {
         printError("input invalid args");
-        return 0;
+        abort();
+        return 1;
     }
 
+    // get cookie data from thread-data
+    thread_data_t* th_data = _get_or_create_thdata();
+    const char* cookie = th_data->cookie;
+    size_t cookie_len = strlen(cookie);
+
+    // write log according to the working mode
     if ( unlikely(g_log->mode == FLOG_SYNC_MODE) ) {
-        return _log_sync_write(f, file_sig, sig_len, log, len);
+        return _log_sync_write(f, cookie, cookie_len, log, len);
     } else {
-        return _log_async_write(f, file_sig, sig_len, log, len);
+        return _log_async_write(f, cookie, cookie_len, log, len);
     }
 }
 
-void flog_file_write_f(flog_file_t* f, const char* file_sig, size_t sig_len,
-                        const char* fmt, ...)
+void flog_file_write_f(flog_file_t* f, const char* fmt, ...)
 {
-    if ( !g_log ) return;
+    if (!g_log || !f) {
+        printError("input invalid args");
+        abort();
+        return;
+    }
+
     va_list ap;
     va_start(ap, fmt);
 
+    // get cookie data from thread-data
+    thread_data_t* th_data = _get_or_create_thdata();
+    const char* cookie = th_data->cookie;
+    size_t cookie_len = strlen(cookie);
+
     if ( unlikely(g_log->mode == FLOG_SYNC_MODE) ) {
-        _log_sync_write_f(f, file_sig, sig_len, fmt, ap);
+        _log_sync_write_f(f, cookie, cookie_len, fmt, ap);
     } else {
-        _log_async_write_f(f, file_sig, sig_len, fmt, ap);
+        _log_async_write_f(f, cookie, cookie_len, fmt, ap);
     }
 
     va_end(ap);
@@ -931,4 +983,38 @@ void flog_register_event_callback(flog_event_func pfunc)
         g_log->event_cb = pfunc;
     }
     pthread_mutex_unlock(&g_log->lock);
+}
+
+// Set cookie string into per-thread cookie space, no need to lock here
+void flog_set_cookie(const char* fmt, ...)
+{
+    if (!g_log) {
+        printError("set_cookie: invalid g_log(NULL)");
+        abort();
+        return;
+    }
+
+    thread_data_t* th_data = _get_or_create_thdata();
+    flog_clear_cookie();
+
+    va_list ap;
+    va_start(ap, fmt);
+
+    // TODO: handle the return value of the vsnprintf
+    _log_snprintf(th_data->cookie, LOG_COOKIE_MAX_LEN, fmt, ap);
+
+    va_end(ap);
+}
+
+// Clear cookie string into per-thread cookie space, no need to lock here
+void flog_clear_cookie()
+{
+    if (!g_log) {
+        printError("set_cookie: invalid g_log(NULL)");
+        abort();
+        return;
+    }
+
+    thread_data_t* th_data = _get_or_create_thdata();
+    th_data->cookie[0] = '\0';
 }

@@ -20,18 +20,31 @@ extern "C" {
 #include "flog_level.h"
 #include "flog_helpers.h"
 
+/**
+ * @brief flog working mode: sync or async
+ */
 typedef enum {
-    FLOG_SYNC_MODE,
+    FLOG_SYNC_MODE = 0,
     FLOG_ASYNC_MODE
 } FLOG_MODE;
 
+/**
+ * @brief flog event types
+ */
 typedef enum {
-    FLOG_EVENT_ERROR_WRITE,
-    FLOG_EVENT_BUFF_FULL,
-    FLOG_EVENT_USER_BUFFER_RELEASED
+    FLOG_EVENT_ERROR_WRITE = 0,         // write error
+    FLOG_EVENT_BUFF_FULL,               // per-thread log buffer full
+    FLOG_EVENT_USER_BUFFER_RELEASED     // user logger thread quit gracefully
 } FLOG_EVENT;
 
+/**
+ * @brief flog notification callback, handle exceptions here
+ */
 typedef void (*flog_event_func)(FLOG_EVENT);
+
+/**
+ * @brief flog handler
+ */
 typedef struct flog_file_t flog_file_t;
 
 /**
@@ -64,8 +77,7 @@ void flog_destroy(flog_file_t* logger);
  *                  - 0: success
  *                  - 1: failed
  */
-size_t flog_file_write(flog_file_t*, const char* file_sig, size_t sig_len,
-                        const char* log, size_t len);
+size_t flog_file_write(flog_file_t*, const char* log, size_t len);
 
 /**
  *  @brief Write log with format
@@ -77,8 +89,25 @@ size_t flog_file_write(flog_file_t*, const char* file_sig, size_t sig_len,
  *
  *  @return         void
  */
-void flog_file_write_f(flog_file_t*, const char* file_sig, size_t sig_len,
-                        const char* fmt, ...);
+void flog_file_write_f(flog_file_t*, const char* fmt, ...);
+
+/**
+ * @brief Set log cookie, user set up once, then every log will include this
+ *        cookie string
+ * @notes Cookie string is per-thread, and the max length of cookie is 256 bytes
+ *
+ * @param fmt       string format
+ * @return          void
+ */
+void flog_set_cookie(const char* fmt, ...);
+
+/**
+ * @brief Clear the cookie string
+ * @notes Clear action only impact the current thread cookie data
+ *
+ * @return          void
+ */
+void flog_clear_cookie();
 
 /**
  *  @brief Set log mode
