@@ -1,4 +1,6 @@
-MAKE = make
+include common/Makefile.common
+
+MAKE ?= make
 
 INCLUDE_FOLDER = include/flibs
 LIB_FOLDER = lib
@@ -85,6 +87,15 @@ TEST_FOLDERS = tests
 
 all:
 	@echo "[Compiling $(BUILD_BIT)bit libraries SHARED=$(SHARED)]";
+	@echo "MAKE = $(MAKE)"
+	@echo "prefix = $(prefix)"
+	@echo "VERBOSE = $(VERBOSE)"
+	@echo "PLATFORM BIT = $(PLAT_BIT)"
+	@echo "DEBUG = $(DEBUG)"
+	@echo "ASSEMBLY_FOLDERS = $(ASSEMBLY_FOLDERS)"
+	@echo "COMMON_FLAGS = $(COMMON_FLAGS)"
+	@echo "EXT_FLAGS = $(EXT_FLAGS)"
+	@echo "CC = $(CC)"
 	@for lib in $(LIB_FOLDERS); \
 	do \
 		echo "$(CC) $$lib"; \
