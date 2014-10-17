@@ -281,10 +281,6 @@ static
 thread_data_t* _log_create_thread_data()
 {
     thread_data_t* th_data = calloc(1, sizeof (thread_data_t));
-    if ( !th_data ) {
-        printError("cannot alloc memory for thread data");
-        return NULL;
-    }
 
     fmbuf* pbuf = fmbuf_create(g_log->buffer_size);
     if ( !pbuf ) {
@@ -353,7 +349,7 @@ thread_data_t* _get_or_create_thdata()
         abort();
     }
 
-    return NULL;
+    return th_data;
 }
 
 /**
