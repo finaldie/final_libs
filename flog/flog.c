@@ -33,6 +33,10 @@
 // specify the length of the formative time string: "%04d-%02d-%02d_%02d:%02d:%02d "
 #define LOG_TIME_STR_LEN              (20)
 
+// cookie
+#define LOG_COOKIE_DEFAULT            "[] "
+#define LOG_GET_COOKIE(header)        ((char*)header + LOG_TIME_STR_LEN)
+
 // LOG PROTOCOL DEFINE
 #define LOG_PTO_FETCH_MSG          0
 #define LOG_PTO_THREAD_QUIT        1
@@ -70,11 +74,12 @@ typedef struct {
 #pragma pack(4)
 typedef struct _thread_data_t {
     fmbuf*       plog_buf;
-    int          efd;       // eventfd
+    int          efd;        // eventfd, used for notify the async fetcher
+    int          cookie_len;
     time_t       last_time;
     char         last_time_str[LOG_TIME_STR_LEN + 4];
     char         tmp_buf[LOG_MAX_LEN_PER_MSG];
-    char         cookie[LOG_COOKIE_MAX_LEN];
+    char         header[LOG_TIME_STR_LEN + LOG_COOKIE_MAX_LEN + 8];
 } thread_data_t;
 
 typedef void (*ptofunc)(thread_data_t*);
@@ -91,8 +96,6 @@ typedef struct _log_t {
     int             is_background_thread_started;
     int             flush_interval;
     int             epfd;        // epoll fd
-    time_t          last_time;
-    char            last_time_str[LOG_TIME_STR_LEN + 4];
 } f_log;
 #pragma pack()
 
@@ -103,12 +106,15 @@ static f_log* g_log = NULL;
 static pthread_once_t init_create = PTHREAD_ONCE_INIT;
 
 // protocol table
-void _log_pto_fetch_msg  (thread_data_t* th_data);
-void _log_pto_thread_quit(thread_data_t* th_data);
+static void _log_pto_fetch_msg  (thread_data_t* th_data);
+static void _log_pto_thread_quit(thread_data_t* th_data);
 static ptofunc g_pto_tbl[] = {
     _log_pto_fetch_msg,
     _log_pto_thread_quit
 };
+
+// other internal api
+static void _log_clear_cookie(thread_data_t* th_data);
 
 #define printError(msg) \
     fprintf(stderr, "FATAL! Log system:[%s:%s(%d)] - errno=%d errmsg=%s:%s\n",\
@@ -135,6 +141,14 @@ void _destroy_thread_data(thread_data_t* th_data)
     free(th_data);
 }
 
+static inline
+void _log_event_notice(FLOG_EVENT event)
+{
+    if ( g_log->event_cb ) {
+        g_log->event_cb(event);
+    }
+}
+
 static
 int _log_snprintf(char* dest, size_t max_len, const char* fmt, va_list ap)
 {
@@ -149,7 +163,7 @@ int _log_snprintf(char* dest, size_t max_len, const char* fmt, va_list ap)
         // some data be truncated, but it shouldn't be happened, since we've
         // already checked it before call it
         printError("Fatal: _log_snprintf copy data was truncated");
-        abort();
+        _log_event_notice(FLOG_EVENT_TRUNCATED);
     }
 
     return copy_len;
@@ -164,14 +178,6 @@ int _log_set_nonblocking(int fd)
     }
 
     return flag;
-}
-
-static inline
-void _log_event_notice(FLOG_EVENT event)
-{
-    if ( g_log->event_cb ) {
-        g_log->event_cb(event);
-    }
 }
 
 static inline
@@ -252,7 +258,7 @@ void _log_roll_file(flog_file_t* lf)
 }
 
 static inline
-size_t _log_write_unlocked(flog_file_t* lf, const char* log, size_t len)
+size_t _log_write_to_disk(flog_file_t* lf, const char* log, size_t len)
 {
     if ( !lf || !log || (len == 0) ) {
         printError("cannot log any msg");
@@ -263,11 +269,11 @@ size_t _log_write_unlocked(flog_file_t* lf, const char* log, size_t len)
     size_t remain_len = len;
 
     do {
-        size_t real_len = fwrite_unlocked(log, 1, len, f);
-        int err = ferror_unlocked(lf->pf);
+        size_t real_len = fwrite(log, 1, len, f);
+        int err = ferror(lf->pf);
         if ( err ) {
             printError("encounter error when writing logging message");
-            clearerr_unlocked(lf->pf);
+            clearerr(lf->pf);
             return len - remain_len;
         }
 
@@ -326,6 +332,7 @@ thread_data_t* _log_create_thread_data()
     }
 
     th_data->last_time = 0;
+    _log_clear_cookie(th_data);
 
     return th_data;
 }
@@ -352,6 +359,25 @@ thread_data_t* _get_or_create_thdata()
     return th_data;
 }
 
+static
+const char* _log_get_header(size_t* header_len/*out*/)
+{
+    thread_data_t* th_data = _get_or_create_thdata();
+
+    time_t now = time(NULL);
+    if ( now > th_data->last_time ) {
+        _log_get_time(now, th_data->last_time_str);
+        th_data->last_time = now;
+    }
+
+    memcpy(th_data->header, th_data->last_time_str, LOG_TIME_STR_LEN);
+    *header_len = LOG_TIME_STR_LEN + th_data->cookie_len;
+
+    return th_data->header;
+}
+
+
+
 /**
  * Asynchronous mode we use a large ring buffer to hold the log messages data,
  * the format of log message is:
@@ -361,15 +387,19 @@ thread_data_t* _get_or_create_thdata()
  * log_file_ptr(4/8 bytes) | len(2 bytes) | log message(len bytes)
  */
 static
-size_t _log_async_write(flog_file_t* f, const char* file_sig, size_t sig_len,
+size_t _log_async_write(flog_file_t* f,
+                        const char* header, size_t header_len,
                         const char* log, size_t len)
 {
-    // check whether have private thread data, if not, create it
-    thread_data_t* th_data = _get_or_create_thdata();
 
-    if ( !file_sig ) sig_len = 0;
-    if ( len > LOG_MAX_LEN_PER_MSG ) len = LOG_MAX_LEN_PER_MSG;
-    size_t msg_body_len = LOG_TIME_STR_LEN + sig_len + len + 1;
+    if ( len > LOG_MAX_LEN_PER_MSG ) {
+        len = LOG_MAX_LEN_PER_MSG;
+        _log_event_notice(FLOG_EVENT_TRUNCATED);
+    }
+
+    // check pipe buffer whether have enough space
+    thread_data_t* th_data = _get_or_create_thdata();
+    size_t msg_body_len = header_len + len + 1;
     size_t total_msg_len = sizeof(log_fetch_msg_head_t) + msg_body_len +
                             LOG_PTO_RESERVE_SIZE;
     if ( fmbuf_free(th_data->plog_buf) < total_msg_len ) {
@@ -378,25 +408,17 @@ size_t _log_async_write(flog_file_t* f, const char* file_sig, size_t sig_len,
     }
 
     // wrap and push log message
-    log_fetch_msg_head_t header;
-    header.id = LOG_PTO_FETCH_MSG;
-    header.msgh.f = f;
-    header.msgh.len = (unsigned short)msg_body_len;
-    if ( fmbuf_push(th_data->plog_buf, &header, sizeof(log_fetch_msg_head_t)) ) {
+    log_fetch_msg_head_t msg_header;
+    msg_header.id = LOG_PTO_FETCH_MSG;
+    msg_header.msgh.f = f;
+    msg_header.msgh.len = (unsigned short)msg_body_len;
+    if ( fmbuf_push(th_data->plog_buf, &msg_header, sizeof(log_fetch_msg_head_t)) ) {
         return 0;
     }
 
-    time_t now = time(NULL);
-    if ( now > th_data->last_time ) {
-        _log_get_time(now, th_data->last_time_str);
-        th_data->last_time = now;
-    }
-
-    if( fmbuf_push(th_data->plog_buf, th_data->last_time_str, LOG_TIME_STR_LEN) ) {
+    if( fmbuf_push(th_data->plog_buf, header, header_len) ) {
         return 0;
     }
-
-    if ( file_sig && sig_len && fmbuf_push(th_data->plog_buf, file_sig, sig_len) ) {}
 
     if( fmbuf_push(th_data->plog_buf, log, len) ) {
         return 0;
@@ -416,55 +438,49 @@ size_t _log_async_write(flog_file_t* f, const char* file_sig, size_t sig_len,
 
 static inline
 int _log_fill_async_msg(flog_file_t* f, thread_data_t* th_data, char* buff,
-                        const char* file_sig, size_t sig_len, const char* fmt,
+                        const char* header, size_t header_len, const char* fmt,
                         va_list ap)
 {
     char* tbuf = buff;
-    log_fetch_msg_head_t* header = (log_fetch_msg_head_t*)tbuf;
-    header->id = LOG_PTO_FETCH_MSG;
-    header->msgh.f = f;
-    header->msgh.len = 0;
-
-    time_t now = time(NULL);
-    if ( now > th_data->last_time ) {
-        _log_get_time(now, th_data->last_time_str);
-        th_data->last_time = now;
-    }
+    log_fetch_msg_head_t* msg_header = (log_fetch_msg_head_t*)tbuf;
+    msg_header->id = LOG_PTO_FETCH_MSG;
+    msg_header->msgh.f = f;
+    msg_header->msgh.len = 0;
 
     tbuf += sizeof(log_fetch_msg_head_t);
-    memcpy(tbuf, th_data->last_time_str, LOG_TIME_STR_LEN);
-
-    if ( !file_sig ) sig_len = 0;
-    else memcpy(tbuf + LOG_TIME_STR_LEN, file_sig, sig_len);
+    memcpy(tbuf, header, header_len);
 
     size_t copy_len = 0;
-    size_t head_len = LOG_TIME_STR_LEN + sig_len;
-    size_t max_len = LOG_MAX_LEN_PER_MSG - head_len - 1;
-    copy_len = _log_snprintf(tbuf + head_len, max_len, fmt, ap);
+    copy_len = _log_snprintf(tbuf + header_len, LOG_MAX_LEN_PER_MSG + 1, fmt, ap);
 
     // fill \n
-    if ( copy_len > max_len ) {
-        tbuf[LOG_MAX_LEN_PER_MSG - 1] = '\n';
+    if ( copy_len > LOG_MAX_LEN_PER_MSG ) {
+        tbuf[header_len + LOG_MAX_LEN_PER_MSG] = '\n';
     } else {
-        tbuf[head_len + copy_len] = '\n';
+        tbuf[header_len + copy_len] = '\n';
     }
 
     // after all, fill the size with real write number
-    size_t msg_len = head_len + copy_len + 1;
-    header->msgh.len = (unsigned short)msg_len;
+    size_t msg_len = header_len + copy_len + 1;
+    msg_header->msgh.len = (unsigned short)msg_len;
 
     return sizeof(log_fetch_msg_head_t) + msg_len;
 }
 
 static
-void _log_async_write_f(flog_file_t* f, const char* file_sig, size_t sig_len,
+void _log_async_write_f(flog_file_t* f,
+                        const char* header, size_t header_len,
                         const char* fmt, va_list ap)
 {
     // check whether have private thread data, if not, create it
     thread_data_t* th_data = _get_or_create_thdata();
 
-    size_t max_msg_len = sizeof(log_fetch_msg_head_t) + LOG_MAX_LEN_PER_MSG +
-                        LOG_PTO_RESERVE_SIZE;
+    // check the pipe buffer whether have enough space
+    size_t max_msg_len = sizeof(log_fetch_msg_head_t) +
+                        header_len +
+                        LOG_MAX_LEN_PER_MSG +
+                        LOG_PTO_RESERVE_SIZE + 1;
+
     size_t total_free = fmbuf_free(th_data->plog_buf);
     if ( total_free < max_msg_len ) {
         _log_event_notice(FLOG_EVENT_BUFF_FULL);
@@ -475,16 +491,17 @@ void _log_async_write_f(flog_file_t* f, const char* file_sig, size_t sig_len,
     char* tail = fmbuf_tail(th_data->plog_buf);
     size_t tail_free_size = tail < head ? total_free :
                                   fmbuf_tail_free(th_data->plog_buf);
+
     if ( tail_free_size >= max_msg_len ) {
         // fill log message in mbuf directly
         char* buf = fmbuf_tail(th_data->plog_buf);
-        int buff_size = _log_fill_async_msg(f, th_data, buf, file_sig, sig_len,
+        int buff_size = _log_fill_async_msg(f, th_data, buf, header, header_len,
                                             fmt, ap);
         fmbuf_tail_seek(th_data->plog_buf, buff_size, FMBUF_SEEK_RIGHT);
     } else {
         // fill log message in tmp buffer
         char* buf = th_data->tmp_buf;
-        int buff_size = _log_fill_async_msg(f, th_data, buf, file_sig, sig_len,
+        int buff_size = _log_fill_async_msg(f, th_data, buf, header, header_len,
                                             fmt, ap);
         fmbuf_push(th_data->plog_buf, buf, buff_size);
     }
@@ -498,7 +515,7 @@ void _log_async_write_f(flog_file_t* f, const char* file_sig, size_t sig_len,
 static
 size_t _log_write(flog_file_t* f, const char* log, size_t len)
 {
-    size_t real_writen_len = _log_write_unlocked(f, log, len);
+    size_t real_writen_len = _log_write_to_disk(f, log, len);
 
     int has_flush = 0;
     f->file_size += real_writen_len;
@@ -518,52 +535,22 @@ size_t _log_write(flog_file_t* f, const char* log, size_t len)
 }
 
 static
-size_t _log_wrap_sync_head(char* buf, const char* file_sig, size_t sig_len)
+size_t _log_sync_write_to_disk(flog_file_t* f,
+                             const char* header, size_t header_len,
+                             const char* log, size_t len)
 {
-    time_t now = time(NULL);
-    if ( now > g_log->last_time ) {
-        do {
-            pthread_mutex_lock(&g_log->lock);
-            // if the now timestamp < last_time, that means already have
-            // someone updated the last_time, so we can just simple use
-            // the last_time_str to write the log
-            if ( now <= g_log->last_time ) {
-                pthread_mutex_unlock(&g_log->lock);
-                break;
-            }
-
-            _log_get_time(now, g_log->last_time_str);
-            g_log->last_time = now;
-            pthread_mutex_unlock(&g_log->lock);
-        } while (0);
-    }
-    memcpy(buf, g_log->last_time_str, LOG_TIME_STR_LEN);
-
-    if ( !file_sig ) sig_len = 0;
-    else memcpy(buf + LOG_TIME_STR_LEN, file_sig, sig_len);
-
-    return LOG_TIME_STR_LEN + sig_len;
-}
-
-static
-size_t _log_sync_write(flog_file_t* f, const char* file_sig, size_t sig_len,
-                        const char* log, size_t len)
-{
-    char buf[LOG_TIME_STR_LEN + sig_len + 1];
-    size_t head_len = _log_wrap_sync_head(buf, file_sig, sig_len);
-
-    // The log will be truncated if the length > LOG_MAX_LEN_PER_MSG
-    if ( len > LOG_MAX_LEN_PER_MSG ) len = LOG_MAX_LEN_PER_MSG;
+    // most of the fwrite is atomic api, but there are still some operating
+    // system's fwrite api not atomic, so using mutex to protect it
     size_t writen_len = 0;
     pthread_mutex_lock(&g_log->lock);
     {
-        writen_len += _log_write(f, buf, head_len);
+        writen_len += _log_write(f, header, header_len);
         writen_len += _log_write(f, log, len);
         writen_len += _log_write(f, "\n", 1);
     }
     pthread_mutex_unlock(&g_log->lock);
 
-    if ( writen_len < len + head_len ) {
+    if ( writen_len < len + header_len ) {
         _log_event_notice(FLOG_EVENT_ERROR_WRITE);
     }
 
@@ -571,36 +558,31 @@ size_t _log_sync_write(flog_file_t* f, const char* file_sig, size_t sig_len,
 }
 
 static
-void _log_sync_write_f(flog_file_t* f, const char* file_sig, size_t sig_len,
-                        const char* fmt, va_list ap)
+size_t _log_sync_write(flog_file_t* f,
+                       const char* header, size_t header_len,
+                       const char* log, size_t len)
 {
-    char log[LOG_MAX_LEN_PER_MSG];
-    int copy_len = 0;
-    size_t writen_len = 0;
-    size_t head_len = _log_wrap_sync_head(log, file_sig, sig_len);
-    size_t max_len = LOG_MAX_LEN_PER_MSG - head_len - 1;
-    copy_len = _log_snprintf(log + head_len, max_len, fmt, ap);
-
-    // fill \n
-    if ( copy_len > (int)max_len ) {
-        log[LOG_MAX_LEN_PER_MSG - 1] = '\n';
-    } else {
-        log[head_len + copy_len] = '\n';
+    // The log will be truncated if the length > LOG_MAX_LEN_PER_MSG
+    if ( len > LOG_MAX_LEN_PER_MSG ) {
+        len = LOG_MAX_LEN_PER_MSG;
+        _log_event_notice(FLOG_EVENT_TRUNCATED);
     }
 
-    size_t len = head_len + copy_len + 1;
-    pthread_mutex_lock(&g_log->lock);
-    {
-        writen_len = _log_write(f, log, len);
-    }
-    pthread_mutex_unlock(&g_log->lock);
-
-    if ( writen_len < len ) {
-        _log_event_notice(FLOG_EVENT_ERROR_WRITE);
-    }
+    return _log_sync_write_to_disk(f, header, header_len, log, len);
 }
 
-inline
+static
+void _log_sync_write_f(flog_file_t* f,
+                       const char* header, size_t header_len,
+                       const char* fmt, va_list ap)
+{
+    char log[LOG_MAX_LEN_PER_MSG + 1];
+    int len = _log_snprintf(log, LOG_MAX_LEN_PER_MSG + 1, fmt, ap);
+
+    _log_sync_write_to_disk(f, header, header_len, log, len);
+}
+
+static inline
 void _log_pto_fetch_msg(thread_data_t* th_data)
 {
     fmbuf* pbuf = th_data->plog_buf;
@@ -625,7 +607,7 @@ void _log_pto_fetch_msg(thread_data_t* th_data)
     fmbuf_pop(pbuf, NULL, (size_t)header.len);
 }
 
-inline
+static inline
 void _log_pto_thread_quit(thread_data_t* th_data)
 {
     _destroy_thread_data(th_data);
@@ -760,16 +742,27 @@ void _log_init()
     t_log->buffer_size = LOG_DEFAULT_LOCAL_BUFFER_SIZE;
     t_log->is_background_thread_started = 0;
     t_log->flush_interval = LOG_DEFAULT_FLUSH_INTERVAL;
-    t_log->last_time = 0;
 
     g_log = t_log;
     printf("log system init complete\n");
 }
 
+static inline
+void _log_clear_cookie(thread_data_t* th_data)
+{
+    // reset cookie = "[] "
+    char* cookie = LOG_GET_COOKIE(th_data->header);
+    memcpy(cookie, LOG_COOKIE_DEFAULT, 4);
+
+    // update cookie_len
+    th_data->cookie_len = 3;
+}
+
 /******************************************************************************
  * Interfaces
  *****************************************************************************/
-flog_file_t* flog_create(const char* filename){
+flog_file_t* flog_create(const char* filename)
+{
     // init log system global data
     pthread_once(&init_create, _log_init);
 
@@ -811,6 +804,7 @@ flog_file_t* flog_create(const char* filename){
         f->ref_count = 1;
     }
     pthread_mutex_unlock(&g_log->lock);
+
     return f;
 }
 
@@ -822,6 +816,7 @@ void flog_destroy(flog_file_t* lf)
         lf->ref_count--;
 
         if ( lf->ref_count == 0 ) {
+            _log_flush_file(lf, 0);  // force to flush buffer to disk
             fclose(lf->pf);
             fhash_str_del(g_log->phash, lf->pfilename);
             free(lf);
@@ -848,16 +843,15 @@ size_t flog_file_write(flog_file_t* f, const char* log, size_t len)
         return 1;
     }
 
-    // get cookie data from thread-data
-    thread_data_t* th_data = _get_or_create_thdata();
-    const char* cookie = th_data->cookie;
-    size_t cookie_len = strlen(cookie);
+    // update timestamp and return the header string
+    size_t header_len = 0;
+    const char* header = _log_get_header(&header_len);
 
     // write log according to the working mode
     if ( unlikely(g_log->mode == FLOG_SYNC_MODE) ) {
-        return _log_sync_write(f, cookie, cookie_len, log, len);
+        return _log_sync_write(f, header, header_len, log, len);
     } else {
-        return _log_async_write(f, cookie, cookie_len, log, len);
+        return _log_async_write(f, header, header_len, log, len);
     }
 }
 
@@ -869,18 +863,17 @@ void flog_file_write_f(flog_file_t* f, const char* fmt, ...)
         return;
     }
 
+    // update timestamp and return the header string
+    size_t header_len = 0;
+    const char* header = _log_get_header(&header_len);
+
     va_list ap;
     va_start(ap, fmt);
 
-    // get cookie data from thread-data
-    thread_data_t* th_data = _get_or_create_thdata();
-    const char* cookie = th_data->cookie;
-    size_t cookie_len = strlen(cookie);
-
     if ( unlikely(g_log->mode == FLOG_SYNC_MODE) ) {
-        _log_sync_write_f(f, cookie, cookie_len, fmt, ap);
+        _log_sync_write_f(f, header, header_len, fmt, ap);
     } else {
-        _log_async_write_f(f, cookie, cookie_len, fmt, ap);
+        _log_async_write_f(f, header, header_len, fmt, ap);
     }
 
     va_end(ap);
@@ -984,11 +977,8 @@ void flog_register_event_callback(flog_event_func pfunc)
 // Set cookie string into per-thread cookie space, no need to lock here
 void flog_set_cookie(const char* fmt, ...)
 {
-    if (!g_log) {
-        printError("set_cookie: invalid g_log(NULL)");
-        abort();
-        return;
-    }
+    // init log system global data
+    pthread_once(&init_create, _log_init);
 
     thread_data_t* th_data = _get_or_create_thdata();
     flog_clear_cookie();
@@ -996,8 +986,14 @@ void flog_set_cookie(const char* fmt, ...)
     va_list ap;
     va_start(ap, fmt);
 
-    // TODO: handle the return value of the vsnprintf
-    _log_snprintf(th_data->cookie, LOG_COOKIE_MAX_LEN, fmt, ap);
+    char* cookie = LOG_GET_COOKIE(th_data->header);
+    cookie[0] = '[';
+    int cookie_len = _log_snprintf(cookie + 1, LOG_COOKIE_MAX_LEN + 1,
+                                   fmt, ap);
+    cookie[cookie_len + 1] = ']';
+    cookie[cookie_len + 2] = ' ';
+    cookie_len += 3; // add the length of "[] "
+    th_data->cookie_len = cookie_len;
 
     va_end(ap);
 }
@@ -1005,12 +1001,9 @@ void flog_set_cookie(const char* fmt, ...)
 // Clear cookie string into per-thread cookie space, no need to lock here
 void flog_clear_cookie()
 {
-    if (!g_log) {
-        printError("set_cookie: invalid g_log(NULL)");
-        abort();
-        return;
-    }
+    // init log system global data
+    pthread_once(&init_create, _log_init);
 
     thread_data_t* th_data = _get_or_create_thdata();
-    th_data->cookie[0] = '\0';
+    _log_clear_cookie(th_data);
 }

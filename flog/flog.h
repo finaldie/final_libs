@@ -33,8 +33,9 @@ typedef enum {
  */
 typedef enum {
     FLOG_EVENT_ERROR_WRITE = 0,         // write error
+    FLOG_EVENT_TRUNCATED,               // log was been truncated
     FLOG_EVENT_BUFF_FULL,               // per-thread log buffer full
-    FLOG_EVENT_USER_BUFFER_RELEASED     // user logger thread quit gracefully
+    FLOG_EVENT_USER_BUFFER_RELEASED,    // user logger thread quit gracefully
 } FLOG_EVENT;
 
 /**

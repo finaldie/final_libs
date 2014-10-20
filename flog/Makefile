@@ -15,7 +15,8 @@ SRCS = flog_level.c flog.c
 OBJS = $(patsubst %.c,%.o,$(SRCS))
 
 FL_FLAGS = $(COMMON_FLAGS) $(CFLAGS) $(EXT_FLAGS)
-FL_FLAGS += -D_BSD_SOURCE
+FL_FLAGS += -D_BSD_SOURCE -D_POSIX_C_SOURCE=200809L
+FL_FLAGS += -std=c99
 
 .PHONY: all install clean help
 

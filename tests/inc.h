@@ -29,6 +29,7 @@ void    test_realloc();
 
 void    test_log();
 void    test_async_log();
+void    test_log_cookie();
 void    test_mbuf();
 void    test_mbuf1();
 void    test_mbuf2();

@@ -21,7 +21,7 @@ typedef struct fake_log_file_t {
     char   poutput_filename[128];
     char   filebuf[1024*64];
     size_t ref_count;
-}fake_log_file_t;
+} fake_log_file_t;
 
 static
 void    _test_log(){
@@ -50,11 +50,9 @@ void    _test_log(){
 
 void    test_log(){
     log_handler = flog_create("./logs/test_log");
-    FTU_ASSERT_EXPRESS(log_handler);
+    FTU_ASSERT(log_handler);
     _test_log();
     flog_destroy(log_handler);
-
-    sleep(2);
 }
 
 static
@@ -111,5 +109,42 @@ void test_async_log()
     pthread_t tid;
     pthread_create(&tid, NULL, _test_async_log, NULL);
     pthread_join(tid, NULL);
+    flog_destroy(log_handler);
+}
+
+static
+void _test_log_cookie()
+{
+    flog_set_mode(FLOG_SYNC_MODE);
+    flog_set_level(FLOG_LEVEL_INFO);
+    flog_set_cookie("this is the log cookie");
+    FLOG_INFO(log_handler, "test log cookie");
+    sleep(2);
+
+    // open the log file and assert the content
+    fake_log_file_t* ff = (fake_log_file_t*)log_handler;
+    printf("try to open file:%s\n", ff->poutput_filename);
+    int fd = open(ff->poutput_filename, O_RDONLY);
+    FTU_ASSERT(fd > 0);
+
+    char assert_info[100];
+    memset(assert_info, 0, 100);
+    int bytes_read = read(fd, assert_info, 100);
+    FTU_ASSERT(bytes_read > 0);
+
+    printf("read log info:%s\n", assert_info);
+    char* ptr = strstr(assert_info, "[this is the log cookie]");
+    printf("find ptr=%p\n", ptr);
+    FTU_ASSERT(ptr != NULL);
+
+    close(fd);
+}
+
+void test_log_cookie()
+{
+    log_handler = flog_create("./logs/test_log_cookie");
+    FTU_ASSERT(log_handler);
+
+    _test_log_cookie();
     flog_destroy(log_handler);
 }
