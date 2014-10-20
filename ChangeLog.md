@@ -1,3 +1,7 @@
+* 2014-10-20 0.6.1
+   * Add flog_set_cookie api
+   * Add fsync force flog flush kernel buffer to disk
+   * Fix fmbuf segfault when fmbuf_pop a ring buffer while the buf arg is NULL
 * 2014-10-16 0.6.0
    * Refine flog code structure and api, split original headers to 3 new headers
 * 2014-10-15 0.5.3
