@@ -181,21 +181,23 @@ int _log_set_nonblocking(int fd)
 }
 
 static inline
-int _lopen(const char* filename){
+int _lopen(const char* filename)
+{
     return open(filename, O_CREAT | O_WRONLY | O_APPEND, LOG_OPEN_PERMISSION);
 }
 
 static inline
-FILE* _log_open(const char* filename, char* buf, int size){
+FILE* _log_open(const char* filename, char* buf, int size)
+{
     int fd = _lopen(filename);
-    if ( fd < 0 ) {
+    if (fd < 0) {
         printError("open file failed\n");
         return NULL;
     }
 
     FILE* f = fdopen(fd, "a");
     if ( NULL == f ) {
-        printError("open file failed\n");
+        printError("open file failed: cannot convert fd to a FILE\n");
         return NULL;
     }
 
@@ -233,8 +235,13 @@ void _log_get_time(time_t tm_time, char* time_str)
 static
 void _log_flush_file(flog_file_t* lf, time_t now)
 {
-    if ( fflush(lf->pf) ) {
+    if (fflush_unlocked(lf->pf)) {
         printError("cannot flush file");
+        return;
+    }
+
+    if (fsync(fileno(lf->pf))) {
+        printError("cannot fsync file");
         return;
     }
 
@@ -269,11 +276,11 @@ size_t _log_write_to_disk(flog_file_t* lf, const char* log, size_t len)
     size_t remain_len = len;
 
     do {
-        size_t real_len = fwrite(log, 1, len, f);
-        int err = ferror(lf->pf);
+        size_t real_len = fwrite_unlocked(log, 1, len, f);
+        int err = ferror_unlocked(lf->pf);
         if ( err ) {
             printError("encounter error when writing logging message");
-            clearerr(lf->pf);
+            clearerr_unlocked(lf->pf);
             return len - remain_len;
         }
 
