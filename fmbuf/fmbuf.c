@@ -98,9 +98,12 @@ int        fmbuf_pop(fmbuf* pbuf, void* data, size_t size)
             if (MBUF_HEAD(pbuf) > MBUF_END(pbuf))
                 MBUF_HEAD(pbuf) = MBUF_START(pbuf);
         } else {
-            MBUF_COPY(data, MBUF_HEAD(pbuf), tail_use);
             size_t left = size - tail_use;
-            MBUF_COPY(data + tail_use, MBUF_START(pbuf), left);
+            if (data) {
+                MBUF_COPY(data, MBUF_HEAD(pbuf), tail_use);
+                MBUF_COPY(data + tail_use, MBUF_START(pbuf), left);
+            }
+
             MBUF_HEAD(pbuf) = MBUF_START(pbuf) + left;
         }
 
@@ -123,7 +126,7 @@ void*    fmbuf_vpop(fmbuf* pbuf, void* data, size_t size)
             if(MBUF_HEAD(pbuf) > MBUF_END(pbuf))
                 MBUF_HEAD(pbuf) = MBUF_START(pbuf);
         } else {
-            memcpy((char*)data, MBUF_HEAD(pbuf), tail_use);
+            memcpy(data, MBUF_HEAD(pbuf), tail_use);
             size_t left = size - tail_use;
             memcpy((char*)data + tail_use, MBUF_START(pbuf), left);
             MBUF_HEAD(pbuf) = MBUF_START(pbuf) + left;
@@ -145,7 +148,7 @@ void*   fmbuf_rawget(fmbuf* pbuf, void* data, size_t size)
         } else {
             memcpy(data, MBUF_HEAD(pbuf), tail_use);
             size_t left = size - tail_use;
-            memcpy(data + tail_use, MBUF_START(pbuf), left);
+            memcpy((char*)data + tail_use, MBUF_START(pbuf), left);
         }
 
         return data;    //get sucess
