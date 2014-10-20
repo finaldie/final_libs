@@ -132,7 +132,7 @@ FLOG_MODE flog_set_mode(FLOG_MODE mode);
 void flog_set_roll_size(size_t size);
 
 /**
- *  @brief Set max flush interval, unit msec
+ *  @brief Set max flush interval, unit second
  *
  *  @param sec      after given time, it will force to flush, default value is 0
  *
