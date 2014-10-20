@@ -15,7 +15,8 @@ ASSEMBLY_FOLDERS := $(prefix)/$(INCLUDE_FOLDER) $(prefix)/$(LIB_FOLDER)
 
 BENCHMARK_SUFFIX = mail.txt
 BENCHMARK = \
-    ./benchmark/fhash
+    ./benchmark/fhash \
+    ./benchmark/flog
 
 # PLAT_BIT is one of the 32 or 64
 PLAT_BIT = $(shell getconf LONG_BIT)
@@ -67,7 +68,6 @@ LIB_FOLDERS = \
   flist \
   fhash \
   flock \
-  fmbuf \
   fmbuf \
   flog \
   fconf \
@@ -136,13 +136,13 @@ benchmark: ASSEMBLY_LOCAL += BENCHMARK_FOLDER=$(BENCHMARK_FOLDER)
 benchmark:
 	@for bm in $(BENCHMARK); do \
 	    echo "benchmark for $$bm"; \
-	    $(MAKE) $(MAKE_FLAGS) -C $(BENCHMARK) $(ASSEMBLY_LOCAL); \
+	    $(MAKE) $(MAKE_FLAGS) -C $$bm $(ASSEMBLY_LOCAL); \
 	done;
 
 benchmark-clean:
 	@for bm in $(BENCHMARK); do \
 	    echo "benchmark-clean for $$bm"; \
-	    $(MAKE) $(MAKE_FLAGS) -C $(BENCHMARK) clean; \
+	    $(MAKE) $(MAKE_FLAGS) -C $$bm clean; \
 	done;
 	@rm -rf $(ASSEMBLY_LOCAL_FOLDER)/$(BENCHMARK_FOLDER)
 
