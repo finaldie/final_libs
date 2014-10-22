@@ -46,7 +46,7 @@ struct flog_file_t {
     FILE*  pf;
     size_t file_size;
     time_t last_flush_time;
-    char   pfilename[LOG_MAX_FILE_NAME];
+    char   filename[LOG_MAX_FILE_NAME];
     char   poutput_filename[LOG_MAX_OUTPUT_NAME];
     char   filebuf[LOG_BUFFER_SIZE_PER_FILE];
     size_t ref_count;
@@ -216,7 +216,7 @@ char* _log_generate_filename(const char* filename, char* output_filename)
                 (now.tm_year+1900), now.tm_mon+1, now.tm_mday,
                 now.tm_hour, now.tm_min, now.tm_sec);
 
-    snprintf(output_filename, LOG_MAX_OUTPUT_NAME, "%s_%s.%d",
+    snprintf(output_filename, LOG_MAX_OUTPUT_NAME, "%s-%s.%d",
             filename, now_time, getpid());
     return output_filename;
 }
@@ -251,7 +251,7 @@ void _log_flush_file(flog_file_t* lf, time_t now)
 static
 void _log_roll_file(flog_file_t* lf)
 {
-    _log_generate_filename(lf->pfilename, lf->poutput_filename);
+    _log_generate_filename(lf->filename, lf->poutput_filename);
     FILE* pf = _log_open(lf->poutput_filename, lf->filebuf,
                          LOG_BUFFER_SIZE_PER_FILE);
     if ( !pf ) {
@@ -806,7 +806,7 @@ flog_file_t* flog_create(const char* filename)
         f->pf = pf;
         f->file_size = 0;
         f->last_flush_time = time(NULL);
-        snprintf(f->pfilename, LOG_MAX_FILE_NAME, "%s", filename);
+        snprintf(f->filename, LOG_MAX_FILE_NAME, "%s", filename);
         fhash_str_set(g_log->phash, filename, f);
         f->ref_count = 1;
     }
@@ -825,7 +825,7 @@ void flog_destroy(flog_file_t* lf)
         if ( lf->ref_count == 0 ) {
             _log_flush_file(lf, 0);  // force to flush buffer to disk
             fclose(lf->pf);
-            fhash_str_del(g_log->phash, lf->pfilename);
+            fhash_str_del(g_log->phash, lf->filename);
             free(lf);
         }
     }
