@@ -399,10 +399,10 @@ size_t _log_async_write(flog_file_t* f,
                         const char* header, size_t header_len,
                         const char* log, size_t len)
 {
-
+    int is_report_truncated = 0;
     if ( len > LOG_MAX_LEN_PER_MSG ) {
         len = LOG_MAX_LEN_PER_MSG;
-        _log_event_notice(FLOG_EVENT_TRUNCATED);
+        is_report_truncated = 1;
     }
 
     // check pipe buffer whether have enough space
@@ -441,6 +441,11 @@ size_t _log_async_write(flog_file_t* f,
         return 0;
     }
 
+    // this must be reported after async push
+    if (is_report_truncated) {
+        _log_event_notice(FLOG_EVENT_TRUNCATED);
+    }
+
     return len;
 }
 
@@ -459,7 +464,8 @@ int _log_fill_async_msg(flog_file_t* f, thread_data_t* th_data, char* buff,
     memcpy(tbuf, header, header_len);
 
     size_t copy_len = 0;
-    copy_len = _log_snprintf(tbuf + header_len, LOG_MAX_LEN_PER_MSG + 1, fmt, ap);
+    copy_len = _log_snprintf(tbuf + header_len, LOG_MAX_LEN_PER_MSG + 1,
+                             fmt, ap);
 
     // fill \n
     if ( copy_len > LOG_MAX_LEN_PER_MSG ) {
@@ -580,7 +586,7 @@ size_t _log_sync_write(flog_file_t* f,
 }
 
 static
-size_t _log_sync_write_f(flog_file_t* f,
+void _log_sync_write_f(flog_file_t* f,
                        const char* header, size_t header_len,
                        const char* fmt, va_list ap)
 {
@@ -588,7 +594,6 @@ size_t _log_sync_write_f(flog_file_t* f,
     int len = _log_snprintf(log, LOG_MAX_LEN_PER_MSG + 1, fmt, ap);
 
     _log_sync_write_to_disk(f, header, header_len, log, len);
-    return len;
 }
 
 static inline
