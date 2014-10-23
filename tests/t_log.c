@@ -91,6 +91,9 @@ static
 void _test_async_event(FLOG_EVENT event)
 {
     printf("receive log event:%u\n", event);
+
+    // we should only receive this event, otherwise there may some errors
+    FTU_ASSERT(event == FLOG_EVENT_USER_BUFFER_RELEASED);
 }
 
 void test_async_log()

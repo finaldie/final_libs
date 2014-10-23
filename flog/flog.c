@@ -411,7 +411,7 @@ size_t _log_async_write(flog_file_t* f,
     size_t total_msg_len = sizeof(log_fetch_msg_head_t) + msg_body_len +
                             LOG_PTO_RESERVE_SIZE;
     if ( fmbuf_free(th_data->plog_buf) < total_msg_len ) {
-        _log_event_notice(FLOG_EVENT_BUFF_FULL);
+        _log_event_notice(FLOG_EVENT_BUFFER_FULL);
         return 0;
     }
 
@@ -421,23 +421,28 @@ size_t _log_async_write(flog_file_t* f,
     msg_header.msgh.f = f;
     msg_header.msgh.len = (unsigned short)msg_body_len;
     if ( fmbuf_push(th_data->plog_buf, &msg_header, sizeof(log_fetch_msg_head_t)) ) {
+        _log_event_notice(FLOG_EVENT_ERROR_ASYNC_PUSH);
         return 0;
     }
 
     if( fmbuf_push(th_data->plog_buf, header, header_len) ) {
+        _log_event_notice(FLOG_EVENT_ERROR_ASYNC_PUSH);
         return 0;
     }
 
     if( fmbuf_push(th_data->plog_buf, log, len) ) {
+        _log_event_notice(FLOG_EVENT_ERROR_ASYNC_PUSH);
         return 0;
     }
 
     if( fmbuf_push(th_data->plog_buf, "\n", 1) ) {
+        _log_event_notice(FLOG_EVENT_ERROR_ASYNC_PUSH);
         return 0;
     }
 
     // notice fetcher to write log
     if ( eventfd_write(th_data->efd, 1) ) {
+        _log_event_notice(FLOG_EVENT_ERROR_ASYNC_PUSH);
         return 0;
     }
 
@@ -497,7 +502,7 @@ void _log_async_write_f(flog_file_t* f,
 
     size_t total_free = fmbuf_free(th_data->plog_buf);
     if ( total_free < max_msg_len ) {
-        _log_event_notice(FLOG_EVENT_BUFF_FULL);
+        _log_event_notice(FLOG_EVENT_BUFFER_FULL);
         return;
     }
 
@@ -522,6 +527,7 @@ void _log_async_write_f(flog_file_t* f,
 
     // notice fetcher to write log
     if ( eventfd_write(th_data->efd, 1) ) {
+        _log_event_notice(FLOG_EVENT_ERROR_ASYNC_PUSH);
         return;
     }
 }
@@ -605,11 +611,13 @@ void _log_pto_fetch_msg(thread_data_t* th_data)
     log_msg_head_t header;
 
     if ( fmbuf_pop(pbuf, &header, LOG_MSG_HEAD_SIZE) ) {
+        _log_event_notice(FLOG_EVENT_ERROR_ASYNC_POP);
         return;
     }
 
     tmsg = fmbuf_rawget(pbuf, tmp_buf, (size_t)header.len);
     if ( !tmsg ) {
+        _log_event_notice(FLOG_EVENT_ERROR_ASYNC_POP);
         return;
     }
 
