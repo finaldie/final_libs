@@ -1,3 +1,7 @@
+* 2014-10-23 0.6.2
+   * **flog:** Refine log file format
+   * **flog:** Add flog_vwritf api
+   * **flog:** Add more metrics for log
 * 2014-10-20 0.6.1
    * Add flog_set_cookie api
    * Add fsync force flog flush kernel buffer to disk
