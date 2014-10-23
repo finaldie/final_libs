@@ -164,6 +164,7 @@ int _log_snprintf(char* dest, size_t max_len, const char* fmt, va_list ap)
         // already checked it before call it
         printError("Fatal: _log_snprintf copy data was truncated");
         _log_event_notice(FLOG_EVENT_TRUNCATED);
+        copy_len -= 1;
     }
 
     return copy_len;
@@ -579,7 +580,7 @@ size_t _log_sync_write(flog_file_t* f,
 }
 
 static
-void _log_sync_write_f(flog_file_t* f,
+size_t _log_sync_write_f(flog_file_t* f,
                        const char* header, size_t header_len,
                        const char* fmt, va_list ap)
 {
@@ -587,6 +588,7 @@ void _log_sync_write_f(flog_file_t* f,
     int len = _log_snprintf(log, LOG_MAX_LEN_PER_MSG + 1, fmt, ap);
 
     _log_sync_write_to_disk(f, header, header_len, log, len);
+    return len;
 }
 
 static inline
@@ -842,7 +844,7 @@ void flog_destroy(flog_file_t* lf)
  * @ When we use asynchronization mode, it will push log message into thread
  * buffer, and notice the fetcher thread to fetch it
  */
-size_t flog_file_write(flog_file_t* f, const char* log, size_t len)
+size_t flog_write(flog_file_t* f, const char* log, size_t len)
 {
     if (!g_log || !f) {
         printError("input invalid args");
@@ -862,7 +864,7 @@ size_t flog_file_write(flog_file_t* f, const char* log, size_t len)
     }
 }
 
-void flog_file_write_f(flog_file_t* f, const char* fmt, ...)
+void flog_writef(flog_file_t* f, const char* fmt, ...)
 {
     if (!g_log || !f) {
         printError("input invalid args");
@@ -884,6 +886,25 @@ void flog_file_write_f(flog_file_t* f, const char* fmt, ...)
     }
 
     va_end(ap);
+}
+
+void flog_vwritef(flog_file_t* f, const char* fmt, va_list ap)
+{
+    if (!g_log || !f) {
+        printError("input invalid args");
+        abort();
+        return;
+    }
+
+    // update timestamp and return the header string
+    size_t header_len = 0;
+    const char* header = _log_get_header(&header_len);
+
+    if ( unlikely(g_log->mode == FLOG_SYNC_MODE) ) {
+        _log_sync_write_f(f, header, header_len, fmt, ap);
+    } else {
+        _log_async_write_f(f, header, header_len, fmt, ap);
+    }
 }
 
 FLOG_MODE flog_set_mode(FLOG_MODE mode)

@@ -16,6 +16,7 @@ extern "C" {
 #endif
 
 #include <stddef.h>
+#include <stdarg.h>
 
 #include "flog_level.h"
 #include "flog_helpers.h"
@@ -69,8 +70,6 @@ void flog_destroy(flog_file_t* logger);
 /**
  *  @brief Write log
  *
- *  @param file_sig the signature of log message
- *  @param sig_len  length of signature
  *  @param log      log message
  *  @param len      length of message
  *
@@ -78,19 +77,27 @@ void flog_destroy(flog_file_t* logger);
  *                  - 0: success
  *                  - 1: failed
  */
-size_t flog_file_write(flog_file_t*, const char* log, size_t len);
+size_t flog_write(flog_file_t*, const char* log, size_t len);
 
 /**
  *  @brief Write log with format
  *
- *  @param file_sig the signature of log message
- *  @param sig_len  length of signature
  *  @param fmt      format string
  *  @param ...      dynamic args for format
  *
  *  @return         void
  */
-void flog_file_write_f(flog_file_t*, const char* fmt, ...);
+void flog_writef(flog_file_t*, const char* fmt, ...);
+
+/**
+ *  @brief Write log with format by a va_list
+ *
+ *  @param fmt      format string
+ *  @param ap       dynamic arg list using by the fmt
+ *
+ *  @return         actual writen size
+ */
+void flog_vwritef(flog_file_t*, const char* fmt, va_list ap);
 
 /**
  * @brief Set log cookie, user set up once, then every log will include this

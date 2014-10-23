@@ -28,7 +28,7 @@ void    _test_log(){
     FLOG_DEBUG(log_handler, "debug log test");
     FLOG_ERROR(log_handler, "error log test");
     flog_set_level(FLOG_LEVEL_ERROR);
-    flog_file_write(log_handler, "hello world", 11);
+    flog_write(log_handler, "hello world", 11);
     sleep(2);   // wait for log system
 
     fake_log_file_t* ff = (fake_log_file_t*)log_handler;
@@ -64,7 +64,7 @@ void* _test_async_log(void* arg __attribute__((unused)))
     sleep(2);   // wait for log system
     FLOG_DEBUG(log_handler, "debug log test1"); // second writen
     FLOG_DEBUG(log_handler, "debug log test2"); // will be writen in new file
-    flog_file_write(log_handler, "hello world", 11);
+    flog_write(log_handler, "hello world", 11);
     sleep(2);   // wait for log system
 
     fake_log_file_t* ff = (fake_log_file_t*)log_handler;

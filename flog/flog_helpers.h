@@ -16,42 +16,42 @@ extern "C" {
 // usage: FLOG_XXX(logger, "%s", string);
 #define FLOG_TRACE(log_handler, ...) \
     if( flog_is_trace_enable() ) { \
-        flog_file_write_f(log_handler, \
+        flog_writef(log_handler, \
                           __FILE__ ":" FTO_STR(__LINE__) " TRACE - " \
                           __VA_ARGS__); \
     }
 
 #define FLOG_DEBUG(log_handler, ...) \
     if( flog_is_debug_enable() ) { \
-        flog_file_write_f(log_handler, \
+        flog_writef(log_handler, \
                           __FILE__ ":" FTO_STR(__LINE__) " DEBUG - " \
                           __VA_ARGS__); \
     }
 
 #define FLOG_INFO(log_handler, ...) \
     if( flog_is_info_enable()  ) { \
-        flog_file_write_f(log_handler, \
+        flog_writef(log_handler, \
                           __FILE__ ":" FTO_STR(__LINE__) " INFO - " \
                           __VA_ARGS__); \
     }
 
 #define FLOG_WARN(log_handler, ...) \
     if( flog_is_warn_enable()  ) { \
-        flog_file_write_f(log_handler, \
+        flog_writef(log_handler, \
                           __FILE__ ":" FTO_STR(__LINE__) " WARN - " \
                           __VA_ARGS__); \
     }
 
 #define FLOG_ERROR(log_handler, ...) \
     if( flog_is_error_enable() ) { \
-        flog_file_write_f(log_handler, \
+        flog_writef(log_handler, \
                           __FILE__ ":" FTO_STR(__LINE__) " ERROR - " \
                           __VA_ARGS__); \
     }
 
 #define FLOG_FATAL(log_handler, ...) \
     if( flog_is_fatal_enable() ) { \
-        flog_file_write_f(log_handler, \
+        flog_writef(log_handler, \
                           __FILE__ ":" FTO_STR(__LINE__) " FATAL - " \
                           __VA_ARGS__); \
     }
