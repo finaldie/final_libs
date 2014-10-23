@@ -33,11 +33,14 @@ typedef enum {
  * @brief flog event types
  */
 typedef enum {
+    // error metrics
     FLOG_EVENT_ERROR_WRITE = 0,         // write error
     FLOG_EVENT_ERROR_ASYNC_PUSH,        // push data failed in async write
     FLOG_EVENT_ERROR_ASYNC_POP,         // pop data failed in async write
     FLOG_EVENT_TRUNCATED,               // log was been truncated
     FLOG_EVENT_BUFFER_FULL,             // per-thread log buffer full
+
+    // normal notice metrics
     FLOG_EVENT_USER_BUFFER_RELEASED,    // user logger thread quit gracefully
 } FLOG_EVENT;
 

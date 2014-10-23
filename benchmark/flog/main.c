@@ -12,20 +12,72 @@
 
 static flog_file_t* log_handler = NULL;
 static char log_str[MAX_LOG_SIZE];
+
+// metrics
+static int error_write_count = 0;
+static int error_async_push_count = 0;
+static int error_async_pop_count = 0;
+static int log_truncated_count = 0;
 static int buff_full_count = 0;
+
 static FLOG_MODE log_mode;
 static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
+static
+void init_counters()
+{
+    error_write_count = 0;
+    error_async_push_count = 0;
+    error_async_pop_count = 0;
+    log_truncated_count = 0;
+    buff_full_count = 0;
+}
+
+static
 void get_log_event(FLOG_EVENT event)
 {
-    if ( event == FLOG_EVENT_BUFF_FULL ) {
+    switch (event) {
+    case FLOG_EVENT_ERROR_WRITE:
+    {
+        pthread_mutex_lock(&lock);
+        error_write_count++;
+        pthread_mutex_unlock(&lock);
+        break;
+    }
+    case FLOG_EVENT_ERROR_ASYNC_PUSH:
+    {
+        pthread_mutex_lock(&lock);
+        error_async_push_count++;
+        pthread_mutex_unlock(&lock);
+        break;
+    }
+    case FLOG_EVENT_ERROR_ASYNC_POP:
+    {
+        pthread_mutex_lock(&lock);
+        error_async_pop_count++;
+        pthread_mutex_unlock(&lock);
+        break;
+    }
+    case FLOG_EVENT_TRUNCATED:
+    {
+        pthread_mutex_lock(&lock);
+        log_truncated_count++;
+        pthread_mutex_unlock(&lock);
+        break;
+    }
+    case FLOG_EVENT_BUFFER_FULL:
+    {
         pthread_mutex_lock(&lock);
         buff_full_count++;
         pthread_mutex_unlock(&lock);
+        break;
     }
-
-    if ( event == FLOG_EVENT_USER_BUFFER_RELEASED ) {
+    case FLOG_EVENT_USER_BUFFER_RELEASED:
         printf("get_log_event(tid=%lu): event_id=%d\n", pthread_self(), event);
+        break;
+    default:
+        printf("Fatal: un-handled event:%d\n", event);
+        break;
     }
 }
 
@@ -53,7 +105,6 @@ void* write_log(void* arg)
         int step = 0;
         for ( j = 0; j < max_num_per_group; ++j, ++step ) {
             FLOG_DEBUG(log_handler, "%s", log_str);
-            //log_file_write(log_handler, NULL, 0, log_str, MAX_LOG_SIZE - 1);
 
             if ( log_mode == FLOG_ASYNC_MODE && (step == sleep_step) ) {
                 step = 0;
@@ -99,7 +150,7 @@ void do_test(int num, int thread_num)
         printf("current buffer size per-thread = %lu\n", flog_get_buffer_size());
     }
     flog_register_event_callback(get_log_event);
-    buff_full_count = 0;
+    init_counters();
     sleep(1);
 
     my_time start_time, end_time;
@@ -119,6 +170,12 @@ void do_test(int num, int thread_num)
     int diff_usec = get_diff_time(&start_time, &end_time);
     printf("pid=%d, tid=%lu, call interface time cost (usec):%d write_msg:%d miss_msg:%d miss_rate:%f final:%f count/s\n",
             getpid(), pthread_self(), diff_usec, num, buff_full_count, (double)buff_full_count/(double)num, (double)num/((double)diff_usec/1000000));
+    printf("metrics:\n");
+    printf("\terror_write_count: %d\n", error_write_count);
+    printf("\terror_async_push_count: %d\n", error_async_push_count);
+    printf("\terror_async_pop_count: %d\n", error_async_pop_count);
+    printf("\tlog_truncated_count: %d\n", log_truncated_count);
+    printf("\tbuffer_full_count: %d\n", buff_full_count);
 }
 
 static
