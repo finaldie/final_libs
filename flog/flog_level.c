@@ -21,9 +21,9 @@ int    flog_get_level()
     return flog_level;
 }
 
-inline int flog_is_trace_enable() {return FLOG_LEVEL_TRACE >= flog_get_level();}
-inline int flog_is_debug_enable() {return FLOG_LEVEL_DEBUG >= flog_get_level();}
-inline int flog_is_info_enable()  {return FLOG_LEVEL_INFO  >= flog_get_level();}
-inline int flog_is_warn_enable()  {return FLOG_LEVEL_WARN  >= flog_get_level();}
-inline int flog_is_error_enable() {return FLOG_LEVEL_ERROR >= flog_get_level();}
-inline int flog_is_fatal_enable() {return FLOG_LEVEL_FATAL >= flog_get_level();}
+inline int flog_is_trace_enabled() {return FLOG_LEVEL_TRACE >= flog_get_level();}
+inline int flog_is_debug_enabled() {return FLOG_LEVEL_DEBUG >= flog_get_level();}
+inline int flog_is_info_enabled()  {return FLOG_LEVEL_INFO  >= flog_get_level();}
+inline int flog_is_warn_enabled()  {return FLOG_LEVEL_WARN  >= flog_get_level();}
+inline int flog_is_error_enabled() {return FLOG_LEVEL_ERROR >= flog_get_level();}
+inline int flog_is_fatal_enabled() {return FLOG_LEVEL_FATAL >= flog_get_level();}

@@ -15,45 +15,45 @@ extern "C" {
 // usage: FLOG_XXX(logger, "hello");
 // usage: FLOG_XXX(logger, "%s", string);
 #define FLOG_TRACE(log_handler, ...) \
-    if( flog_is_trace_enable() ) { \
+    if( flog_is_trace_enabled() ) { \
         flog_writef(log_handler, \
-                          __FILE__ ":" FTO_STR(__LINE__) " TRACE - " \
-                          __VA_ARGS__); \
+                    __FILE__ ":" FTO_STR(__LINE__) " TRACE - " \
+                    __VA_ARGS__); \
     }
 
 #define FLOG_DEBUG(log_handler, ...) \
-    if( flog_is_debug_enable() ) { \
+    if( flog_is_debug_enabled() ) { \
         flog_writef(log_handler, \
-                          __FILE__ ":" FTO_STR(__LINE__) " DEBUG - " \
-                          __VA_ARGS__); \
+                    __FILE__ ":" FTO_STR(__LINE__) " DEBUG - " \
+                    __VA_ARGS__); \
     }
 
 #define FLOG_INFO(log_handler, ...) \
-    if( flog_is_info_enable()  ) { \
+    if( flog_is_info_enabled()  ) { \
         flog_writef(log_handler, \
-                          __FILE__ ":" FTO_STR(__LINE__) " INFO - " \
-                          __VA_ARGS__); \
+                    __FILE__ ":" FTO_STR(__LINE__) " INFO - " \
+                    __VA_ARGS__); \
     }
 
 #define FLOG_WARN(log_handler, ...) \
-    if( flog_is_warn_enable()  ) { \
+    if( flog_is_warn_enabled()  ) { \
         flog_writef(log_handler, \
-                          __FILE__ ":" FTO_STR(__LINE__) " WARN - " \
-                          __VA_ARGS__); \
+                    __FILE__ ":" FTO_STR(__LINE__) " WARN - " \
+                    __VA_ARGS__); \
     }
 
 #define FLOG_ERROR(log_handler, ...) \
-    if( flog_is_error_enable() ) { \
+    if( flog_is_error_enabled() ) { \
         flog_writef(log_handler, \
-                          __FILE__ ":" FTO_STR(__LINE__) " ERROR - " \
-                          __VA_ARGS__); \
+                    __FILE__ ":" FTO_STR(__LINE__) " ERROR - " \
+                    __VA_ARGS__); \
     }
 
 #define FLOG_FATAL(log_handler, ...) \
-    if( flog_is_fatal_enable() ) { \
+    if( flog_is_fatal_enabled() ) { \
         flog_writef(log_handler, \
-                          __FILE__ ":" FTO_STR(__LINE__) " FATAL - " \
-                          __VA_ARGS__); \
+                    __FILE__ ":" FTO_STR(__LINE__) " FATAL - " \
+                    __VA_ARGS__); \
     }
 
 #ifdef __cplusplus

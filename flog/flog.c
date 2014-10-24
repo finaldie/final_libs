@@ -1021,9 +1021,11 @@ void flog_set_cookie(const char* fmt, ...)
     // init log system global data
     pthread_once(&init_create, _log_init);
 
+    // clear old cookie first
     thread_data_t* th_data = _get_or_create_thdata();
     flog_clear_cookie();
 
+    // format and set the cookie
     va_list ap;
     va_start(ap, fmt);
 
@@ -1037,6 +1039,26 @@ void flog_set_cookie(const char* fmt, ...)
     th_data->cookie_len = cookie_len;
 
     va_end(ap);
+}
+
+void flog_vset_cookie(const char* fmt, va_list ap)
+{
+    // init log system global data
+    pthread_once(&init_create, _log_init);
+
+    // clear the old cookie first
+    thread_data_t* th_data = _get_or_create_thdata();
+    flog_clear_cookie();
+
+    // format and set the cookie
+    char* cookie = LOG_GET_COOKIE(th_data->header);
+    cookie[0] = '[';
+    int cookie_len = _log_snprintf(cookie + 1, LOG_COOKIE_MAX_LEN + 1,
+                                   fmt, ap);
+    cookie[cookie_len + 1] = ']';
+    cookie[cookie_len + 2] = ' ';
+    cookie_len += 3; // add the length of "[] "
+    th_data->cookie_len = cookie_len;
 }
 
 // Clear cookie string into per-thread cookie space, no need to lock here

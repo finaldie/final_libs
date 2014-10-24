@@ -36,12 +36,12 @@ int          flog_set_level(int level);
 int          flog_get_level();
 
 // private, no need to call them directly
-int          flog_is_trace_enable();
-int          flog_is_debug_enable();
-int          flog_is_info_enable();
-int          flog_is_warn_enable();
-int          flog_is_error_enable();
-int          flog_is_fatal_enable();
+int          flog_is_trace_enabled();
+int          flog_is_debug_enabled();
+int          flog_is_info_enabled();
+int          flog_is_warn_enabled();
+int          flog_is_error_enabled();
+int          flog_is_fatal_enabled();
 
 #ifdef __cplusplus
 }
