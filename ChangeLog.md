@@ -1,3 +1,5 @@
+* 2014-10-23 0.6.3
+   * **flog:** Add flog_vset_cookie api
 * 2014-10-23 0.6.2
    * **flog:** Refine log file format
    * **flog:** Add flog_vwritf api
