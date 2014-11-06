@@ -1,3 +1,6 @@
+* 2014-11-07 0.6.5
+   * **flog:** Add millisecond in timestamp
+   * **flog:** Remove useless padding from internel protocol
 * 2014-11-06 0.6.4
    * **flog:** Use the fixed log name, only change the name for the rolling files
 * 2014-10-23 0.6.3
