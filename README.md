@@ -43,6 +43,7 @@ make valgrind-check
 ## Benchmark
 ```
 make benchmark
+make benchmark-run
 ```
 
 ## Flags
