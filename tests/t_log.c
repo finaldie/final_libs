@@ -27,7 +27,7 @@ void    _test_log()
 
     char assert_info[100];
     memset(assert_info, 0, 100);
-    int bytes_read = read(fd, assert_info, 100);
+    int bytes_read = read(fd, assert_info, 99);
     FTU_ASSERT_GT_INT(0, bytes_read);
 
     printf("read log info:%s\n", assert_info);
@@ -63,7 +63,7 @@ void* _test_async_log(void* arg __attribute__((unused)))
 
     char assert_info[100];
     memset(assert_info, 0, 100);
-    int bytes_read = read(fd, assert_info, 100);
+    int bytes_read = read(fd, assert_info, 99);
     FTU_ASSERT_GT_INT(0, bytes_read);
 
     printf("read log info:%s\n", assert_info);
@@ -88,7 +88,7 @@ void _test_async_event(FLOG_EVENT event)
 void test_async_log()
 {
     flog_set_mode(FLOG_ASYNC_MODE);
-    flog_set_roll_size(100);
+    flog_set_roll_size(110);
     flog_set_flush_interval(1);
     flog_set_buffer_size(1024 * 1024);
     size_t buffer_size = flog_get_buffer_size();
@@ -120,7 +120,7 @@ void _test_log_cookie()
 
     char assert_info[100];
     memset(assert_info, 0, 100);
-    int bytes_read = read(fd, assert_info, 100);
+    int bytes_read = read(fd, assert_info, 99);
     FTU_ASSERT(bytes_read > 0);
 
     printf("read log info:%s\n", assert_info);

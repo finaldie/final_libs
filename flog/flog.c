@@ -33,12 +33,16 @@
 #define LOG_MSG_HEAD_SIZE             (sizeof(log_msg_head_t))
 #define LOG_PTO_ID_SIZE               (sizeof(pto_id_t))
 #define LOG_PTO_RESERVE_SIZE          LOG_PTO_ID_SIZE
-// specify the length of the formative time string: "%04d-%02d-%02d_%02d:%02d:%02d.%03lu "
-#define LOG_TIME_STR_LEN              (20)
+
+// specify the length of the formative time string:
+// "%04d:%02d:%02d_%02d:%02d:%02d.%03lu "
+#define LOG_TIME_LEN                  (20)
+#define LOG_TIME_MS_LEN               (4)
+#define LOG_TIME_TOTAL_LEN            (LOG_TIME_LEN + LOG_TIME_MS_LEN)
 
 // cookie
 #define LOG_COOKIE_DEFAULT            "[] "
-#define LOG_GET_COOKIE(header)        ((char*)header + LOG_TIME_STR_LEN)
+#define LOG_GET_COOKIE(header)        ((char*)header + LOG_TIME_TOTAL_LEN)
 
 // LOG PROTOCOL DEFINE
 #define LOG_PTO_FETCH_MSG          0
@@ -74,15 +78,20 @@ typedef struct {
 
 // every thread have a private thread_data for containing logbuf
 // when we write log messages, data will fill into this buffer
-#pragma pack(4)
 typedef struct _thread_data_t {
     fmbuf*       plog_buf;
     int          efd;        // eventfd, used for notify the async fetcher
     int          cookie_len;
     time_t       last_time;
-    char         last_time_str[LOG_TIME_STR_LEN + 4];
     char         tmp_buf[LOG_MAX_LEN_PER_MSG];
-    char         header[LOG_TIME_STR_LEN + LOG_COOKIE_MAX_LEN + 8];
+    char         header[LOG_TIME_TOTAL_LEN + LOG_COOKIE_MAX_LEN + 3 + 1];
+    char         last_time_str[LOG_TIME_LEN + 1];
+
+#if __WORDSIZE == 64
+    char         _padding[7];
+#else
+    char         _padding[3];
+#endif
 } thread_data_t;
 
 typedef void (*ptofunc)(thread_data_t*);
@@ -93,14 +102,18 @@ typedef struct _log_t {
     flog_event_func event_cb;    // event callback
     pthread_mutex_t lock;        // protect some scences resource competion
     pthread_key_t   key;
+
+    int             epfd;        // epoll fd
     size_t          roll_size;
     size_t          buffer_size; // buffer size per user thread
     FLOG_MODE       mode;        // global log flag
     int             is_background_thread_started;
     int             flush_interval;
-    int             epfd;        // epoll fd
+
+#if __WORDSIZE == 64
+    int             _padding;
+#endif
 } f_log;
-#pragma pack()
 
 // define global log struct
 static f_log* g_log = NULL;
@@ -227,7 +240,7 @@ static inline
 char* _log_generate_filename(const char* filename, char* output_filename)
 {
     struct timeval tv;
-    if (gettimeofday(&tv, NULL)) {
+    if (unlikely(gettimeofday(&tv, NULL))) {
         printError("cannot get current time\n");
         abort();
     }
@@ -251,7 +264,7 @@ void _log_get_time(time_t tm_time, char* time_str)
 {
     struct tm now;
     gmtime_r(&tm_time, &now);
-    snprintf(time_str, LOG_TIME_STR_LEN + 1, "%04d-%02d-%02d_%02d:%02d:%02d ",
+    snprintf(time_str, LOG_TIME_LEN + 1, "%04d:%02d:%02d_%02d:%02d:%02d.",
              (now.tm_year+1900), now.tm_mon+1, now.tm_mday,
              now.tm_hour, now.tm_min, now.tm_sec);
 }
@@ -402,19 +415,27 @@ const char* _log_get_header(size_t* header_len/*out*/)
 {
     thread_data_t* th_data = _get_or_create_thdata();
 
-    time_t now = time(NULL);
+    struct timeval tv;
+    if (unlikely(gettimeofday(&tv, NULL))) {
+        printError("cannot get current time\n");
+        abort();
+    }
+
+    time_t now = tv.tv_sec;
     if ( now > th_data->last_time ) {
         _log_get_time(now, th_data->last_time_str);
         th_data->last_time = now;
     }
 
-    memcpy(th_data->header, th_data->last_time_str, LOG_TIME_STR_LEN);
-    *header_len = LOG_TIME_STR_LEN + th_data->cookie_len;
+    char tm_ms[LOG_TIME_MS_LEN + 1];
+    snprintf(tm_ms, LOG_TIME_MS_LEN + 1, "%03lu ", tv.tv_usec / 1000);
 
+    memcpy(th_data->header, th_data->last_time_str, LOG_TIME_LEN);
+    memcpy(th_data->header + LOG_TIME_LEN, tm_ms, LOG_TIME_MS_LEN);
+
+    *header_len = LOG_TIME_TOTAL_LEN + th_data->cookie_len;
     return th_data->header;
 }
-
-
 
 /**
  * Asynchronous mode we use a large ring buffer to hold the log messages data,
@@ -450,7 +471,8 @@ size_t _log_async_write(flog_file_t* f,
     msg_header.id = LOG_PTO_FETCH_MSG;
     msg_header.msgh.f = f;
     msg_header.msgh.len = (unsigned short)msg_body_len;
-    if ( fmbuf_push(th_data->plog_buf, &msg_header, sizeof(log_fetch_msg_head_t)) ) {
+    if ( fmbuf_push(th_data->plog_buf, &msg_header,
+                    sizeof(log_fetch_msg_head_t)) ) {
         _log_event_notice(FLOG_EVENT_ERROR_ASYNC_PUSH);
         return 0;
     }
