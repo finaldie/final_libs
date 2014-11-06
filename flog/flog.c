@@ -32,7 +32,6 @@
 #define LOG_MAX_LEN_PER_MSG           (4096)
 #define LOG_MSG_HEAD_SIZE             (sizeof(log_msg_head_t))
 #define LOG_PTO_ID_SIZE               (sizeof(pto_id_t))
-#define LOG_PTO_RESERVE_SIZE          LOG_PTO_ID_SIZE
 
 // specify the length of the formative time string:
 // "%04d:%02d:%02d_%02d:%02d:%02d.%03lu "
@@ -459,8 +458,7 @@ size_t _log_async_write(flog_file_t* f,
     // check pipe buffer whether have enough space
     thread_data_t* th_data = _get_or_create_thdata();
     size_t msg_body_len = header_len + len + 1;
-    size_t total_msg_len = sizeof(log_fetch_msg_head_t) + msg_body_len +
-                            LOG_PTO_RESERVE_SIZE;
+    size_t total_msg_len = sizeof(log_fetch_msg_head_t) + msg_body_len;
     if ( fmbuf_free(th_data->plog_buf) < total_msg_len ) {
         _log_event_notice(FLOG_EVENT_BUFFER_FULL);
         return 0;
@@ -547,10 +545,8 @@ void _log_async_write_f(flog_file_t* f,
     thread_data_t* th_data = _get_or_create_thdata();
 
     // check the pipe buffer whether have enough space
-    size_t max_msg_len = sizeof(log_fetch_msg_head_t) +
-                        header_len +
-                        LOG_MAX_LEN_PER_MSG +
-                        LOG_PTO_RESERVE_SIZE + 1;
+    size_t max_msg_len = sizeof(log_fetch_msg_head_t) + header_len +
+                         LOG_MAX_LEN_PER_MSG + 1;
 
     size_t total_free = fmbuf_free(th_data->plog_buf);
     if ( total_free < max_msg_len ) {
@@ -1042,8 +1038,7 @@ void flog_set_buffer_size(size_t size)
     pthread_mutex_lock(&g_log->lock);
     {
         if ( size == 0 ) size = LOG_DEFAULT_LOCAL_BUFFER_SIZE;
-        size_t min_size = sizeof(log_fetch_msg_head_t) + LOG_MAX_LEN_PER_MSG +
-                            LOG_PTO_RESERVE_SIZE;
+        size_t min_size = sizeof(log_fetch_msg_head_t) + LOG_MAX_LEN_PER_MSG;
         if ( size < min_size ) size = min_size;
         g_log->buffer_size = size;
     }
