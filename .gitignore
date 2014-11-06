@@ -12,3 +12,4 @@ types_c.taghl
 
 tests/test
 benchmark/fhash/fhash.bm
+benchmark/flog/flog.bm

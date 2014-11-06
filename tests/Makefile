@@ -47,6 +47,7 @@ all: prepare $(TARGET)
 
 prepare:
 	test -d logs || mkdir logs
+	rm -rf ./logs/*
 
 $(TARGET): $(OBJS)
 	$(CC) $(FL_FLAGS) $(INC) $(LL) -o $(TARGET) $(OBJS) $(LDFLAGS)
@@ -54,16 +55,16 @@ $(TARGET): $(OBJS)
 %.o: %.c
 	$(CC) $(FL_FLAGS) $(INC) -c $<
 
-check:
+check: prepare
 	./$(TARGET)
 
-valgrind-gensup:
+valgrind-gensup: prepare
 	valgrind --tool=memcheck --leak-check=full --suppressions=./valgrind.suppress --gen-suppressions=all ./$(TARGET)
 
-valgrind-nosup:
+valgrind-nosup: prepare
 	valgrind --tool=memcheck --leak-check=full ./$(TARGET)
 
-valgrind-check:
+valgrind-check: prepare
 	valgrind --tool=memcheck --leak-check=full --suppressions=./valgrind.suppress --error-exitcode=1 ./$(TARGET)
 
 clean:

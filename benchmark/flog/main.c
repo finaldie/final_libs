@@ -9,6 +9,7 @@
 // you need change the two marcos as below
 #define MAX_LOG_SIZE             500
 #define MAX_BUFF_SIZE_PER_THREAD (1024 * 1024 * 200)
+#define FILE_ROLL_SIZE           (1024 * 1024 * 100)
 
 static flog_file_t* log_handler = NULL;
 static char log_str[MAX_LOG_SIZE];
@@ -149,6 +150,7 @@ void do_test(int num, int thread_num)
     if ( log_mode == FLOG_ASYNC_MODE ) {
         printf("current buffer size per-thread = %lu\n", flog_get_buffer_size());
     }
+    flog_set_roll_size(FILE_ROLL_SIZE);
     flog_register_event_callback(get_log_event);
     init_counters();
     sleep(1);

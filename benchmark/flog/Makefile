@@ -22,6 +22,8 @@ SRCS = \
 
 benchmark: prepare
 	$(CC) -O2 $(COMMON_FLAGS) $(FLAGS) $(INC) $(LL) -o $(TARGET) $(SRCS) $(LDFLAGS) $(LIBS)
+
+benchmark-run:
 	./$(TARGET) 1000000 2 4 | tee $(OUTPUT_FILE)
 
 prepare:

@@ -25,13 +25,17 @@ LDFLAGS = \
 
 benchmark: prepare
 	$(CC) -O2 $(COMMON_FLAGS) $(FLAGS) $(INC) $(LL) -o $(TARGET) $(SRCS) $(LDFLAGS)
+
+benchmark-run: prepare-input
 	./$(TARGET) | tee $(OUTPUT_FILE)
 
 prepare:
+	test -d $(OUTPUT_FOLDER) || mkdir -p $(OUTPUT_FOLDER)
+
+prepare-input:
 	@echo "generate random key/values..."
 	test -f $(KEY_VALUE_SOURCE) || ./random_string_gen.sh > $(KEY_VALUE_SOURCE)
 	@echo "generate random key/values done"
-	test -d $(OUTPUT_FOLDER) || mkdir -p $(OUTPUT_FOLDER)
 
 clean:
 	rm -f *.o $(TARGET)

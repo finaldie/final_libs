@@ -13,26 +13,16 @@
 
 static flog_file_t* log_handler = NULL;
 
-typedef struct fake_log_file_t {
-    FILE*  pf;
-    size_t file_size;
-    time_t last_flush_time;
-    char   pfilename[64];
-    char   poutput_filename[128];
-    char   filebuf[1024*64];
-    size_t ref_count;
-} fake_log_file_t;
-
 static
-void    _test_log(){
+void    _test_log()
+{
     FLOG_DEBUG(log_handler, "debug log test");
     FLOG_ERROR(log_handler, "error log test");
     flog_set_level(FLOG_LEVEL_ERROR);
     flog_write(log_handler, "hello world", 11);
     sleep(2);   // wait for log system
 
-    fake_log_file_t* ff = (fake_log_file_t*)log_handler;
-    int fd = open(ff->poutput_filename, O_RDONLY);
+    int fd = open("./logs/test_log", O_RDONLY);
     FTU_ASSERT_GT_INT(0, fd);
 
     char assert_info[100];
@@ -67,9 +57,8 @@ void* _test_async_log(void* arg __attribute__((unused)))
     flog_write(log_handler, "hello world", 11);
     sleep(2);   // wait for log system
 
-    fake_log_file_t* ff = (fake_log_file_t*)log_handler;
-    printf("try to open file:%s\n", ff->poutput_filename);
-    int fd = open(ff->poutput_filename, O_RDONLY);
+    printf("try to open file:%s\n", "./logs/test_async_log");
+    int fd = open("./logs/test_async_log", O_RDONLY);
     FTU_ASSERT_GT_INT(0, fd);
 
     char assert_info[100];
@@ -125,9 +114,8 @@ void _test_log_cookie()
     sleep(2);
 
     // open the log file and assert the content
-    fake_log_file_t* ff = (fake_log_file_t*)log_handler;
-    printf("try to open file:%s\n", ff->poutput_filename);
-    int fd = open(ff->poutput_filename, O_RDONLY);
+    printf("try to open file:%s\n", "./logs/test_log_cookie");
+    int fd = open("./logs/test_log_cookie", O_RDONLY);
     FTU_ASSERT(fd > 0);
 
     char assert_info[100];

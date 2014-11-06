@@ -135,8 +135,14 @@ benchmark: ASSEMBLY_LOCAL += BENCHMARK_SUFFIX=$(BENCHMARK_SUFFIX)
 benchmark: ASSEMBLY_LOCAL += BENCHMARK_FOLDER=$(BENCHMARK_FOLDER)
 benchmark:
 	@for bm in $(BENCHMARK); do \
-	    echo "benchmark for $$bm"; \
+	    echo "build benchmark for $$bm"; \
 	    $(MAKE) $(MAKE_FLAGS) -C $$bm $(ASSEMBLY_LOCAL); \
+	done;
+
+benchmark-run:
+	@for bm in $(BENCHMARK); do \
+	    echo "run benchmark for $$bm"; \
+	    $(MAKE) $(MAKE_FLAGS) -C $$bm $(ASSEMBLY_LOCAL) $@; \
 	done;
 
 benchmark-clean:

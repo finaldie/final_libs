@@ -10,6 +10,9 @@
 #include <fcntl.h>
 #include <sys/eventfd.h>
 #include <sys/epoll.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/time.h>
 #include <assert.h>
 
 #include "common/compiler.h"
@@ -27,10 +30,10 @@
 #define LOG_DEFAULT_LOCAL_BUFFER_SIZE (1024 * 1024 * 10)
 #define LOG_DEFAULT_FLUSH_INTERVAL    (0)
 #define LOG_MAX_LEN_PER_MSG           (4096)
-#define LOG_MSG_HEAD_SIZE             ( sizeof(log_msg_head_t) )
-#define LOG_PTO_ID_SIZE               ( sizeof(pto_id_t) )
+#define LOG_MSG_HEAD_SIZE             (sizeof(log_msg_head_t))
+#define LOG_PTO_ID_SIZE               (sizeof(pto_id_t))
 #define LOG_PTO_RESERVE_SIZE          LOG_PTO_ID_SIZE
-// specify the length of the formative time string: "%04d-%02d-%02d_%02d:%02d:%02d "
+// specify the length of the formative time string: "%04d-%02d-%02d_%02d:%02d:%02d.%03lu "
 #define LOG_TIME_STR_LEN              (20)
 
 // cookie
@@ -181,6 +184,20 @@ int _log_set_nonblocking(int fd)
     return flag;
 }
 
+static
+size_t _log_filesize(flog_file_t* f)
+{
+    int fd = fileno(f->pf);
+
+    struct stat st;
+    if (fstat(fd, &st)) {
+        printError("cannot get metadata of log file\n");
+        abort();
+    }
+
+    return st.st_size;
+}
+
 static inline
 int _lopen(const char* filename)
 {
@@ -209,13 +226,19 @@ FILE* _log_open(const char* filename, char* buf, int size)
 static inline
 char* _log_generate_filename(const char* filename, char* output_filename)
 {
-    char now_time[22];
-    time_t tm_time = time(NULL);
+    struct timeval tv;
+    if (gettimeofday(&tv, NULL)) {
+        printError("cannot get current time\n");
+        abort();
+    }
+
+    char now_time[24];
+    time_t tm_time = tv.tv_sec;
     struct tm now;
     gmtime_r(&tm_time, &now);
-    snprintf(now_time, 22, "%04d_%02d_%02d_%02d_%02d_%02d",
+    snprintf(now_time, 24, "%04d_%02d_%02d_%02d_%02d_%02d.%03lu",
                 (now.tm_year+1900), now.tm_mon+1, now.tm_mday,
-                now.tm_hour, now.tm_min, now.tm_sec);
+                now.tm_hour, now.tm_min, now.tm_sec, tv.tv_usec / 1000);
 
     snprintf(output_filename, LOG_MAX_OUTPUT_NAME, "%s-%s.%d",
             filename, now_time, getpid());
@@ -252,17 +275,24 @@ void _log_flush_file(flog_file_t* lf, time_t now)
 static
 void _log_roll_file(flog_file_t* lf)
 {
+    // 1. generate the rolled filename and move the current file to there
     _log_generate_filename(lf->filename, lf->poutput_filename);
-    FILE* pf = _log_open(lf->poutput_filename, lf->filebuf,
+    if (rename(lf->filename, lf->poutput_filename)) {
+        printError("rotate file failed: call rename failed\n");
+        abort();
+    }
+    fclose(lf->pf);
+
+    // 2. open
+    FILE* pf = _log_open(lf->filename, lf->filebuf,
                          LOG_BUFFER_SIZE_PER_FILE);
-    if ( !pf ) {
+    if (!pf) {
         printError("open file failed");
-        return;
+        abort();
     }
 
-    fclose(lf->pf);
     lf->pf = pf;
-    lf->file_size = 0;
+    lf->file_size = _log_filesize(lf);
 }
 
 static inline
@@ -809,8 +839,7 @@ flog_file_t* flog_create(const char* filename)
         }
 
         // init log_file data
-        _log_generate_filename(filename, f->poutput_filename);
-        FILE* pf = _log_open(f->poutput_filename, f->filebuf,
+        FILE* pf = _log_open(filename, f->filebuf,
                              LOG_BUFFER_SIZE_PER_FILE);
         if ( !pf ) {
             printError("open file failed");
@@ -818,8 +847,11 @@ flog_file_t* flog_create(const char* filename)
             pthread_mutex_unlock(&g_log->lock);
             return NULL;
         }
+
         f->pf = pf;
-        f->file_size = 0;
+        // set the file size according to the file's metadata, since we may
+        // reopen it before it be rolled to another file
+        f->file_size = _log_filesize(f);
         f->last_flush_time = time(NULL);
         snprintf(f->filename, LOG_MAX_FILE_NAME, "%s", filename);
         fhash_str_set(g_log->phash, filename, f);
