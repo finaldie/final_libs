@@ -1,3 +1,5 @@
+* 2014-11-06 0.6.4
+   * **flog:** Use the fixed log name, only change the name for the rolling files
 * 2014-10-23 0.6.3
    * **flog:** Add flog_vset_cookie api
 * 2014-10-23 0.6.2
