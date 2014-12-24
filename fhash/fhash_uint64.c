@@ -30,6 +30,10 @@ void   fhash_u64_delete(fhash* phash)
 
 void   fhash_u64_set(fhash* phash, uint64_t key, void* value)
 {
+    if (!value) {
+        return;
+    }
+
     fhash_set(phash, (void*)&key, sizeof(key), &value, sizeof(value));
 }
 

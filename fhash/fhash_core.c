@@ -631,16 +631,11 @@ void* _hash_tbl_next(fhash_iter* iter)
 
     assert(iter);
     _fhash_node* node = NULL;
-    _fhash*  table = iter->phash->current;
-    uint32_t start = iter->index;
+    _fhash* table = iter->phash->current;
 
     // 1.
-    if (!iter->key) {
-        start = 0;
-    }
-
-    for (; start < table->index_size; start++) {
-        _fhash_node_mgr* mgr = &table->node_mgr[start];
+    for (; iter->index < table->index_size; iter->index++) {
+        _fhash_node_mgr* mgr = &table->node_mgr[iter->index];
         node = _hash_nodemgr_next(mgr, iter, NODE_VALID);
         if (node) {
             break;
@@ -649,10 +644,12 @@ void* _hash_tbl_next(fhash_iter* iter)
 
     // 2.
     if (!node) {
-        return NULL;
+        iter->key_sz = 0;
+        iter->value_sz = 0;
+        iter->key = NULL;
+        iter->value = NULL;
     }
 
-    iter->index = start;
     return iter->value;
 }
 

@@ -34,6 +34,10 @@ void   fhash_str_delete(fhash* phash)
 
 void   fhash_str_set(fhash* phash, const char* key, void* value)
 {
+    if (!key || !value) {
+        return;
+    }
+
     fhash_set(phash, key, strlen(key), &value, sizeof(value));
 }
 

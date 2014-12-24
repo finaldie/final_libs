@@ -226,6 +226,7 @@ void test_hash_int()
         char value5[] = "test_value5";
         int key6 = 15;
         char value6[] = "test_value6";
+        int key7 = 16;
 
         fhash_int_set(phash, key, value);
         fhash_int_set(phash, key2, value2);
@@ -233,6 +234,7 @@ void test_hash_int()
         fhash_int_set(phash, key4, value4);
         fhash_int_set(phash, key5, value5);
         fhash_int_set(phash, key6, value6);
+        fhash_int_set(phash, key7, NULL);
 
         fhash_int_iter iter = fhash_int_iter_new(phash);
         char* data = NULL;
@@ -242,6 +244,7 @@ void test_hash_int()
         int v4_exist = 0;
         int v5_exist = 0;
         int v6_exist = 0;
+        int v7_exist = 0;
         int loop_cnt = 0;
 
         while ((data = fhash_int_next(&iter))) {
@@ -283,6 +286,7 @@ void test_hash_int()
         FTU_ASSERT(v4_exist == 1);
         FTU_ASSERT(v5_exist == 1);
         FTU_ASSERT(v6_exist == 1);
+        FTU_ASSERT(v7_exist == 0);
 
         fhash_int_delete(phash);
     }
@@ -435,6 +439,7 @@ void test_hash_uint64()
         char value5[] = "test_value5";
         int key6 = 15;
         char value6[] = "test_value6";
+        int key7 = 16;
 
         fhash_u64_set(phash, key, value);
         fhash_u64_set(phash, key2, value2);
@@ -442,6 +447,7 @@ void test_hash_uint64()
         fhash_u64_set(phash, key4, value4);
         fhash_u64_set(phash, key5, value5);
         fhash_u64_set(phash, key6, value6);
+        fhash_u64_set(phash, key7, NULL);
 
         fhash_u64_iter iter = fhash_u64_iter_new(phash);
         char* data = NULL;
@@ -451,6 +457,7 @@ void test_hash_uint64()
         int v4_exist = 0;
         int v5_exist = 0;
         int v6_exist = 0;
+        int v7_exist = 0;
         int loop_cnt = 0;
 
         while ((data = fhash_u64_next(&iter))) {
@@ -492,6 +499,7 @@ void test_hash_uint64()
         FTU_ASSERT(v4_exist == 1);
         FTU_ASSERT(v5_exist == 1);
         FTU_ASSERT(v6_exist == 1);
+        FTU_ASSERT(v7_exist == 0);
 
         fhash_u64_delete(phash);
     }
@@ -637,6 +645,7 @@ void test_hash_str()
         char key4[] = "test_key4";
         char key5[] = "test_key5";
         char key6[] = "test_key6";
+        char key7[] = "test_key7";
         char value[] = "test_value";
         char value2[] = "test_value2";
         char value3[] = "test_value3";
@@ -650,6 +659,8 @@ void test_hash_str()
         fhash_str_set(phash, key4, value4);
         fhash_str_set(phash, key5, value5);
         fhash_str_set(phash, key6, value6);
+        fhash_str_set(phash, key7, NULL);
+        fhash_str_set(phash, NULL, value6);
 
         fhash_str_iter iter = fhash_str_iter_new(phash);
         char* data = NULL;
@@ -659,6 +670,8 @@ void test_hash_str()
         int v4_exist = 0;
         int v5_exist = 0;
         int v6_exist = 0;
+        int v7_exist = 0;
+        int v8_exist = 0;
         int loop_cnt = 0;
 
         while ((data = fhash_str_next(&iter))) {
@@ -700,6 +713,8 @@ void test_hash_str()
         FTU_ASSERT(v4_exist == 1);
         FTU_ASSERT(v5_exist == 1);
         FTU_ASSERT(v6_exist == 1);
+        FTU_ASSERT(v7_exist == 0);
+        FTU_ASSERT(v8_exist == 0);
 
         fhash_str_delete(phash);
     }

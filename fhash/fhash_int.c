@@ -32,6 +32,10 @@ void fhash_int_delete(fhash* phash)
 
 void fhash_int_set(fhash* phash, int key, void* value)
 {
+    if (!value) {
+        return;
+    }
+
     fhash_set(phash, (void*)&key, sizeof(key), &value, sizeof(value));
 }
 
