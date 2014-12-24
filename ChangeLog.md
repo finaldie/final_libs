@@ -1,3 +1,5 @@
+* 2014-12-24 0.6.6
+   * **fhash:** fhash_[int/u64/str] should not accept the NULL parameter
 * 2014-11-07 0.6.5
    * **flog:** Add millisecond in timestamp
    * **flog:** Remove useless padding from internel protocol
