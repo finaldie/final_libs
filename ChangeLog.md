@@ -1,3 +1,5 @@
+* 2015-01-10 0.7.1
+   * Remove `fmempool`, which has already been migrate to `skull-malloc` repo
 * 2014-12-24 0.6.6
    * **fhash:** fhash_[int/u64/str] should not accept the NULL parameter
 * 2014-11-07 0.6.5
