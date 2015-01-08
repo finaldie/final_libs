@@ -77,8 +77,7 @@ LIB_FOLDERS = \
   fev \
   ftu \
   fcache \
-  fco \
-  fpcap_conv
+  fco
 
 TEST_FOLDERS = tests
 
