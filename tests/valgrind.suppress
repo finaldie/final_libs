@@ -272,6 +272,18 @@
 }
 
 {
+   <unknown issue, for flog>
+   Memcheck:Leak
+   fun:calloc
+   fun:_dl_allocate_tls
+   fun:pthread_create@@GLIBC_2.2.5
+   fun:flog_set_mode
+   fun:test_async_log
+   fun:tu_run_cases
+   fun:main
+}
+
+{
     <ubuntu 10.04>
     Memcheck:Leak
     fun:malloc
