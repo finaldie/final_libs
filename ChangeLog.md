@@ -1,3 +1,5 @@
+* 2015-01-10 0.7.3
+   * **flog:** Remove the useless print
 * 2015-01-10 0.7.2
    * Remove `fpcap`, which has already been migrated to `fpcap` repo
 * 2015-01-10 0.7.1
