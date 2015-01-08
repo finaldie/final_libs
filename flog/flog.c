@@ -716,7 +716,6 @@ int _log_process_timeout(void* ud,
 
 static
 void* _log_fetcher(void* arg __attribute__((unused))){
-    printf("log work thread start\n");
     int nums, i;
     struct epoll_event events[1024];
     pthread_detach(pthread_self());
@@ -814,7 +813,6 @@ void _log_init()
     t_log->flush_interval = LOG_DEFAULT_FLUSH_INTERVAL;
 
     g_log = t_log;
-    printf("log system init complete\n");
 }
 
 static inline
