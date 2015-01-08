@@ -56,14 +56,11 @@ $(TARGET): $(OBJS)
 check: prepare
 	./$(TARGET)
 
-valgrind-gensup: prepare
-	valgrind --tool=memcheck --leak-check=full --suppressions=./valgrind.suppress --gen-suppressions=all ./$(TARGET)
-
 valgrind-nosup: prepare
-	valgrind --tool=memcheck --leak-check=full ./$(TARGET)
+	valgrind --tool=memcheck --leak-check=full --error-exitcode=1 ./$(TARGET)
 
 valgrind-check: prepare
-	valgrind --tool=memcheck --leak-check=full --suppressions=./valgrind.suppress --error-exitcode=1 ./$(TARGET)
+	valgrind --tool=memcheck --leak-check=full --suppressions=./valgrind.suppress --gen-suppressions=all --error-exitcode=1 ./$(TARGET)
 
 clean:
 	rm -f $(OBJS) $(TARGET)
