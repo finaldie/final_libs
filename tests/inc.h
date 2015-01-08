@@ -24,9 +24,6 @@ void    test_hash_int();
 void    test_hash_uint64();
 void    test_hash_str();
 
-void    test_mem();
-void    test_realloc();
-
 void    test_log();
 void    test_async_log();
 void    test_log_cookie();

@@ -72,7 +72,6 @@ LIB_FOLDERS = \
   flog \
   fconf \
   ftimer \
-  fmempool \
   fthread_pool \
   fnet \
   fev \

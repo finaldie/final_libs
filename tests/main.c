@@ -17,8 +17,6 @@ void register_module(){
     tu_register_module(test_conf,         "for testing fconf");
     tu_register_module(test_list,         "for testing flist");
     tu_register_module(test_list_sort,    "for testing flist_sort method");
-    tu_register_module(test_mem,          "for testing mempool alloc and free");
-    tu_register_module(test_realloc,      "for testing mempool realloc");
     tu_register_module(test_log,          "for testing log system");
     tu_register_module(test_async_log,    "for testing async log system");
     tu_register_module(test_log_cookie,   "for testing set log cookie");

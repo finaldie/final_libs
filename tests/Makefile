@@ -6,7 +6,6 @@ INC := -I$(INSTALL_PATH)/$(INCLUDE_PATH) -I../
 LL := -L$(INSTALL_PATH)/$(LIBS_PATH) -Wl,-rpath,$(INSTALL_PATH)/$(LIBS_PATH)
 
 LIBS = \
- -lfmempool \
  -lpthread \
  -lflock \
  -lflog \
@@ -24,7 +23,6 @@ LIBS = \
 
 SRCS = main.c \
  t_hash.c \
- t_mem.c \
  t_log.c \
  t_mbuf.c \
  t_timer.c \
