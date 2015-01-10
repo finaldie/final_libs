@@ -11,12 +11,12 @@ Lib Name | Description |
 ---------|-------------|
 flist    | Lockfree list in one producer one consumer |
 fhash    | Hash table |
-flock    | Easy to use condition |
+flock    | A wraper, which safe and easy to use pthread condition |
 flog     | A High Performance Log System: Thread-Caching Log System |
 fmbuf    | A light-weight buffer |
 fconf    | A simple format config lib |
 ftimer   | Easy to create system timer |
-fmempool | Thread cache memory pool |
+~~fmempool~~ | Thread cache memory pool. **NOTES:** Migrated to [skull-malloc][2] |
 fthread_pool | Simple thread pool, which easy to use |
 fnet     | Wrap the system api, easy to use the network api |
 fev      | Event framework, including buffer, network, timer service |
@@ -72,3 +72,4 @@ make BIT=32
 See [change log](ChangeLog.md)
 
 [1]: https://github.com/finaldie/final_libs/wiki
+[2]: https://github.com/finaldie/skull-malloc
