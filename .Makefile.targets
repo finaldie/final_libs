@@ -28,6 +28,16 @@ $(FHASH_DYNAMIC_LIB): $(FHASH_OBJS)
 clean-fhash:
 	rm -f $(FHASH_STATIC_LIB) $(FHASH_DYNAMIC_LIB) $(FHASH_OBJS)
 
+# fmbuf
+$(FMBUF_STATIS_LIB): $(FMBUF_OBJS)
+	ar -rcs $@ $^
+
+$(FMBUF_DYNAMIC_LIB): $(FMBUF_OBJS)
+	$(FL_LD) -o $@ $^ $(FMBUF_DEP_LIBS)
+
+clean-mbuf:
+	rm -f $(FMBUF_STATIS_LIB) $(FMBUF_DYNAMIC_LIB) $(FMBUF_OBJS)
+
 # all objs
 %.o: %.c
 	$(FL_CC) -c $< -o $@

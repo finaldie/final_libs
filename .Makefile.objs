@@ -12,3 +12,6 @@ FHASH_OBJS = \
     fhash/fhash_int.o \
     fhash/fhash_str.o \
     fhash/fhash_uint64.o
+
+FMBUF_OBJS = \
+    fmbuf/fmbuf.o
