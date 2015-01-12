@@ -3,4 +3,6 @@ FLIST_OBJS = \
     flist/flist.o \
     flist/fdlist.o
 
-
+FCACHE_OBJS = \
+    fcache/fcache.o \
+    fcache/fcache_list.o

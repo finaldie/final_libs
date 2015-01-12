@@ -22,6 +22,8 @@
 extern "C" {
 #endif
 
+#include <stddef.h>
+
 typedef struct _fcache fcache_t;
 typedef void (*cache_obj_free)(void* data);
 

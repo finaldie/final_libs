@@ -12,7 +12,6 @@
 #define FN_OWNER(node)         (FO_OWNER(FN_HEAD(node)))
 #define FN_DATASIZE(node)      (FO_DATASIZE(FN_HEAD(node)))
 
-#pragma pack(4)
 struct fcache_orig_node_t;
 typedef struct fcache_priv_t {
     struct fcache_orig_node_t* prev;
@@ -23,7 +22,7 @@ typedef struct fcache_priv_t {
 
 struct _fcache_node_t {
     void* data;
-    char  key[0];
+    char  key[sizeof(void*)];
 };
 
 typedef struct fcache_orig_node_t {
@@ -40,17 +39,10 @@ struct _fcache_list_mgr {
     size_t size;
     size_t total_data_size;
 };
-#pragma pack()
 
 fc_list* fcache_list_create()
 {
-    fc_list* list = malloc(sizeof(fc_list));
-    if ( !list ) return NULL;
-
-    list->head = list->tail = NULL;
-    list->size = 0;
-    list->total_data_size = 0;
-
+    fc_list* list = calloc(1, sizeof(fc_list));
     return list;
 }
 
@@ -70,10 +62,9 @@ int      fcache_list_empty(fc_list* plist)
 
 fcache_node_t* fcache_list_make_node(size_t key_size)
 {
-    fc_orig_node_t* orig_node = malloc(sizeof(fc_orig_node_t) + key_size + 1);
-    if ( !orig_node ) return NULL;
+    size_t fkey_sz = key_size > sizeof(void*) ? key_size - sizeof(void*) : 0;
+    fc_orig_node_t* orig_node = calloc(1, sizeof(fc_orig_node_t) + fkey_sz + 1);
 
-    memset(orig_node, 0, sizeof(fc_orig_node_t) + key_size + 1);
     return &orig_node->node;
 }
 

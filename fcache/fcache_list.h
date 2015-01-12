@@ -18,6 +18,8 @@
 #ifndef _FCACHE_LIST_H_
 #define _FCACHE_LIST_H_
 
+#include <stddef.h>
+
 typedef struct _fcache_node_t   fcache_node_t;
 typedef struct _fcache_list_mgr fc_list;
 

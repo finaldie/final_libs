@@ -1,14 +1,21 @@
 # flist
 FLIST_DEP_LIBS =
-FLIST_STATIC_LIB = lib/libflist.a
-FLIST_DYNAMIC_LIB = lib/libflist.so
+FLIST_STATIC_LIB = flist/libflist.a
+FLIST_DYNAMIC_LIB = flist/libflist.so
+
+# fcache
+FCACHE_DEP_LIBS =
+FCACHE_STATIC_LIB = fcache/libfcache.a
+FCACHE_DYNAMIC_LIB = fcache/libfcache.so
 
 ################################################################################
 STATIC_LIBS = \
-    $(FLIST_STATIC_LIB)
+    $(FLIST_STATIC_LIB) \
+    $(FCACHE_STATIC_LIB)
 
 DYNAMIC_LIBS = \
-    $(FLIST_DYNAMIC_LIB)
+    $(FLIST_DYNAMIC_LIB) \
+    $(FCACHE_DYNAMIC_LIB)
 
 ifeq ($(SHARED), true)
     TARGET_LIBS = $(DYNAMIC_LIBS)

@@ -2,10 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "common/compiler.h"
-#include "fhash/fhash.h"
+#include "flibs/compiler.h"
+#include "flibs/fhash.h"
 #include "fcache_list.h"
-#include "fcache.h"
+#include "flibs/fcache.h"
 
 #define FCACHE_BALANCE_INTERVAL 2000
 
@@ -17,18 +17,21 @@ struct _fcache {
     size_t   max_size;
     size_t   op_count;
     int      enable_balance;
+
+#if __WORDSIZE == 64
+    int      padding;
+#endif
 };
 
 fcache_t* fcache_create(size_t max_size, cache_obj_free obj_free)
 {
-    if ( !max_size ) return NULL;
+    if (!max_size) return NULL;
 
     fcache_t* pcache = malloc(sizeof(fcache_t));
     if ( !pcache ) return NULL;
     memset(pcache, 0, sizeof(fcache_t));
 
-    pcache->phash_node_index = fhash_str_create(max_size * 1.5,
-                                                FHASH_MASK_AUTO_REHASH);
+    pcache->phash_node_index = fhash_str_create(0, FHASH_MASK_AUTO_REHASH);
 
     pcache->pactive_list = fcache_list_create();
     if ( !pcache->pactive_list ) {

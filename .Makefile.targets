@@ -1,3 +1,4 @@
+# flist
 $(FLIST_STATIC_LIB): $(FLIST_OBJS)
 	ar -rcs $@ $^
 
@@ -7,5 +8,16 @@ $(FLIST_DYNAMIC_LIB): $(FLIST_OBJS)
 clean-flist:
 	rm -f $(FLIST_STATIC_LIB) $(FLIST_DYNAMIC_LIB) $(FLIST_OBJS)
 
+# fcache
+$(FCACHE_STATIC_LIB): $(FCACHE_OBJS)
+	ar -rcs $@ $^
+
+$(FCACHE_DYNAMIC_LIB): $(FCACHE_OBJS)
+	$(FL_LD) -o $@ $^ $(FCACHE_DEP_LIBS)
+
+clean-fcache:
+	rm -f $(FCACHE_STATIC_LIB) $(FCACHE_DYNAMIC_LIB) $(FCACHE_OBJS)
+
+# all objs
 %.o: %.c
 	$(FL_CC) -c $< -o $@
