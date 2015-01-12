@@ -4,7 +4,7 @@ FLIST_STATIC_LIB = flist/libflist.a
 FLIST_DYNAMIC_LIB = flist/libflist.so
 
 # fcache
-FCACHE_DEP_LIBS =
+FCACHE_DEP_LIBS = -lfhash
 FCACHE_STATIC_LIB = fcache/libfcache.a
 FCACHE_DYNAMIC_LIB = fcache/libfcache.so
 
@@ -39,7 +39,7 @@ FLOCK_STATIC_LIB = flock/libflock.a
 FLOCK_DYNAMIC_LIB = flock/libflock.so
 
 # fthread_pool
-FTHPOOL_DEP_LIBS = -pthread
+FTHPOOL_DEP_LIBS = -pthread -lfmbuf -lfhash -lflock
 FTHPOOL_STATIC_LIB = fthread_pool/libfthread_pool.a
 FTHPOOL_DYNAMIC_LIB = fthread_pool/libfthread_pool.so
 
@@ -47,6 +47,11 @@ FTHPOOL_DYNAMIC_LIB = fthread_pool/libfthread_pool.so
 FCONF_DEP_LIBS =
 FCONF_STATIC_LIB = fconf/libfconf.a
 FCONF_DYNAMIC_LIB = fconf/libfconf.so
+
+# flog
+FLOG_DEP_LIBS = -pthread -lfmbuf -lfhash
+FLOG_STATIC_LIB = flog/libflog.a
+FLOG_DYNAMIC_LIB = flog/libflog.so
 
 ################################################################################
 STATIC_LIBS = \
@@ -59,7 +64,8 @@ STATIC_LIBS = \
     $(FTIME_STATIC_LIB) \
     $(FLOCK_STATIC_LIB) \
     $(FTHPOOL_STATIC_LIB) \
-    $(FCONF_STATIC_LIB)
+    $(FCONF_STATIC_LIB) \
+    $(FLOG_STATIC_LIB)
 
 DYNAMIC_LIBS = \
     $(FLIST_DYNAMIC_LIB) \
@@ -71,7 +77,8 @@ DYNAMIC_LIBS = \
     $(FTIME_DYNAMIC_LIB) \
     $(FLOCK_DYNAMIC_LIB) \
     $(FTHPOOL_DYNAMIC_LIB) \
-    $(FCONF_DYNAMIC_LIB)
+    $(FCONF_DYNAMIC_LIB) \
+    $(FLOG_DYNAMIC_LIB)
 
 ifeq ($(SHARED), true)
     TARGET_LIBS = $(DYNAMIC_LIBS)

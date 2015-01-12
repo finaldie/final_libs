@@ -1,10 +1,9 @@
 #include <stdlib.h>
-#include "flog_level.h"
+#include "flibs/flog_level.h"
 
 // define  global log level, set it to INFO level by default
 static int flog_level = FLOG_LEVEL_INFO;
 
-inline
 int flog_set_level(int level)
 {
     if( level < FLOG_LEVEL_TRACE || level > FLOG_LEVEL_FATAL ) {
@@ -15,7 +14,6 @@ int flog_set_level(int level)
     return 0;
 }
 
-inline
 int    flog_get_level()
 {
     return flog_level;

@@ -6,7 +6,6 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <errno.h>
-#include <time.h>
 #include <fcntl.h>
 #include <sys/eventfd.h>
 #include <sys/epoll.h>
@@ -15,10 +14,10 @@
 #include <sys/time.h>
 #include <assert.h>
 
-#include "common/compiler.h"
-#include "fmbuf/fmbuf.h"
-#include "fhash/fhash.h"
-#include "flog.h"
+#include "flibs/compiler.h"
+#include "flibs/fmbuf.h"
+#include "flibs/fhash.h"
+#include "flibs/flog.h"
 
 // BASE DEFINE
 #define LOG_OPEN_PERMISSION           0644
@@ -105,13 +104,9 @@ typedef struct _log_t {
     int             epfd;        // epoll fd
     size_t          roll_size;
     size_t          buffer_size; // buffer size per user thread
-    FLOG_MODE       mode;        // global log flag
+    time_t          flush_interval;
+    flog_mode_t     mode;        // global log flag
     int             is_background_thread_started;
-    int             flush_interval;
-
-#if __WORDSIZE == 64
-    int             _padding;
-#endif
 } f_log;
 
 // define global log struct
@@ -132,8 +127,8 @@ static ptofunc g_pto_tbl[] = {
 static void _log_clear_cookie(thread_data_t* th_data);
 
 #define printError(msg) \
-    fprintf(stderr, "FATAL! Log system:[%s:%s(%d)] - errno=%d errmsg=%s:%s\n",\
-            __FILE__, __func__, __LINE__, errno, strerror(errno), msg);
+    fprintf(stderr, "FATAL! Log system:[%s:%s(%d)] - errno=%d errmsg: %s\n",\
+            __FILE__, __func__, __LINE__, errno, msg);
 
 /******************************************************************************
  * Internal functions
@@ -157,7 +152,7 @@ void _destroy_thread_data(thread_data_t* th_data)
 }
 
 static inline
-void _log_event_notice(FLOG_EVENT event)
+void _log_event_notice(flog_event_t event)
 {
     if ( g_log->event_cb ) {
         g_log->event_cb(event);
@@ -207,7 +202,7 @@ size_t _log_filesize(flog_file_t* f)
         abort();
     }
 
-    return st.st_size;
+    return (size_t)st.st_size;
 }
 
 static inline
@@ -217,7 +212,7 @@ int _lopen(const char* filename)
 }
 
 static inline
-FILE* _log_open(const char* filename, char* buf, int size)
+FILE* _log_open(const char* filename, char* buf, size_t size)
 {
     int fd = _lopen(filename);
     if (fd < 0) {
@@ -432,7 +427,7 @@ const char* _log_get_header(size_t* header_len/*out*/)
     memcpy(th_data->header, th_data->last_time_str, LOG_TIME_LEN);
     memcpy(th_data->header + LOG_TIME_LEN, tm_ms, LOG_TIME_MS_LEN);
 
-    *header_len = LOG_TIME_TOTAL_LEN + th_data->cookie_len;
+    *header_len = (size_t)(LOG_TIME_TOTAL_LEN + th_data->cookie_len);
     return th_data->header;
 }
 
@@ -505,7 +500,7 @@ size_t _log_async_write(flog_file_t* f,
 }
 
 static inline
-int _log_fill_async_msg(flog_file_t* f, thread_data_t* th_data, char* buff,
+size_t _log_fill_async_msg(flog_file_t* f, thread_data_t* th_data, char* buff,
                         const char* header, size_t header_len, const char* fmt,
                         va_list ap)
 {
@@ -518,7 +513,7 @@ int _log_fill_async_msg(flog_file_t* f, thread_data_t* th_data, char* buff,
     tbuf += sizeof(log_fetch_msg_head_t);
     memcpy(tbuf, header, header_len);
 
-    size_t copy_len = 0;
+    int copy_len = 0;
     copy_len = _log_snprintf(tbuf + header_len, LOG_MAX_LEN_PER_MSG + 1,
                              fmt, ap);
 
@@ -526,11 +521,12 @@ int _log_fill_async_msg(flog_file_t* f, thread_data_t* th_data, char* buff,
     if ( copy_len > LOG_MAX_LEN_PER_MSG ) {
         tbuf[header_len + LOG_MAX_LEN_PER_MSG] = '\n';
     } else {
-        tbuf[header_len + copy_len] = '\n';
+        tbuf[header_len + (size_t)copy_len] = '\n';
     }
 
     // after all, fill the size with real write number
-    size_t msg_len = header_len + copy_len + 1;
+    // notes: the msg_len must be < 65535(unsigned short)
+    size_t msg_len = header_len + (size_t)copy_len + 1;
     msg_header->msgh.len = (unsigned short)msg_len;
 
     return sizeof(log_fetch_msg_head_t) + msg_len;
@@ -562,14 +558,14 @@ void _log_async_write_f(flog_file_t* f,
     if ( tail_free_size >= max_msg_len ) {
         // fill log message in mbuf directly
         char* buf = fmbuf_tail(th_data->plog_buf);
-        int buff_size = _log_fill_async_msg(f, th_data, buf, header, header_len,
-                                            fmt, ap);
+        size_t buff_size = _log_fill_async_msg(f, th_data, buf, header,
+                                               header_len, fmt, ap);
         fmbuf_tail_seek(th_data->plog_buf, buff_size, FMBUF_SEEK_RIGHT);
     } else {
         // fill log message in tmp buffer
         char* buf = th_data->tmp_buf;
-        int buff_size = _log_fill_async_msg(f, th_data, buf, header, header_len,
-                                            fmt, ap);
+        size_t buff_size = _log_fill_async_msg(f, th_data, buf, header,
+                                               header_len, fmt, ap);
         fmbuf_push(th_data->plog_buf, buf, buff_size);
     }
 
@@ -646,8 +642,12 @@ void _log_sync_write_f(flog_file_t* f,
 {
     char log[LOG_MAX_LEN_PER_MSG + 1];
     int len = _log_snprintf(log, LOG_MAX_LEN_PER_MSG + 1, fmt, ap);
+    if (len < 0) {
+        printError("sync write failed, due to _log_snprint return -1\n");
+        abort();
+    }
 
-    _log_sync_write_to_disk(f, header, header_len, log, len);
+    _log_sync_write_to_disk(f, header, header_len, log, (size_t)len);
 }
 
 static inline
@@ -685,7 +685,7 @@ void _log_pto_thread_quit(thread_data_t* th_data)
 }
 
 static inline
-void _log_async_process(thread_data_t* th_data, unsigned int process_num)
+void _log_async_process(thread_data_t* th_data, uint64_t process_num)
 {
     unsigned int i;
     for (i=0; i<process_num; i++) {
@@ -732,7 +732,7 @@ LOG_LOOP:
         pthread_mutex_unlock(&g_log->lock);
     }
 
-    for(i=0; i<nums; i++) {
+    for (i = 0; i < nums; i++) {
         struct epoll_event* ee = &events[i];
         thread_data_t* th_data = ee->data.ptr;
         uint64_t process_num = 0;
@@ -900,7 +900,7 @@ void flog_destroy(flog_file_t* lf)
  * 1. synchronization writing mode
  * 2. asynchronization writing mode
  *
- * @ When we use synchronization mode, it will call fwrite directly without 
+ * @ When we use synchronization mode, it will call fwrite directly without
  * buffer-queue
  * @ When we use asynchronization mode, it will push log message into thread
  * buffer, and notice the fetcher thread to fetch it
@@ -968,13 +968,13 @@ void flog_vwritef(flog_file_t* f, const char* fmt, va_list ap)
     }
 }
 
-FLOG_MODE flog_set_mode(FLOG_MODE mode)
+flog_mode_t flog_set_mode(flog_mode_t mode)
 {
     // init log system global data
     pthread_once(&init_create, _log_init);
     if ( !g_log ) return FLOG_SYNC_MODE;
 
-    FLOG_MODE last_mode;
+    flog_mode_t last_mode;
     pthread_mutex_lock(&g_log->lock);
     {
         if ( mode == g_log->mode ) {
@@ -1014,7 +1014,7 @@ void flog_set_roll_size(size_t size)
 /**
  * If sec == 0, it will flush it immediately
  */
-void flog_set_flush_interval(size_t sec)
+void flog_set_flush_interval(time_t sec)
 {
     // init log system global data
     pthread_once(&init_create, _log_init);

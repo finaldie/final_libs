@@ -1,6 +1,4 @@
 /******************************************************************************
- * Base info: Created by Yuzhang Hu
- * modify: 06/20/2012
  * Description: Asynchronous logging system
  *   The base idea of this system is using the thread cache to buffer log
  *   messages, and there is one background thread to fetch log messages.
@@ -17,9 +15,10 @@ extern "C" {
 
 #include <stddef.h>
 #include <stdarg.h>
+#include <time.h>
 
-#include "flog_level.h"
-#include "flog_helpers.h"
+#include "flibs/flog_level.h"
+#include "flibs/flog_helpers.h"
 
 /**
  * @brief flog working mode: sync or async
@@ -27,7 +26,7 @@ extern "C" {
 typedef enum {
     FLOG_SYNC_MODE = 0,
     FLOG_ASYNC_MODE
-} FLOG_MODE;
+} flog_mode_t;
 
 /**
  * @brief flog event types
@@ -42,12 +41,12 @@ typedef enum {
 
     // normal notice metrics
     FLOG_EVENT_USER_BUFFER_RELEASED,    // user logger thread quit gracefully
-} FLOG_EVENT;
+} flog_event_t;
 
 /**
  * @brief flog notification callback, handle exceptions here
  */
-typedef void (*flog_event_func)(FLOG_EVENT);
+typedef void (*flog_event_func)(flog_event_t);
 
 /**
  * @brief flog handler
@@ -142,7 +141,7 @@ void flog_clear_cookie();
  *
  *  @return         mode before setting
  */
-FLOG_MODE flog_set_mode(FLOG_MODE mode);
+flog_mode_t flog_set_mode(flog_mode_t mode);
 
 /**
  *  @brief Set file roll size, when greater than the given size, log system
@@ -161,7 +160,7 @@ void flog_set_roll_size(size_t size);
  *
  *  @return         void
  */
-void flog_set_flush_interval(size_t sec);
+void flog_set_flush_interval(time_t sec);
 
 /**
  *  @brief Set buffer size for per user thread, should set before async writing
@@ -195,3 +194,4 @@ void flog_register_event_callback(flog_event_func pfunc);
 #endif
 
 #endif
+

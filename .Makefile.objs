@@ -34,3 +34,7 @@ FTHPOOL_OBJS = \
 FCONF_OBJS = \
     fconf/fconf_core.o \
     fconf/fconf.o
+
+FLOG_OBJS = \
+    flog/flog.o \
+    flog/flog_level.o

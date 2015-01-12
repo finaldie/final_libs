@@ -1,5 +1,6 @@
 debug ?= false
 prefix ?= /usr/local
+topdir = $(shell pwd)
 
 # compiling flags
 STD = -std=c99
@@ -9,8 +10,6 @@ EXTRA += -Wno-unused-function -Wfloat-equal -Winline -Wdisabled-optimization
 EXTRA += -Wconversion
 OTHER = -pipe -g -ggdb3
 CC_SHARED = -fPIC
-LD_SHARED = -shared
-LDFLAGS +=
 MACRO = -D_POSIX_C_SOURCE=200809L -D_BSD_SOURCE
 INC = -I./include
 
@@ -23,9 +22,25 @@ MACRO += -O0 -finstrument-functions
 endif
 
 # linking flags
-DEPS_LDFLAGS = -Wl,-rpath,$(prefix)/lib
+LD_SHARED = -shared
+
+DEP_LDFLAGS = \
+    -Wl,-rpath,$(prefix)/lib \
+    -Wl,-rpath,$(topdir)/lib \
+    -Lflist \
+    -Lfhash \
+    -Lfcache \
+    -Lfmbuf \
+    -Lflock \
+    -Lftime \
+    -Lfnet \
+    -Lfconf \
+    -Lfthread_pool \
+    -Lflog \
+    -Lfev
+
 FL_CFLAGS = $(CFLAGS) $(STD) $(WARN) $(EXTRA) $(MACRO) $(OPT) $(OTHER) $(CC_SHARED) $(INC)
-FL_LDFLAGS = $(LDFLAGS) $(OPT) $(SHARE) $(OTHER) $(LD_SHARED) $(DEPS_LDFLAGS)
+FL_LDFLAGS = $(LDFLAGS) $(OPT) $(SHARE) $(OTHER) $(LD_SHARED) $(DEP_LDFLAGS)
 
 # CC and LD
 FL_CC = $(CC) $(FL_CFLAGS)
@@ -40,7 +55,7 @@ BIT ?= $(PLAT_BIT)
 ifeq ($(PLAT_BIT), 64)
 
 ifeq ($(BIT), 32)
-	EXT_FLAGS += -m32
+	OTHER += -m32
 	BUILD_BIT = 32
 else
 	BUILD_BIT = 64

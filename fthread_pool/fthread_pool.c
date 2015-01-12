@@ -61,7 +61,7 @@ L:
             case TH_RELEASE:
                 return NULL;
         }
-    }while(1);
+    } while (1);
 
     goto L;
     return NULL;
@@ -72,7 +72,7 @@ void    fthpool_init(int num)
     if ( g_th_pool ) return;
     if ( num <= 0 ) return;
 
-    g_th_pool = fhash_u64_create(TH_POOL_HASH_SIZE, FHASH_MASK_AUTO_REHASH);
+    g_th_pool = fhash_int_create(TH_POOL_HASH_SIZE, FHASH_MASK_AUTO_REHASH);
     pth_pool = (thread_data**)malloc(sizeof(thread_data*) * (size_t)num);
 
     max_num = num;
