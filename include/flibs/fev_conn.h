@@ -1,28 +1,13 @@
-/*
- * =====================================================================================
- *
- *       Filename:  fconn.h
- *
- *    Description:  
- *
- *        Version:  1.0
- *        Created:  11/18/2011 17:39:15
- *       Revision:  none
- *       Compiler:  gcc
- *
- *         Author:  yuzhang hu(finaldie)
- *
- * =====================================================================================
- */
-#ifndef _FEV_CONN_H_
-#define _FEV_CONN_H_
+#ifndef FEV_CONN_H
+#define FEV_CONN_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #include <stdint.h>
-#include "fev.h"
+#include <netinet/in.h>
+#include "flibs/fev.h"
 
 typedef union conn_arg_t {
     int      u32;
@@ -43,7 +28,7 @@ typedef void (*fev_conn_cb)(int fd, conn_arg_t arg);
 // return -1: connect error, there is no need to wait for callback, it won't be called
 int    fev_conn(fev_state*,
             const char* ip,
-            int port,
+            in_port_t port,
             int timeout,
             fev_conn_cb,
             conn_arg_t);

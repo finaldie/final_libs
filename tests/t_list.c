@@ -16,8 +16,8 @@
  * =============================================================================
  */
 
-#include "ftu/ftu_inc.h"
-#include "flist/flist.h"
+#include "flibs/ftu_inc.h"
+#include "flibs/flist.h"
 #include "inc.h"
 
 typedef struct {

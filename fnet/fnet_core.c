@@ -116,7 +116,7 @@ int     fnet_set_send_timeout(int fd, int timeout)
     return setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &timeo, len);
 }
 
-int     fnet_create_listen(const char* ip, int port, int max_link, int isblock)
+int     fnet_listen(const char* ip, in_port_t port, int max_link, int isblock)
 {
     int listen_fd;
     struct sockaddr_in addr;
@@ -242,7 +242,7 @@ unsigned int fnet_get_highdata(unsigned int data)
 int     fnet_accept(int listen_fd)
 {
     struct sockaddr addr;
-    socklen_t addrlen = sizeof(struct sockaddr_in); 
+    socklen_t addrlen = sizeof(struct sockaddr_in);
     memset(&addr, 0, addrlen);
 
     int sock_fd = -1;
@@ -266,7 +266,7 @@ int     fnet_accept(int listen_fd)
 
 // Sync method for connect
 // note: Whether or not set block type after connect sucess
-int     fnet_conn(const char* ip, int port, int isblock)
+int     fnet_conn(const char* ip, in_port_t port, int isblock)
 {
     int sockfd;
     struct sockaddr_in server_addr;
@@ -296,7 +296,7 @@ int     fnet_conn(const char* ip, int port, int isblock)
 // 0: sucess, you can use outfd
 // -1: error
 // 1: connect has in process
-int     fnet_conn_async(const char* ip, int port, int* outfd)
+int     fnet_conn_async(const char* ip, in_port_t port, int* outfd)
 {
     int sockfd;
     struct sockaddr_in server_addr;

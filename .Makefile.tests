@@ -1,0 +1,11 @@
+TEST_TARGET = tests/test
+
+TEST_OBJS = \
+    tests/main.o \
+    tests/t_list.o \
+
+TEST_LIBS = \
+    -pthread \
+    -lrt \
+    -lflist \
+    -lfut

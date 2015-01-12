@@ -8,6 +8,8 @@ $(FLIST_DYNAMIC_LIB): $(FLIST_OBJS)
 clean-flist:
 	rm -f $(FLIST_STATIC_LIB) $(FLIST_DYNAMIC_LIB) $(FLIST_OBJS)
 
+.PHONY: clean-flist
+
 # fcache
 $(FCACHE_STATIC_LIB): $(FCACHE_OBJS)
 	ar -rcs $@ $^
@@ -19,6 +21,8 @@ $(FCACHE_DYNAMIC_LIB): $(FCACHE_OBJS)
 clean-fcache:
 	rm -f $(FCACHE_STATIC_LIB) $(FCACHE_DYNAMIC_LIB) $(FCACHE_OBJS)
 
+.PHONY: clean-fcache
+
 # fhash
 $(FHASH_STATIC_LIB): $(FHASH_OBJS)
 	ar -rcs $@ $^
@@ -29,6 +33,8 @@ $(FHASH_DYNAMIC_LIB): $(FHASH_OBJS)
 clean-fhash:
 	rm -f $(FHASH_STATIC_LIB) $(FHASH_DYNAMIC_LIB) $(FHASH_OBJS)
 
+.PHONY: clean-fhash
+
 # fmbuf
 $(FMBUF_STATIC_LIB): $(FMBUF_OBJS)
 	ar -rcs $@ $^
@@ -36,8 +42,10 @@ $(FMBUF_STATIC_LIB): $(FMBUF_OBJS)
 $(FMBUF_DYNAMIC_LIB): $(FMBUF_OBJS)
 	$(FL_LD) -o $@ $^ $(FMBUF_DEP_LIBS)
 
-clean-mbuf:
+clean-fmbuf:
 	rm -f $(FMBUF_STATIC_LIB) $(FMBUF_DYNAMIC_LIB) $(FMBUF_OBJS)
+
+.PHONY: clean-fmbuf
 
 # fco
 $(FCO_STATIC_LIB): $(FCO_OBJS)
@@ -49,6 +57,8 @@ $(FCO_DYNAMIC_LIB): $(FCO_OBJS)
 clean-fco:
 	rm -f $(FCO_STATIC_LIB) $(FCO_DYNAMIC_LIB) $(FCO_OBJS)
 
+.PHONY: clean-fco
+
 # fnet
 $(FNET_STATIC_LIB): $(FNET_OBJS)
 	ar -rcs $@ $^
@@ -58,6 +68,8 @@ $(FNET_DYNAMIC_LIB): $(FNET_OBJS)
 
 clean-fnet:
 	rm -f $(FNET_STATIC_LIB) $(FNET_DYNAMIC_LIB) $(FNET_OBJS)
+
+.PHONY: clean-fnet
 
 # ftime
 $(FTIME_STATIC_LIB): $(FTIME_OBJS)
@@ -69,6 +81,8 @@ $(FTIME_DYNAMIC_LIB): $(FTIME_OBJS)
 clean-ftime:
 	rm -f $(FTIME_STATIC_LIB) $(FTIME_DYNAMIC_LIB) $(FTIME_OBJS)
 
+.PHONY: clean-ftime
+
 # flock
 $(FLOCK_STATIC_LIB): $(FLOCK_OBJS)
 	ar -rcs $@ $^
@@ -78,6 +92,8 @@ $(FLOCK_DYNAMIC_LIB): $(FLOCK_OBJS)
 
 clean-flock:
 	rm -f $(FLOCK_STATIC_LIB) $(FLOCK_DYNAMIC_LIB) $(FLOCK_OBJS)
+
+.PHONY: clean-flock
 
 # fthread_pool
 $(FTHPOOL_STATIC_LIB): $(FTHPOOL_OBJS)
@@ -92,6 +108,8 @@ $(FTHPOOL_DYNAMIC_LIB): $(FTHPOOL_OBJS)
 clean-fthpool:
 	rm -f $(FTHPOOL_STATIC_LIB) $(FTHPOOL_DYNAMIC_LIB) $(FTHPOOL_OBJS)
 
+.PHONY: clean-fthpool
+
 # fconf
 $(FCONF_STATIC_LIB): $(FCONF_OBJS)
 	ar -rcs $@ $^
@@ -101,6 +119,8 @@ $(FCONF_DYNAMIC_LIB): $(FCONF_OBJS)
 
 clean-fconf:
 	rm -f $(FCONF_STATIC_LIB) $(FCONF_DYNAMIC_LIB) $(FCONF_OBJS)
+
+.PHONY: clean-fconf
 
 # flog
 $(FLOG_STATIC_LIB): $(FLOG_OBJS)
@@ -113,6 +133,8 @@ $(FLOG_DYNAMIC_LIB): $(FLOG_OBJS)
 
 clean-flog:
 	rm -f $(FLOG_STATIC_LIB) $(FLOG_DYNAMIC_LIB) $(FLOG_OBJS)
+
+.PHONY: clean-flog
 
 # fev
 $(FEV_STATIC_LIB): $(FEV_OBJS)
@@ -129,6 +151,8 @@ $(FEV_DYNAMIC_LIB): $(FEV_OBJS)
 clean-fev:
 	rm -f $(FEV_STATIC_LIB) $(FEV_DYNAMIC_LIB) $(FEV_OBJS)
 
+.PHONY: clean-fev
+
 # fut
 $(FUT_STATIC_LIB): $(FUT_OBJS)
 	ar -rcs $@ $^
@@ -139,6 +163,17 @@ $(FUT_DYNAMIC_LIB): $(FUT_OBJS)
 
 clean-fut:
 	rm -f $(FUT_STATIC_LIB) $(FUT_DYNAMIC_LIB) $(FUT_OBJS)
+
+.PHONY: clean-fut
+
+# tests
+$(TEST_TARGET): $(TEST_OBJS)
+	$(FL_BIN_LD) -o $@ $^ $(TEST_LIBS)
+
+clean-tests:
+	rm -rf tests/logs $(TEST_TARGET) $(TEST_OBJS)
+
+.PHONY: clean-tests
 
 # all objs
 %.o: %.c

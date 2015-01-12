@@ -2,7 +2,6 @@ MAKE ?= make
 
 INCLUDE_FOLDER = include/flibs
 LIB_FOLDER = lib
-TEST_FOLDER = tests
 
 BENCHMARK_FOLDER = benchmark
 API_DOC = doc
@@ -23,6 +22,7 @@ endif
 include .Makefile.inc
 include .Makefile.objs
 include .Makefile.libs
+include .Makefile.tests
 
 all: $(TARGET_LIBS)
 	@echo "[Compiling $(BUILD_BIT)bit libraries SHARED=$(SHARED)]";
@@ -35,19 +35,19 @@ all: $(TARGET_LIBS)
 	test -d $(LIB_FOLDER) || mkdir -p $(LIB_FOLDER)
 	cp $(TARGET_LIBS) $(LIB_FOLDER)
 
-check:
-	@echo "======================Running $(BUILD_BIT)bit Unit Test======================";
-	@$(MAKE) $(MAKE_FLAGS) -C $(TEST_FOLDER) EXT_FLAGS="$(EXT_FLAGS)" $(ASSEMBLY_LOCAL) || exit "$$?";
-	@$(MAKE) $(MAKE_FLAGS) -C $(TEST_FOLDER) $(ASSEMBLY_LOCAL) check;
+check: $(TEST_TARGET)
+	@echo "================Running $(BUILD_BIT)bit Unit Test==============";
+	@test -d tests/logs || mkdir tests/logs
+	./$(TEST_TARGET)
 
-valgrind-check:
-	@echo "======================Running $(BUILD_BIT)bit Valgrind Test======================";
-	@$(MAKE) $(MAKE_FLAGS) -C $(TEST_FOLDER) EXT_FLAGS="$(EXT_FLAGS)" $(ASSEMBLY_LOCAL) || exit "$$?";
-	@$(MAKE) $(MAKE_FLAGS) -C $(TEST_FOLDER) valgrind-check;
+valgrind-check: $(TEST_TARGET)
+	@echo "==============Running $(BUILD_BIT)bit Valgrind Test============";
+	@test -d tests/logs || mkdir tests/logs
+	valgrind --tool=memcheck --leak-check=full --suppressions=./tests/valgrind.suppress --gen-suppressions=all --error-exitcode=1 ./$(TEST_TARGET)
 
-clean: clean-flist clean-fcache clean-fhash clean-mbuf clean-fco clean-fnet
+clean: clean-flist clean-fcache clean-fhash clean-fmbuf clean-fco clean-fnet
 clean: clean-ftime clean-flock clean-fthpool clean-fconf clean-flog clean-fev
-clean: clean-fut
+clean: clean-fut clean-tests
 	@rm -rf lib
 	@echo "clean complete"
 

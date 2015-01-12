@@ -1,5 +1,5 @@
-#ifndef _NET_UTIL_H_
-#define    _NET_UTIL_H_
+#ifndef FNET_H
+#define FNET_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -39,13 +39,13 @@ int     fnet_set_linger(int fd);
 int     fnet_set_reuse_addr(int fd);
 int     fnet_set_reuse_port(int fd);
 
-int     fnet_create_listen(const char* ip, int port, int max_link, int isblock);
+int     fnet_listen(const char* ip, in_port_t port, int max_link, int isblock);
 int     fnet_accept(int listen_fd);
 ssize_t fnet_send(int fd, const void* data, size_t len);
 ssize_t fnet_send_safe(int fd, const void* data, size_t len);
 ssize_t fnet_recv(int fd, void* data, size_t len);
-int     fnet_conn(const char* ip, int port, int isblock);
-int     fnet_conn_async(const char* ip, int port, int* outfd);
+int     fnet_conn(const char* ip, in_port_t port, int isblock);
+int     fnet_conn_async(const char* ip, in_port_t port, int* outfd);
 
 char*   fnet_get_localip(int fd);
 char*   fnet_get_peerip(int fd);
@@ -59,3 +59,4 @@ void    fnet_free_host(fhost_info_t* hinfo);
 #endif
 
 #endif
+

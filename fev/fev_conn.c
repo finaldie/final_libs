@@ -86,7 +86,7 @@ void    on_timer(fev_state* fev, void* arg)
 
 int    fev_conn(fev_state* fev,
             const char* ip,
-            int port,
+            in_port_t port,
             int timeout, /* unit ms */
             fev_conn_cb pfunc,
             conn_arg_t arg)

@@ -1,23 +1,6 @@
-/*
- * =============================================================================
- *
- *       Filename:  fev_listen.c
- *
- *    Description:
- *
- *        Version:  1.0
- *        Created:  11/23/2011 16:47:59
- *       Revision:  none
- *       Compiler:  gcc
- *
- *         Author:  finaldie
- *        Company:
- *
- * =============================================================================
- */
-
 #include <stdlib.h>
 #include <unistd.h>
+
 #include "flibs/fnet_core.h"
 #include "flibs/fev_listener.h"
 
@@ -48,14 +31,14 @@ static void on_listen_port(fev_state* fev,
 }
 
 fev_listen_info* fev_add_listener(fev_state* fev,
-        int port, fev_accept_cb accept_cb, void* ud)
+        in_port_t port, fev_accept_cb accept_cb, void* ud)
 {
     if( !fev ) return NULL;
 
     fev_listen_info* listen_info = malloc(sizeof(fev_listen_info));
     if( !listen_info ) return NULL;
 
-    int listen_fd = fnet_create_listen(NULL, port, FEV_LISTEN_QUEUE_NUM, 0);
+    int listen_fd = fnet_listen(NULL, port, FEV_LISTEN_QUEUE_NUM, 0);
     if( listen_fd < 0 ) {
         free(listen_info);
         return NULL;

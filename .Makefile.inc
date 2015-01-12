@@ -37,14 +37,17 @@ DEP_LDFLAGS = \
     -Lfconf \
     -Lfthread_pool \
     -Lflog \
-    -Lfev
+    -Lfev \
+    -Lftu
 
 FL_CFLAGS = $(CFLAGS) $(STD) $(WARN) $(EXTRA) $(MACRO) $(OPT) $(OTHER) $(CC_SHARED) $(INC)
-FL_LDFLAGS = $(LDFLAGS) $(OPT) $(SHARE) $(OTHER) $(LD_SHARED) $(DEP_LDFLAGS)
+FL_LDFLAGS = $(LDFLAGS) $(OPT) $(OTHER) $(LD_SHARED) $(DEP_LDFLAGS)
+FL_BIN_LDFLAGS = $(LDFLAGS) $(OPT) $(OTHER) $(DEP_LDFLAGS)
 
 # CC and LD
 FL_CC = $(CC) $(FL_CFLAGS)
 FL_LD = $(CC) $(FL_LDFLAGS)
+FL_BIN_LD = $(CC) $(FL_BIN_LDFLAGS)
 
 ################################################################################
 # PLAT_BIT is one of the 32 or 64
