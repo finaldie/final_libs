@@ -29,24 +29,34 @@ clean-fhash:
 	rm -f $(FHASH_STATIC_LIB) $(FHASH_DYNAMIC_LIB) $(FHASH_OBJS)
 
 # fmbuf
-$(FMBUF_STATIS_LIB): $(FMBUF_OBJS)
+$(FMBUF_STATIC_LIB): $(FMBUF_OBJS)
 	ar -rcs $@ $^
 
 $(FMBUF_DYNAMIC_LIB): $(FMBUF_OBJS)
 	$(FL_LD) -o $@ $^ $(FMBUF_DEP_LIBS)
 
 clean-mbuf:
-	rm -f $(FMBUF_STATIS_LIB) $(FMBUF_DYNAMIC_LIB) $(FMBUF_OBJS)
+	rm -f $(FMBUF_STATIC_LIB) $(FMBUF_DYNAMIC_LIB) $(FMBUF_OBJS)
 
 # fco
-$(FCO_STATIS_LIB): $(FCO_OBJS)
+$(FCO_STATIC_LIB): $(FCO_OBJS)
 	ar -rcs $@ $^
 
 $(FCO_DYNAMIC_LIB): $(FCO_OBJS)
 	$(FL_LD) -o $@ $^ $(FCO_DEP_LIBS)
 
 clean-fco:
-	rm -f $(FCO_STATIS_LIB) $(FCO_DYNAMIC_LIB) $(FCO_OBJS)
+	rm -f $(FCO_STATIC_LIB) $(FCO_DYNAMIC_LIB) $(FCO_OBJS)
+
+# fnet
+$(FNET_STATIC_LIB): $(FNET_OBJS)
+	ar -rcs $@ $^
+
+$(FNET_DYNAMIC_LIB): $(FNET_OBJS)
+	$(FL_LD) -o $@ $^ $(FNET_DEP_LIBS)
+
+clean-fnet:
+	rm -f $(FNET_STATIC_LIB) $(FNET_DYNAMIC_LIB) $(FNET_OBJS)
 
 # all objs
 %.o: %.c

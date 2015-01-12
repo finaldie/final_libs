@@ -15,28 +15,35 @@ FHASH_DYNAMIC_LIB = fhash/libfhash.so
 
 # fmbuf
 FMBUF_DEP_LIBS =
-FMBUF_STATIS_LIB = fmbuf/libfmbuf.a
+FMBUF_STATIC_LIB = fmbuf/libfmbuf.a
 FMBUF_DYNAMIC_LIB = fmbuf/libfmbuf.so
 
 # fco
 FCO_DEP_LIBS =
-FCO_STATIS_LIB = fco/libfco.a
+FCO_STATIC_LIB = fco/libfco.a
 FCO_DYNAMIC_LIB = fco/libfco.so
+
+# fnet
+FNET_DEP_LIBS =
+FNET_STATIC_LIB = fnet/libfnet.a
+FNET_DYNAMIC_LIB = fnet/libfnet.so
 
 ################################################################################
 STATIC_LIBS = \
     $(FLIST_STATIC_LIB) \
     $(FCACHE_STATIC_LIB) \
     $(FHASH_STATIC_LIB) \
-    $(FMBUF_STATIS_LIB) \
-    $(FCO_STATIS_LIB)
+    $(FMBUF_STATIC_LIB) \
+    $(FCO_STATIC_LIB) \
+    $(FNET_STATIC_LIB)
 
 DYNAMIC_LIBS = \
     $(FLIST_DYNAMIC_LIB) \
     $(FCACHE_DYNAMIC_LIB) \
     $(FHASH_DYNAMIC_LIB) \
     $(FMBUF_DYNAMIC_LIB) \
-    $(FCO_DYNAMIC_LIB)
+    $(FCO_DYNAMIC_LIB) \
+    $(FNET_DYNAMIC_LIB)
 
 ifeq ($(SHARED), true)
     TARGET_LIBS = $(DYNAMIC_LIBS)

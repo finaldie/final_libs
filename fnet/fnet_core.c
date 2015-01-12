@@ -12,9 +12,9 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <errno.h>
-#include <fcntl.h> 
+#include <fcntl.h>
 
-#include "fnet_core.h"
+#include "flibs/fnet_core.h"
 
 #define STATIC_IP_LEN    32    // compatible ipv6
 
@@ -31,13 +31,13 @@ int     fnet_set_keepalive(int fd, int idle_time, int interval, int count)
     int on_keep = 1;
     int s = -1;
     s = setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &on_keep, sizeof(on_keep));
-    if( s ) return s;
+    if (s) return s;
 
-    s = setsockopt(fd, IPPROTO_TCP, TCP_KEEPIDLE, &idle_time , sizeof(idle_time));
-    if( s ) return s;
+    s = setsockopt(fd, IPPROTO_TCP, TCP_KEEPIDLE, &idle_time, sizeof(idle_time));
+    if (s) return s;
 
     s = setsockopt(fd, IPPROTO_TCP, TCP_KEEPINTVL, &interval, sizeof(interval));
-    if( s ) return s;
+    if (s) return s;
 
     return setsockopt(fd, IPPROTO_TCP, TCP_KEEPCNT, &count, sizeof(count));
 }
@@ -47,7 +47,7 @@ inline
 int     fnet_set_linger(int fd)
 {
     struct linger            optval;
-    optval.l_onoff  = 0;  // src 1  
+    optval.l_onoff  = 0;  // src 1
     optval.l_linger = 0;  // src 60
     return setsockopt(fd, SOL_SOCKET, SO_LINGER, &optval, sizeof(struct linger));
 }
@@ -162,23 +162,24 @@ cleanup:
 
 // send data util data all send complete
 // when write return EAGAIN stop
-int     fnet_send_safe(int fd, const void* data, int len)
+ssize_t fnet_send_safe(int fd, const void* data, size_t len)
 {
-    int totalnum = 0;
-    int sendnum = 0;
+    ssize_t totalnum = 0;
+    ssize_t sendnum = 0;
 
-    while ( totalnum < len ) {
-        sendnum = send(fd, (char*)data+totalnum, len-totalnum, MSG_NOSIGNAL);
-        if ( sendnum != -1 ) {
+    while ( (size_t)totalnum < len ) {
+        sendnum = send(fd, (char*)data + totalnum, len - (size_t)totalnum, MSG_NOSIGNAL);
+        if (sendnum != -1) {
             totalnum += sendnum;
-            if( totalnum == len )
+            if ((size_t)totalnum == len) {
                 return totalnum;
+            }
         } else {
-            if( errno == EAGAIN  )
+            if (errno == EAGAIN) {
                 return totalnum;
-            else if ( errno == EINTR || errno == EWOULDBLOCK )
+            } else if (errno == EINTR || errno == EWOULDBLOCK) {
                 continue;
-            else {
+            } else {
                 return -1;    // send error | that receiver has closed
             }
         }
@@ -188,11 +189,10 @@ int     fnet_send_safe(int fd, const void* data, int len)
 }
 
 // return real send num
-inline
-int     fnet_send(int fd, const void* data, int len)
+ssize_t fnet_send(int fd, const void* data, size_t len)
 {
     do {
-        int send_num = send(fd, data, len, MSG_NOSIGNAL);
+        ssize_t send_num = send(fd, data, len, MSG_NOSIGNAL);
 
         if ( send_num >= 0 )
             return send_num;
@@ -208,22 +208,24 @@ int     fnet_send(int fd, const void* data, int len)
 }
 
 // return <=0 the peer has quit, >0 can read
-inline
-int     fnet_recv(int fd, char* data, int len)
+ssize_t fnet_recv(int fd, void* data, size_t len)
 {
     do {
-        int recv_size = recv(fd, data, len, MSG_NOSIGNAL);
+        ssize_t recv_size = recv(fd, data, len, MSG_NOSIGNAL);
 
-        if ( recv_size == -1 ) {
-            if ( errno == EINTR )
+        if (recv_size == -1) {
+            if ( errno == EINTR ) {
                 continue;
-            else if ( errno == EAGAIN )
+            } else if ( errno == EAGAIN ) {
                 return SOCKET_IDLE;
-            return SOCKET_ERROR;
-        } else if ( recv_size == 0 )    // client quit
+            } else {
+                return SOCKET_ERROR;
+            }
+        } else if ( recv_size == 0 ) { // client quit
             return SOCKET_CLOSE;
-        else
+        } else {
             return recv_size;
+        }
     } while (1);
 }
 
@@ -296,11 +298,11 @@ int     fnet_conn(const char* ip, int port, int isblock)
 // 1: connect has in process
 int     fnet_conn_async(const char* ip, int port, int* outfd)
 {
-    int sockfd; 
+    int sockfd;
     struct sockaddr_in server_addr;
 
     if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-        return -1; 
+        return -1;
     }
 
     *outfd = sockfd;
@@ -350,7 +352,7 @@ char*   fnet_get_peerip(int fd)
 
 int     fnet_get_host(const char* host_name, fhost_info_t* hinfo)
 {
-    if ( !host_name ) return 1;
+    if (!host_name) return 1;
     hinfo->alias_count = 0;
     hinfo->ip_count = 0;
     hinfo->official_name = NULL;
@@ -366,19 +368,19 @@ int     fnet_get_host(const char* host_name, fhost_info_t* hinfo)
         return 2;    // failed to get host info
     }
 
-    int host_name_len = strlen(hptr->h_name) + 1;
+    size_t host_name_len = strlen(hptr->h_name) + 1;
     char* h_name = malloc(host_name_len);
     hinfo->official_name = strncpy(h_name, hptr->h_name, host_name_len);
 
     for (pptr = hptr->h_aliases; *pptr != NULL; pptr++)
         hinfo->alias_count++;
 
+    hinfo->alias_names = (char**)malloc(sizeof(char*) * (size_t)hinfo->alias_count);
     int i = 0;
-    hinfo->alias_names = (char**)malloc(sizeof(char*) * hinfo->alias_count);
     for (pptr = hptr->h_aliases;
          *pptr != NULL && i < hinfo->alias_count;
          pptr++, i++) {
-        int len = strlen(*pptr) + 1;
+        size_t len = strlen(*pptr) + 1;
         char* alias_name = malloc(len);
         hinfo->alias_names[i] = strncpy(alias_name, *pptr, len);
     }
@@ -391,7 +393,7 @@ int     fnet_get_host(const char* host_name, fhost_info_t* hinfo)
                 hinfo->ip_count++;
 
             pptr = hptr->h_addr_list;
-            hinfo->ips = (char**)malloc(sizeof(char*) * hinfo->ip_count);
+            hinfo->ips = (char**)malloc(sizeof(char*) * (size_t)hinfo->ip_count);
             for (i=0; *pptr!=NULL && i < hinfo->ip_count; pptr++, i++) {
                 char* ip = malloc(STATIC_IP_LEN);
                 inet_ntop(hptr->h_addrtype, *pptr, ip, STATIC_IP_LEN);

@@ -41,11 +41,11 @@ int     fnet_set_reuse_port(int fd);
 
 int     fnet_create_listen(const char* ip, int port, int max_link, int isblock);
 int     fnet_accept(int listen_fd);
-int     fnet_send(int fd, const void* data, int len);
-int     fnet_recv(int fd, char* data, int len);
+ssize_t fnet_send(int fd, const void* data, size_t len);
+ssize_t fnet_send_safe(int fd, const void* data, size_t len);
+ssize_t fnet_recv(int fd, void* data, size_t len);
 int     fnet_conn(const char* ip, int port, int isblock);
 int     fnet_conn_async(const char* ip, int port, int* outfd);
-int     fnet_send_safe(int fd, const void* data, int len);
 
 char*   fnet_get_localip(int fd);
 char*   fnet_get_peerip(int fd);
