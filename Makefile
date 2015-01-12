@@ -45,6 +45,7 @@ valgrind-check:
 	@$(MAKE) $(MAKE_FLAGS) -C $(TEST_FOLDER) valgrind-check;
 
 clean: clean-flist clean-fcache clean-fhash clean-mbuf clean-fco clean-fnet
+clean: clean-ftime
 	@rm -rf lib
 	@echo "clean complete"
 

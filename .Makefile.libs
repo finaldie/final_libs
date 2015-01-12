@@ -28,6 +28,11 @@ FNET_DEP_LIBS =
 FNET_STATIC_LIB = fnet/libfnet.a
 FNET_DYNAMIC_LIB = fnet/libfnet.so
 
+# ftime
+FTIME_DEP_LIBS = -pthread -lrt
+FTIME_STATIC_LIB = ftime/libftime.a
+FTIME_DYNAMIC_LIB = ftime/libftime.so
+
 ################################################################################
 STATIC_LIBS = \
     $(FLIST_STATIC_LIB) \
@@ -35,7 +40,8 @@ STATIC_LIBS = \
     $(FHASH_STATIC_LIB) \
     $(FMBUF_STATIC_LIB) \
     $(FCO_STATIC_LIB) \
-    $(FNET_STATIC_LIB)
+    $(FNET_STATIC_LIB) \
+    $(FTIME_STATIC_LIB)
 
 DYNAMIC_LIBS = \
     $(FLIST_DYNAMIC_LIB) \
@@ -43,7 +49,8 @@ DYNAMIC_LIBS = \
     $(FHASH_DYNAMIC_LIB) \
     $(FMBUF_DYNAMIC_LIB) \
     $(FCO_DYNAMIC_LIB) \
-    $(FNET_DYNAMIC_LIB)
+    $(FNET_DYNAMIC_LIB) \
+    $(FTIME_DYNAMIC_LIB)
 
 ifeq ($(SHARED), true)
     TARGET_LIBS = $(DYNAMIC_LIBS)

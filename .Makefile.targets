@@ -58,6 +58,16 @@ $(FNET_DYNAMIC_LIB): $(FNET_OBJS)
 clean-fnet:
 	rm -f $(FNET_STATIC_LIB) $(FNET_DYNAMIC_LIB) $(FNET_OBJS)
 
+# ftime
+$(FTIME_STATIC_LIB): $(FTIME_OBJS)
+	ar -rcs $@ $^
+
+$(FTIME_DYNAMIC_LIB): $(FTIME_OBJS)
+	$(FL_LD) -o $@ $^ $(FTIME_DEP_LIBS)
+
+clean-ftime:
+	rm -f $(FTIME_STATIC_LIB) $(FTIME_DYNAMIC_LIB) $(FTIME_OBJS)
+
 # all objs
 %.o: %.c
 	$(FL_CC) -c $< -o $@

@@ -1,14 +1,10 @@
-//base info: create by hyz
-//effect:
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
 #include <sys/time.h>
 
-#include "ftimer.h"
+#include "flibs/ftime.h"
 
 //TODO...
 static pthread_once_t init_catch = PTHREAD_ONCE_INIT;
@@ -26,7 +22,8 @@ struct gt_catch {
      perror(msg); exit(EXIT_FAILURE); \
     } while (0)
 
-void handler(int sig, siginfo_t *si, void *uc __attribute__((unused))){
+void handler(int sig, siginfo_t *si, void *uc __attribute__((unused)))
+{
     if( sig != SIGRTMIN ) return;
 
     f_timer* pt = (f_timer*)si->si_value.sival_ptr;
@@ -35,7 +32,8 @@ void handler(int sig, siginfo_t *si, void *uc __attribute__((unused))){
 }
 
 static
-void ftimer_create_signal(){
+void ftimer_create_signal()
+{
     g_catch.sa.sa_flags = SA_SIGINFO;
     g_catch.sa.sa_sigaction = handler;
 
@@ -45,7 +43,8 @@ void ftimer_create_signal(){
 }
 
 int ftimer_create(f_timer* pt, long long nsecs, long long alter,
-                    ptimer pfunc, void* arg){
+                    ptimer pfunc, void* arg)
+{
     pthread_once(&init_catch, ftimer_create_signal);
 
     pt->sev.sigev_notify = SIGEV_SIGNAL;
@@ -66,18 +65,21 @@ int ftimer_create(f_timer* pt, long long nsecs, long long alter,
 }
 
 inline
-int ftimer_start(f_timer* pt){
+int ftimer_start(f_timer* pt)
+{
     if (timer_settime(pt->timerid, 0, &pt->its, NULL) == -1)
         return 1;
     return 0;
 }
 
 inline
-int ftimer_del(f_timer* pt){
+int ftimer_del(f_timer* pt)
+{
     return timer_delete(pt->timerid);
 }
 
-int ftimerfd_create(){
+int ftimerfd_create()
+{
     int fd = timerfd_create(CLOCKID, TFD_NONBLOCK);
 
     if( fd == -1 )
@@ -85,19 +87,23 @@ int ftimerfd_create(){
     return fd;
 }
 
-int ftimerfd_start(int fd, long long nsesc, long long alter){
+int ftimerfd_start(int fd, long long nsesc, long long alter)
+{
     struct itimerspec new_value;
     new_value.it_value.tv_sec = nsesc / TRANS_STONS;
     new_value.it_value.tv_nsec = nsesc % TRANS_STONS;
     new_value.it_interval.tv_sec = alter / TRANS_STONS;
     new_value.it_interval.tv_nsec = alter % TRANS_STONS;
 
-    if ( timerfd_settime(fd, 0, &new_value, NULL) == -1 )
+    if ( timerfd_settime(fd, 0, &new_value, NULL) == -1 ) {
         return 1;
-    return 0;
+    } else {
+        return 0;
+    }
 }
 
-int ftimerfd_stop(int fd){
+int ftimerfd_stop(int fd)
+{
     struct itimerspec new_value;
     new_value.it_value.tv_sec = 0;
     new_value.it_value.tv_nsec = 0;

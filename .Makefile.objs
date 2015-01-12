@@ -21,3 +21,6 @@ FCO_OBJS = \
 
 FNET_OBJS = \
     fnet/fnet_core.o
+
+FTIME_OBJS = \
+    ftime/ftime.o
