@@ -8,14 +8,21 @@ FCACHE_DEP_LIBS =
 FCACHE_STATIC_LIB = fcache/libfcache.a
 FCACHE_DYNAMIC_LIB = fcache/libfcache.so
 
+# fhash
+FHASH_DEP_LIBS =
+FHASH_STATIC_LIB = fhash/libfhash.a
+FHASH_DYNAMIC_LIB = fhash/libfhash.so
+
 ################################################################################
 STATIC_LIBS = \
     $(FLIST_STATIC_LIB) \
-    $(FCACHE_STATIC_LIB)
+    $(FCACHE_STATIC_LIB) \
+    $(FHASH_STATIC_LIB)
 
 DYNAMIC_LIBS = \
     $(FLIST_DYNAMIC_LIB) \
-    $(FCACHE_DYNAMIC_LIB)
+    $(FCACHE_DYNAMIC_LIB) \
+    $(FHASH_DYNAMIC_LIB)
 
 ifeq ($(SHARED), true)
     TARGET_LIBS = $(DYNAMIC_LIBS)

@@ -1,7 +1,7 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#include "fhash_int.h"
+#include "flibs/fhash_int.h"
 
 // INTERNAL
 static

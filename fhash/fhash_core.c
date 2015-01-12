@@ -4,7 +4,7 @@
 #include <assert.h>
 #include <inttypes.h>
 
-#include "fhash_core.h"
+#include "flibs/fhash_core.h"
 
 typedef uint64_t data_sz_t;
 
@@ -52,11 +52,11 @@ typedef struct _fhash {
     uint32_t index_used;
 
     size_t   slots_used;
-    _fhash_node_mgr node_mgr[0];
+    _fhash_node_mgr node_mgr[1];
 } _fhash;
 
 typedef union {
-    struct {
+    struct flags {
         // user flags
         uint32_t auto_rehash:1;
         uint32_t padding:29;    // reserved
@@ -64,7 +64,7 @@ typedef union {
         // internal use
         uint32_t rehashing:1;   // doing rehash
         uint32_t performing:1;  // doing delayed actions
-    };
+    } flags;
 
     uint32_t value;
 } fhash_mask;
@@ -139,15 +139,15 @@ void _hash_node_set_key(_fhash_node* node, const void* key, key_sz_t key_sz)
 {
     _hash_node_try_enlarge(node, key_sz, node->value_sz);
 
-    memcpy(node->data, key, key_sz);
-    *(char*)(node->data + key_sz) = '\0';
+    memcpy(node->data, key, (size_t)key_sz);
+    *((char*)(node->data) + key_sz) = '\0';
     node->key_sz = key_sz;
 }
 
 static inline
 void* _hash_node_value(_fhash_node* node)
 {
-    return node->data + node->key_sz + 1;
+    return (char*)node->data + node->key_sz + 1;
 }
 
 static inline
@@ -162,8 +162,8 @@ void _hash_node_set_value(_fhash_node* node,
 {
     _hash_node_try_enlarge(node, node->key_sz, value_sz);
 
-    memcpy(_hash_node_value(node), value, value_sz);
-    *(char*)(node->data + node->key_sz + 1 + value_sz) = '\0';
+    memcpy(_hash_node_value(node), value, (size_t)value_sz);
+    *((char*)(node->data) + node->key_sz + 1 + value_sz) = '\0';
     node->value_sz = value_sz;
 }
 
@@ -665,7 +665,7 @@ void _hash_rehash(fhash* phash, uint32_t new_size)
     // 4. unlock rehashing mask
 
     // 1.
-    phash->mask.rehashing = 1;
+    phash->mask.flags.rehashing = 1;
 
     // 2.
     _fhash* new_table = _hash_tbl_create(new_size);
@@ -687,7 +687,7 @@ void _hash_rehash(fhash* phash, uint32_t new_size)
     _hash_tbl_delete(discarded_tbl);
 
     // 4.
-    phash->mask.rehashing = 0;
+    phash->mask.flags.rehashing = 0;
 }
 
 static
@@ -708,7 +708,7 @@ int _hash_can_rehash(fhash* phash)
         return 0;
     }
 
-    if (phash->mask.rehashing || phash->mask.performing) {
+    if (phash->mask.flags.rehashing || phash->mask.flags.performing) {
         return 0;
     }
 
@@ -756,7 +756,7 @@ void _hash_set_delay(fhash* phash, fhash_opt* opt,
 static
 void _hash_perform_actions(fhash* phash)
 {
-    phash->mask.performing = 1;
+    phash->mask.flags.performing = 1;
 
     _fhash_node_mgr* actions = &phash->delayed_actions;
     size_t action_cnt = _hash_nodemgr_size(actions);
@@ -777,7 +777,7 @@ void _hash_perform_actions(fhash* phash)
     }
 
 performing_end:
-    phash->mask.performing = 0;
+    phash->mask.flags.performing = 0;
     assert(_hash_nodemgr_used(actions) == 0);
 }
 
@@ -833,7 +833,7 @@ void fhash_set(fhash* phash,
 
     _hash_tbl_set(table, &phash->opt, key, key_sz, value, value_sz);
 
-    if (phash->mask.auto_rehash) {
+    if (phash->mask.flags.auto_rehash) {
         _hash_try_rehash(phash);
     }
 }
@@ -911,7 +911,7 @@ void fhash_iter_release(fhash_iter* iter)
     _hash_perform_actions(phash);
 
     // rehash if needed
-    if (phash->mask.auto_rehash) {
+    if (phash->mask.flags.auto_rehash) {
         _hash_try_rehash(phash);
     }
 }

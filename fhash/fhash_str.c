@@ -1,7 +1,7 @@
 #include <assert.h>
 #include <string.h>
 
-#include "fhash_str.h"
+#include "flibs/fhash_str.h"
 
 // INTERNAL
 static
@@ -14,7 +14,7 @@ int _hash_str_compare(const void* key1, key_sz_t key_sz1,
 
     const char* skey1 = (const char*)key1;
     const char* skey2 = (const char*)key2;
-    return strncmp(skey1, skey2, key_sz1);
+    return strncmp(skey1, skey2, (size_t)key_sz1);
 }
 
 // API
@@ -38,12 +38,12 @@ void   fhash_str_set(fhash* phash, const char* key, void* value)
         return;
     }
 
-    fhash_set(phash, key, strlen(key), &value, sizeof(value));
+    fhash_set(phash, key, (key_sz_t)strlen(key), &value, sizeof(value));
 }
 
 void*  fhash_str_get(fhash* phash, const char* key)
 {
-    void** value = fhash_get(phash, key, strlen(key), NULL);
+    void** value = fhash_get(phash, key, (key_sz_t)strlen(key), NULL);
     if (value) {
         return *value;
     } else {
@@ -54,7 +54,7 @@ void*  fhash_str_get(fhash* phash, const char* key)
 void*  fhash_str_del(fhash* phash, const char* key)
 {
     void* value = NULL;
-    fhash_fetch_and_del(phash, key, strlen(key),
+    fhash_fetch_and_del(phash, key, (key_sz_t)strlen(key),
                         &value, sizeof(value));
     return value;
 }

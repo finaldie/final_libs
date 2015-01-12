@@ -18,6 +18,16 @@ $(FCACHE_DYNAMIC_LIB): $(FCACHE_OBJS)
 clean-fcache:
 	rm -f $(FCACHE_STATIC_LIB) $(FCACHE_DYNAMIC_LIB) $(FCACHE_OBJS)
 
+# fhash
+$(FHASH_STATIC_LIB): $(FHASH_OBJS)
+	ar -rcs $@ $^
+
+$(FHASH_DYNAMIC_LIB): $(FHASH_OBJS)
+	$(FL_LD) -o $@ $^ $(FHASH_DEP_LIBS)
+
+clean-fhash:
+	rm -f $(FHASH_STATIC_LIB) $(FHASH_DYNAMIC_LIB) $(FHASH_OBJS)
+
 # all objs
 %.o: %.c
 	$(FL_CC) -c $< -o $@

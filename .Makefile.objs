@@ -6,3 +6,9 @@ FLIST_OBJS = \
 FCACHE_OBJS = \
     fcache/fcache.o \
     fcache/fcache_list.o
+
+FHASH_OBJS = \
+    fhash/fhash_core.o \
+    fhash/fhash_int.o \
+    fhash/fhash_str.o \
+    fhash/fhash_uint64.o
