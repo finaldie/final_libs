@@ -1,0 +1,11 @@
+$(FLIST_STATIC_LIB): $(FLIST_OBJS)
+	ar -rcs $@ $^
+
+$(FLIST_DYNAMIC_LIB): $(FLIST_OBJS)
+	$(FL_LD) -o $@ $^ $(FLIST_DEP_LIBS)
+
+clean-flist:
+	rm -f $(FLIST_STATIC_LIB) $(FLIST_DYNAMIC_LIB) $(FLIST_OBJS)
+
+%.o: %.c
+	$(FL_CC) -c $< -o $@

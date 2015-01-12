@@ -1,0 +1,6 @@
+# Objs
+FLIST_OBJS = \
+    flist/flist.o \
+    flist/fdlist.o
+
+

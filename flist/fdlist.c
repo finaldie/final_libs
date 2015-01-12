@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
-#include "fdlist.h"
+#include "flibs/fdlist.h"
 
 #define FO_PREV(orig_node)     ((orig_node)->priv.prev)
 #define FO_NEXT(orig_node)     ((orig_node)->priv.next)

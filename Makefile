@@ -1,89 +1,49 @@
-include common/Makefile.common
-
 MAKE ?= make
 
 INCLUDE_FOLDER = include/flibs
 LIB_FOLDER = lib
 BENCHMARK_FOLDER = benchmark
 API_DOC = doc
-
-ASSEMBLY_LOCAL_FOLDER := $(shell pwd)/final_libraries
-ASSEMBLY_LOCAL := INSTALL_PATH=$(ASSEMBLY_LOCAL_FOLDER) INCLUDE_PATH=$(INCLUDE_FOLDER) LIBS_PATH=$(LIB_FOLDER)
-
-prefix ?= $(ASSEMBLY_LOCAL_FOLDER)
-ASSEMBLY_FOLDERS := $(prefix)/$(INCLUDE_FOLDER) $(prefix)/$(LIB_FOLDER)
+TEST_FOLDERS = tests
 
 BENCHMARK_SUFFIX = mail.txt
 BENCHMARK = \
     ./benchmark/fhash \
     ./benchmark/flog
 
-# PLAT_BIT is one of the 32 or 64
-PLAT_BIT = $(shell getconf LONG_BIT)
-
-# only in x86_64 platform compile a 32bit app need append -m32 parameter
-ifeq ($(PLAT_BIT), 64)
-
-ifeq ($(BIT), 32)
-	EXT_FLAGS += -m32
-	BUILD_BIT = 32
-else
-	BUILD_BIT = 64
-endif
-
-else
-	BUILD_BIT = 32
-endif
-
-# debug or not
-DEBUG ?= false
-ifeq ($(MODE), debug)
-	EXT_FLAGS += -DNDEBUG -Wstack-protector
-else
-	EXT_FLAGS += -O2 -Werror
-endif
-
-# expose the CC
-CC ?= gcc
-export CC
-
-# expose the SHARED to everywhere
 SHARED ?= false
-ifeq ($(SHARED), true)
-	EXT_FLAGS += -fPIC
-	SHARED_FLAGS = -shared
-endif
-export SHARED
-export SHARED_FLAGS
 
 # verbose
 VERBOSE ?= false
 ifeq ($(VERBOSE), false)
 	MAKE_FLAGS += -s
 endif
-export VERBOSE
 
-# Build all libs by order
-LIB_FOLDERS = \
-  flist \
-  fhash \
-  flock \
-  fmbuf \
-  flog \
-  fconf \
-  ftimer \
-  fthread_pool \
-  fnet \
-  fev \
-  ftu \
-  fcache \
-  fco
+include .Makefile.inc
+include .Makefile.objs
+include .Makefile.libs
 
-TEST_FOLDERS = tests
+#LIB_FOLDERS = \
+#  flist \
+#  fhash \
+#  flock \
+#  fmbuf \
+#  flog \
+#  fconf \
+#  ftimer \
+#  fthread_pool \
+#  fnet \
+#  fev \
+#  ftu \
+#  fcache \
+#  fco
+
 
 .PHONY: clean all check valgrind-check install help benchmark doc doc-clean run_doxygen
 
-all:
+all: prepare $(TARGET_LIBS)
+
+prepare:
 	@echo "[Compiling $(BUILD_BIT)bit libraries SHARED=$(SHARED)]";
 	@echo "CC = $(CC)"
 	@echo "MAKE = $(MAKE)"
@@ -91,15 +51,7 @@ all:
 	@echo "VERBOSE = $(VERBOSE)"
 	@echo "PLATFORM BIT = $(PLAT_BIT)"
 	@echo "DEBUG = $(DEBUG)"
-	@echo "ASSEMBLY_FOLDERS = $(ASSEMBLY_FOLDERS)"
-	@echo "COMMON_FLAGS = $(COMMON_FLAGS)"
-	@echo "EXT_FLAGS = $(EXT_FLAGS)"
-	@for lib in $(LIB_FOLDERS); \
-	do \
-		echo "$(CC) $$lib"; \
-		$(MAKE) $(MAKE_FLAGS) -C $$lib $(ASSEMBLY_LOCAL) EXT_FLAGS="$(EXT_FLAGS)" || exit "$$?"; \
-		$(MAKE) $(MAKE_FLAGS) -C $$lib $(ASSEMBLY_LOCAL) install; \
-	done;
+	test -d lib || mkdir -p lib
 
 check:
 	@echo "======================Running $(BUILD_BIT)bit Unit Test======================";
@@ -111,15 +63,9 @@ valgrind-check:
 	@$(MAKE) $(MAKE_FLAGS) -C $(TEST_FOLDERS) EXT_FLAGS="$(EXT_FLAGS)" $(ASSEMBLY_LOCAL) || exit "$$?";
 	@$(MAKE) $(MAKE_FLAGS) -C $(TEST_FOLDERS) valgrind-check;
 
-clean: benchmark-clean doc-clean
-	@$(MAKE) $(MAKE_FLAGS) -C $(TEST_FOLDERS) $(ASSEMBLY_LOCAL) clean;
-	@for lib in $(LIB_FOLDERS); \
-	do \
-		echo "clean $$lib"; \
-		$(MAKE) $(MAKE_FLAGS) -C $$lib $(ASSEMBLY_LOCAL) clean; \
-	done;
-	@rm -rf $(ASSEMBLY_LOCAL_FOLDER);
-	@echo "clean complete";
+clean: benchmark-clean doc-clean clean-flist
+	@rm -rf lib
+	@echo "clean complete"
 
 install:
 	@test -d $(prefix) || mkdir -p $(ASSEMBLY_FOLDERS);
@@ -182,3 +128,5 @@ help:
 	@echo "make benchmark-clean"
 	@echo "make doc"
 	@echo "make doc-clean"
+
+include .Makefile.targets

@@ -1,0 +1,17 @@
+# flist
+FLIST_DEP_LIBS =
+FLIST_STATIC_LIB = lib/libflist.a
+FLIST_DYNAMIC_LIB = lib/libflist.so
+
+################################################################################
+STATIC_LIBS = \
+    $(FLIST_STATIC_LIB)
+
+DYNAMIC_LIBS = \
+    $(FLIST_DYNAMIC_LIB)
+
+ifeq ($(SHARED), true)
+    TARGET_LIBS = $(DYNAMIC_LIBS)
+else
+    TARGET_LIBS = $(STATIC_LIBS)
+endif
