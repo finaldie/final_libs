@@ -53,6 +53,11 @@ FLOG_DEP_LIBS = -pthread -lfmbuf -lfhash
 FLOG_STATIC_LIB = flog/libflog.a
 FLOG_DYNAMIC_LIB = flog/libflog.so
 
+# fev
+FEV_DEP_LIBS = -lfmbuf -lfhash -lflist -lftime -lfnet
+FEV_STATIC_LIB = fev/libfev.a
+FEV_DYNAMIC_LIB = fev/libfev.so
+
 ################################################################################
 STATIC_LIBS = \
     $(FLIST_STATIC_LIB) \
@@ -65,7 +70,8 @@ STATIC_LIBS = \
     $(FLOCK_STATIC_LIB) \
     $(FTHPOOL_STATIC_LIB) \
     $(FCONF_STATIC_LIB) \
-    $(FLOG_STATIC_LIB)
+    $(FLOG_STATIC_LIB) \
+    $(FEV_STATIC_LIB)
 
 DYNAMIC_LIBS = \
     $(FLIST_DYNAMIC_LIB) \
@@ -78,7 +84,8 @@ DYNAMIC_LIBS = \
     $(FLOCK_DYNAMIC_LIB) \
     $(FTHPOOL_DYNAMIC_LIB) \
     $(FCONF_DYNAMIC_LIB) \
-    $(FLOG_DYNAMIC_LIB)
+    $(FLOG_DYNAMIC_LIB) \
+    $(FEV_DYNAMIC_LIB)
 
 ifeq ($(SHARED), true)
     TARGET_LIBS = $(DYNAMIC_LIBS)

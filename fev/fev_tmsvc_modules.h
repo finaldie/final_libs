@@ -6,14 +6,11 @@
 #ifndef _FEV_TIMER_SERVICE_MODULES_H_
 #define _FEV_TIMER_SERVICE_MODULES_H_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <stdint.h>
 #include <time.h>
-#include "fev.h"
-#include "fev_tmsvc_types.h"
+
+#include "flibs/fev.h"
+#include "flibs/fev_tmsvc_types.h"
 
 // The struct used for contain the basic information from user input
 struct _ftimer_node {
@@ -48,8 +45,5 @@ int fev_tmmod_timeout(struct timespec* start,
 
 extern fev_tmsvc_opt* tmsvc_opt_tbl[];
 
-#ifdef __cplusplus
-}
 #endif
 
-#endif

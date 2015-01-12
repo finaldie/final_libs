@@ -1,31 +1,14 @@
-/*
- * =====================================================================================
- *
- *       Filename:  fev_timer_service.h
- *
- *    Description:  
- *
- *        Version:  1.0
- *        Created:  07/27/2013 04:23:56 PM
- *       Revision:  none
- *       Compiler:  gcc
- *
- *         Author:  finaldie
- *        Company:  
- *
- * =====================================================================================
- */
-
-#ifndef _FEV_TIMER_SERVICE_H_
-#define _FEV_TIMER_SERVICE_H_
+#ifndef FEV_TIMER_SERVICE_H
+#define FEV_TIMER_SERVICE_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #include <stdint.h>
-#include "fev_timer.h"
-#include "fev_tmsvc_types.h"
+
+#include "flibs/fev_timer.h"
+#include "flibs/fev_tmsvc_types.h"
 
 fev_timer_svc* fev_create_timer_service(
                 fev_state*,

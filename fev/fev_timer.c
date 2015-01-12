@@ -1,27 +1,11 @@
-/*
- * =====================================================================================
- *
- *       Filename:  fev_timer.c
- *
- *    Description:  
- *
- *        Version:  1.0
- *        Created:  11/18/2011 16:59:56
- *       Revision:  none
- *       Compiler:  gcc
- *
- *         Author:  yuzhang hu(finaldie)
- *
- * =====================================================================================
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdint.h>
 #include <errno.h>
-#include "ftimer/ftimer.h"
-#include "fev_timer.h"
+
+#include "flibs/ftime.h"
+#include "flibs/fev_timer.h"
 
 struct fev_timer {
     int fd;
@@ -40,7 +24,7 @@ void fev_on_timer(fev_state* fev,
 
     uint64_t exp;
     while(1) {
-        int read_size = read(evt->fd, (char*)&exp, sizeof(uint64_t));
+        ssize_t read_size = read(evt->fd, (char*)&exp, sizeof(uint64_t));
         if ( read_size != sizeof(uint64_t) ) {
             if( errno == EINTR )
                 continue;
@@ -84,7 +68,7 @@ fev_timer*  fev_add_timer_event(fev_state* fev,
         close(fd);
         free(evt);
         return NULL;
-    } 
+    }
 
     if (ftimerfd_start(fd, nsec, alter)) {
         fev_del_event(fev, fd, mask);

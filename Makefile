@@ -2,9 +2,10 @@ MAKE ?= make
 
 INCLUDE_FOLDER = include/flibs
 LIB_FOLDER = lib
+TEST_FOLDER = tests
+
 BENCHMARK_FOLDER = benchmark
 API_DOC = doc
-TEST_FOLDER = tests
 
 BENCHMARK_SUFFIX = mail.txt
 BENCHMARK = \
@@ -45,7 +46,7 @@ valgrind-check:
 	@$(MAKE) $(MAKE_FLAGS) -C $(TEST_FOLDER) valgrind-check;
 
 clean: clean-flist clean-fcache clean-fhash clean-mbuf clean-fco clean-fnet
-clean: clean-ftime clean-flock clean-fthpool clean-fconf clean-flog
+clean: clean-ftime clean-flock clean-fthpool clean-fconf clean-flog clean-fev
 	@rm -rf lib
 	@echo "clean complete"
 
@@ -64,6 +65,7 @@ help:
 	@echo "make install [BIT=32] [prefix=/usr/local] "
 	@echo "make clean"
 	@echo "make benchmark"
+	@echo "make benchmark-run"
 	@echo "make benchmark-clean"
 	@echo "make doc"
 	@echo "make doc-clean"

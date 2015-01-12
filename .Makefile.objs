@@ -38,3 +38,13 @@ FCONF_OBJS = \
 FLOG_OBJS = \
     flog/flog.o \
     flog/flog_level.o
+
+FEV_OBJS = \
+    fev/fev.o \
+    fev/fev_buff.o \
+    fev/fev_conn.o \
+    fev/fev_listener.o \
+    fev/fev_timer.o \
+    fev/fev_timer_service.o \
+    fev/fev_tmsvc_modules.o \
+    fev/fev_tmsvc_sl_mod.o

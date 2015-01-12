@@ -21,9 +21,9 @@
 #include <string.h>
 #include <errno.h>
 #include <time.h>
-#include "fnet/fnet_core.h"
-#include "fev_timer_service.h"
-#include "fev_conn.h"
+#include "flibs/fnet_core.h"
+#include "flibs/fev_timer_service.h"
+#include "flibs/fev_conn.h"
 
 #define FEV_CONN_MODULE_NAME "__fev_connection_module__"
 #define FEV_CONN_TIME_SERVICE_INTERVAL 1

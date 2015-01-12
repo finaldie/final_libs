@@ -21,12 +21,15 @@
 #include <string.h>
 #include <unistd.h>
 #include <time.h>
+#include <sys/time.h>
+#include <sys/resource.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include "fev.h"
-#include "fhash/fhash.h"
+
+#include "flibs/fev.h"
+#include "flibs/fhash.h"
 
 #define FEV_MAX_EVENT_NUM   (1024 * 10)
 
@@ -78,7 +81,17 @@ static void fev_clear_firelist(fev_state* fev)
 
 fev_state*    fev_create(int max_ev_size)
 {
-    if( max_ev_size <= 0 ) max_ev_size = FEV_MAX_EVENT_NUM;
+    if( max_ev_size <= 0 ) {
+        // get the current open file limitation (soft)
+        struct rlimit limit;
+        int ret = getrlimit(RLIMIT_FSIZE, &limit);
+        if (ret) {
+            perror("fev getrlimit failed");
+            return NULL;
+        }
+
+        max_ev_size = (int)limit.rlim_cur;
+    }
 
     fev_state* fev = (fev_state*)malloc(sizeof(fev_state));
     if( fev_state_create(fev, max_ev_size) ) {
@@ -87,8 +100,8 @@ fev_state*    fev_create(int max_ev_size)
         return NULL;
     }
 
-    fev->fevents = (fev_event*)malloc( sizeof(fev_event) * max_ev_size );
-    fev->firelist = (int*)malloc( sizeof(int) * max_ev_size );
+    fev->fevents = (fev_event*)malloc(sizeof(fev_event) * (size_t)max_ev_size);
+    fev->firelist = (int*)malloc(sizeof(int) * (size_t)max_ev_size);
     fev->module_tbl = fhash_str_create(FEV_DEFAULT_MODULE_CNT,
                                        FHASH_MASK_AUTO_REHASH);
 
@@ -96,8 +109,7 @@ fev_state*    fev_create(int max_ev_size)
     fev_clear_firelist(fev);
     fev->in_processing = 0;
 
-    int i;
-    for(i=0; i<max_ev_size; i++) {
+    for(int i = 0; i < max_ev_size; i++) {
         fev->fevents[i].arg = NULL;
         fev->fevents[i].mask = FEV_NIL;
         fev->fevents[i].pread = NULL;

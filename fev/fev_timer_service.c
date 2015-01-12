@@ -30,15 +30,6 @@
  *                                 timer nodes, and run the callback functions for
  *                                 those timeout timer nodes'
  *
- *
- *        Version:  1.0
- *        Created:  07/27/2013 05:20:10 PM
- *       Revision:  none
- *       Compiler:  gcc
- *
- *         Author:  finaldie
- *        Company:  
- *
  * =====================================================================================
  */
 
@@ -48,8 +39,8 @@
 #include <errno.h>
 #include <time.h>
 
-#include "fev_timer_service.h"
 #include "fev_tmsvc_modules.h"
+#include "flibs/fev_timer_service.h"
 
 #ifndef CLOCK_MONOTONIC_COARSE
 #define CLOCK_MONOTONIC_COARSE 6

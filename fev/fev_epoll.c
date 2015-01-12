@@ -17,17 +17,19 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include <errno.h>
 #include <sys/epoll.h>
 
 typedef struct state {
     int epfd;
-    struct epoll_event events[0];
+    struct epoll_event events[1];
 } state;
 
 static int fev_state_create(fev_state* fev, int max_ev_size)
 {
-    state* st = (state*)malloc(sizeof(state) + max_ev_size * sizeof(struct epoll_event));
+    state* st = (state*)malloc(sizeof(state) + (size_t)max_ev_size * sizeof(struct epoll_event));
 
     st->epfd = epoll_create(1024);  // the size argument is unused, so 1024 is just a hint for kernel
     if( st->epfd == -1 ) return 1;
@@ -70,7 +72,7 @@ static int fev_state_addevent(fev_state* fev, int fd, int mask)
 
 static int fev_state_delevent(fev_state* fev, int fd, int delmask)
 {
-    state* st = fev->state; 
+    state* st = fev->state;
     int mask = fev->fevents[fd].mask & (~delmask);   //reserved state except delmask
 
     struct epoll_event ee;
@@ -78,9 +80,7 @@ static int fev_state_delevent(fev_state* fev, int fd, int delmask)
     ee.data.fd = fd;
     ee.events = 0;
 
-    int op = mask == FEV_NIL ? 
-            EPOLL_CTL_DEL : EPOLL_CTL_MOD;
-
+    int op = mask == FEV_NIL ? EPOLL_CTL_DEL : EPOLL_CTL_MOD;
     if( mask & FEV_READ ) ee.events |= EPOLLIN;
     if( mask & FEV_WRITE ) ee.events |= EPOLLOUT;
 

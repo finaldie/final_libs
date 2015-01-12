@@ -1,29 +1,13 @@
-/*
- * =====================================================================================
- *
- *       Filename:  fnet_buff.h
- *
- *    Description:  
- *
- *        Version:  1.0
- *        Created:  11/18/2011 17:40:27
- *       Revision:  none
- *       Compiler:  gcc
- *
- *         Author:  finaldie
- *        Company:  
- *
- * =====================================================================================
- */
-
-#ifndef _FEV_BUFF_H_
-#define _FEV_BUFF_H_
+#ifndef FEV_BUFF_H
+#define FEV_BUFF_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "fev.h"
+#include <stddef.h>
+#include <stdlib.h>
+#include <flibs/fev.h>
 
 #define FEVBUFF_TYPE_READ    0
 #define FEVBUFF_TYPE_WRITE   1
@@ -62,9 +46,9 @@ size_t     fevbuff_get_usedlen(fev_buff*, int type);
 *       better to use the len <= max(int), the max buffer size also should limit
 *       within max(int)
 */
-int     fevbuff_read(fev_buff*, void* pbuf, size_t len);
-int     fevbuff_write(fev_buff*, const void* buff, size_t len);
-int     fevbuff_pop(fev_buff*, size_t len); // pop data from local buff
+ssize_t fevbuff_read(fev_buff*, void* pbuf, size_t len);
+ssize_t fevbuff_write(fev_buff*, const void* buff, size_t len);
+size_t  fevbuff_pop(fev_buff*, size_t len); // pop data from local buff
 void*   fevbuff_rawget(fev_buff*);          // return readbuff head pointer
 
 #ifdef __cplusplus
@@ -72,3 +56,4 @@ void*   fevbuff_rawget(fev_buff*);          // return readbuff head pointer
 #endif
 
 #endif
+
