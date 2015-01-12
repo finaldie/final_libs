@@ -4,7 +4,8 @@ TEST_OBJS = \
     tests/main.o \
     tests/t_list.o \
     tests/t_hash.o \
-    tests/t_mbuf.o
+    tests/t_mbuf.o \
+    tests/t_conf.o
 
 TEST_LIBS = \
     -pthread \
@@ -12,4 +13,5 @@ TEST_LIBS = \
     -lflist \
     -lfhash \
     -lfmbuf \
+    -lfconf \
     -lfut
