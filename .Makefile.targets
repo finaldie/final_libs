@@ -129,6 +129,17 @@ $(FEV_DYNAMIC_LIB): $(FEV_OBJS)
 clean-fev:
 	rm -f $(FEV_STATIC_LIB) $(FEV_DYNAMIC_LIB) $(FEV_OBJS)
 
+# fut
+$(FUT_STATIC_LIB): $(FUT_OBJS)
+	ar -rcs $@ $^
+
+$(FUT_DYNAMIC_LIB): $(FLIST_DYNAMIC_LIB)
+$(FUT_DYNAMIC_LIB): $(FUT_OBJS)
+	$(FL_LD) -o $@ $(FUT_OBJS) $(FUT_DEP_LIBS)
+
+clean-fut:
+	rm -f $(FUT_STATIC_LIB) $(FUT_DYNAMIC_LIB) $(FUT_OBJS)
+
 # all objs
 %.o: %.c
 	$(FL_CC) -c $< -o $@

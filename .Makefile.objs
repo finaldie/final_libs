@@ -48,3 +48,6 @@ FEV_OBJS = \
     fev/fev_timer_service.o \
     fev/fev_tmsvc_modules.o \
     fev/fev_tmsvc_sl_mod.o
+
+FUT_OBJS = \
+    ftu/ftu_inc.o

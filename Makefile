@@ -47,6 +47,7 @@ valgrind-check:
 
 clean: clean-flist clean-fcache clean-fhash clean-mbuf clean-fco clean-fnet
 clean: clean-ftime clean-flock clean-fthpool clean-fconf clean-flog clean-fev
+clean: clean-fut
 	@rm -rf lib
 	@echo "clean complete"
 

@@ -1,13 +1,9 @@
-//base info: create by hyz
-//effect:
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "flist/flist.h"
-#include "ftu_inc.h"
+#include "flibs/flist.h"
+#include "flibs/ftu_inc.h"
 
 static flist* plist = NULL;
 static int failed_cases = 0;
@@ -26,11 +22,11 @@ void    get_cur_time(my_time* time){
 }
 
 int     get_diff_time(my_time* time1, my_time* time2){
-    int diff_sec = time2->tv.tv_sec - time1->tv.tv_sec;
-    if ( diff_sec > 0 )
-        return diff_sec * 1000000 + time2->tv.tv_usec - time1->tv.tv_usec;
+    int diff_sec = (int)(time2->tv.tv_sec - time1->tv.tv_sec);
+    if (diff_sec > 0)
+        return (int)(diff_sec * 1000000 + time2->tv.tv_usec - time1->tv.tv_usec);
     else
-        return time2->tv.tv_usec - time1->tv.tv_usec;
+        return (int)(time2->tv.tv_usec - time1->tv.tv_usec);
 }
 
 void    tu_register_init(){
