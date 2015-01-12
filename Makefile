@@ -20,6 +20,9 @@ all: $(TARGET_LIBS)
 	test -d $(LIB_FOLDER) || mkdir -p $(LIB_FOLDER)
 	cp $(TARGET_LIBS) $(LIB_FOLDER)
 
+validate:
+	(cd $(LIB_FOLDER) && exit `find . -name "*.so" | xargs ldd -r | grep "undefine" | wc -l`)
+
 check: $(TEST_TARGET)
 	@echo "================Running $(BUILD_BIT)bit Unit Test==============";
 	@rm -rf tests/logs
