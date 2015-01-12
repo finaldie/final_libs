@@ -1,0 +1,9 @@
+BENCH_FHASH_OBJS = \
+    benchmark/fhash/main.o
+
+BENCH_FHASH_DEP_LIBS = -pthread -lftime -lfhash -lrt
+BENCH_FHASH_TARGET = benchmark/fhash/benchmark
+
+BENCH_TARGETS = \
+    $(BENCH_FHASH_TARGET)
+

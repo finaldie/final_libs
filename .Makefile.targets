@@ -167,13 +167,33 @@ clean-fut:
 .PHONY: clean-fut
 
 # tests
-$(TEST_TARGET): $(TARGET_LIBS) $(TEST_OBJS)
-	$(FL_BIN_LD) -o $@ $^ $(TEST_LIBS)
+$(TEST_TARGET): $(TARGET_LIBS)
+$(TEST_TARGET): $(TEST_OBJS)
+	$(FL_BIN_LD) -o $@ $(TEST_OBJS) $(TEST_LIBS)
 
 clean-tests:
 	rm -rf tests/logs $(TEST_TARGET) $(TEST_OBJS)
 
 .PHONY: clean-tests
+
+# benchmark
+$(BENCH_FHASH_TARGET): $(TARGET_LIBS)
+$(BENCH_FHASH_TARGET): $(BENCH_FHASH_OBJS)
+	$(FL_BIN_LD) -o $@ $(BENCH_FHASH_OBJS) $(BENCH_FHASH_DEP_LIBS)
+
+bench-fhash:
+	@echo "=============== Running benchmark for fhash ==============="
+	@echo "generate random key/values..."
+	test -f /tmp/fhash_kv.txt || ./benchmark/fhash/random_string_gen.sh > /tmp/fhash_kv.txt
+	@echo "generate random key/values done"
+	./$(BENCH_FHASH_TARGET)
+
+clean-bench-fhash:
+	rm -f $(BENCH_FHASH_TARGET) $(BENCH_FHASH_OBJS)
+
+clean-bench: clean-benchmark-fhash
+
+.PHONY: bench-fhash clean-bench-fhash clean-bench
 
 # all objs
 %.o: %.c

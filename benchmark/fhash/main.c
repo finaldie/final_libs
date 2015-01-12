@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "ftimer/ftimer.h"
-#include "fhash/fhash.h"
+#include "flibs/ftime.h"
+#include "flibs/fhash.h"
 
 #define MAX_LINES 100000
 static char* lines[MAX_LINES];
@@ -65,7 +65,7 @@ int hash_core_compare(const void* key1, key_sz_t key_sz1,
         return 1;
     }
 
-    return memcmp(key1, key2, key_sz1);
+    return memcmp(key1, key2, (size_t)key_sz1);
 }
 
 static
@@ -83,8 +83,8 @@ void test_without_autorehash()
     {
         unsigned long long start = fgettime();
         for (int i = 0; i < total_lines; i++) {
-            fhash_set(phash, lines[i], strlen(lines[i]),
-                      lines[i], strlen(lines[i]));
+            fhash_set(phash, lines[i], (key_sz_t)strlen(lines[i]),
+                      lines[i], (value_sz_t)strlen(lines[i]));
         }
         unsigned long long end = fgettime();
         printf("fhash_set x%d spend time: %llu usec\n",
@@ -95,7 +95,7 @@ void test_without_autorehash()
     {
         unsigned long long start = fgettime();
         for (int i = 0; i < total_lines; i++) {
-            fhash_get(phash, lines[i], strlen(lines[i]), NULL);
+            fhash_get(phash, lines[i], (key_sz_t)strlen(lines[i]), NULL);
         }
         unsigned long long end = fgettime();
         printf("fhash_get x%d spend time: %llu usec\n",
@@ -121,7 +121,7 @@ void test_without_autorehash()
     // test rehash
     {
         unsigned long long start = fgettime();
-        int ret = fhash_rehash(phash, total_lines);
+        int ret = fhash_rehash(phash, (uint32_t)total_lines);
         unsigned long long end = fgettime();
         printf("fhash_rehash (index double), ret: %d, spend time: %llu usec\n",
                ret, end -start);
@@ -135,7 +135,7 @@ void test_without_autorehash()
     {
         unsigned long long start = fgettime();
         for (int i = 0; i < total_lines; i++) {
-            fhash_del(phash, lines[i], strlen(lines[i]));
+            fhash_del(phash, lines[i], (key_sz_t)strlen(lines[i]));
         }
         unsigned long long end = fgettime();
         printf("fhash_del x%d spend time: %llu usec\n",
@@ -160,8 +160,8 @@ void test_with_autorehash()
     {
         unsigned long long start = fgettime();
         for (int i = 0; i < total_lines; i++) {
-            fhash_set(phash, lines[i], strlen(lines[i]),
-                      lines[i], strlen(lines[i]));
+            fhash_set(phash, lines[i], (key_sz_t)strlen(lines[i]),
+                      lines[i], (value_sz_t)strlen(lines[i]));
         }
         unsigned long long end = fgettime();
         printf("fhash_set x%d spend time: %llu usec\n",
@@ -172,7 +172,7 @@ void test_with_autorehash()
     {
         unsigned long long start = fgettime();
         for (int i = 0; i < total_lines; i++) {
-            fhash_get(phash, lines[i], strlen(lines[i]), NULL);
+            fhash_get(phash, lines[i], (key_sz_t)strlen(lines[i]), NULL);
         }
         unsigned long long end = fgettime();
         printf("fhash_get x%d spend time: %llu usec\n",
@@ -198,7 +198,7 @@ void test_with_autorehash()
     // test rehash
     {
         unsigned long long start = fgettime();
-        int ret = fhash_rehash(phash, total_lines);
+        int ret = fhash_rehash(phash, (uint32_t)total_lines);
         unsigned long long end = fgettime();
         printf("fhash_rehash (index double), ret: %d, spend time: %llu usec\n",
                ret, end -start);
@@ -212,7 +212,7 @@ void test_with_autorehash()
     {
         unsigned long long start = fgettime();
         for (int i = 0; i < total_lines; i++) {
-            fhash_del(phash, lines[i], strlen(lines[i]));
+            fhash_del(phash, lines[i], (key_sz_t)strlen(lines[i]));
         }
         unsigned long long end = fgettime();
         printf("fhash_del x%d spend time: %llu usec\n",

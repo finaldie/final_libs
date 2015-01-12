@@ -4,12 +4,7 @@ INCLUDE_FOLDER = include/flibs
 LIB_FOLDER = lib
 
 BENCHMARK_FOLDER = benchmark
-API_DOC = doc
-
-BENCHMARK_SUFFIX = mail.txt
-BENCHMARK = \
-    ./benchmark/fhash \
-    ./benchmark/flog
+API_DOC_FOLDER = doc
 
 SHARED ?= false
 
@@ -23,6 +18,7 @@ include .Makefile.inc
 include .Makefile.objs
 include .Makefile.libs
 include .Makefile.tests
+include .Makefile.bench
 
 all: $(TARGET_LIBS)
 	@echo "[Compiling $(BUILD_BIT)bit libraries SHARED=$(SHARED)]";
@@ -61,18 +57,22 @@ install:
 	@cp $(LIB_FOLDER)/* $(prefix)/$(LIB_FOLDER)
 	@echo "Liraries installed in $(prefix)"
 
+bench: $(BENCH_TARGETS)
+
+bench-run: bench-fhash
+
 help:
 	@echo "make [CC=gcc] [SHARED=true] [debug=true] [BIT=32] [VERBOSE=true]"
 	@echo "make check [CC=gcc] [BIT=32] [VERBOSE=true]"
 	@echo "make valgrind-check [CC=gcc] [BIT=32] [VERBOSE=true]"
 	@echo "make install [BIT=32] [prefix=/usr/local] "
 	@echo "make clean"
-	@echo "make benchmark"
-	@echo "make benchmark-run"
-	@echo "make benchmark-clean"
+	@echo "make bench"
+	@echo "make bench-run"
+	@echo "make clean-bench"
 	@echo "make doc"
-	@echo "make doc-clean"
+	@echo "make clean-doc"
 
 include .Makefile.targets
 
-.PHONY: all prepare check valgrind-check clean install help benchmark doc
+.PHONY: all prepare check valgrind-check clean install bench bench-run doc help
