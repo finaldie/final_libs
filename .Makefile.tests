@@ -8,7 +8,8 @@ TEST_OBJS = \
     tests/t_conf.o \
     tests/t_log.o \
     tests/t_fcache.o \
-    tests/t_timer.o
+    tests/t_timer.o \
+    tests/t_fco.o
 
 TEST_LIBS = \
     -lflist \
@@ -18,6 +19,7 @@ TEST_LIBS = \
     -lflog \
     -lfcache \
     -lftime \
+    -lfco \
     -lfut \
     -pthread \
     -lrt

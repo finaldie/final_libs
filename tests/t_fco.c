@@ -1,23 +1,6 @@
-/*
- * =====================================================================================
- *
- *       Filename:  t_fco.c
- *
- *    Description:  
- *
- *        Version:  1.0
- *        Created:  10/15/2012 19:36:08
- *       Revision:  none
- *       Compiler:  gcc
- *
- *         Author:  finaldie
- *
- * =====================================================================================
- */
-
-#include "ftu_inc.h"
+#include "flibs/ftu_inc.h"
+#include "flibs/fco.h"
 #include "inc.h"
-#include "fco.h"
 
 static
 void* test2(fco* co, void* arg)

@@ -29,7 +29,7 @@ void register_module(){
 
     tu_register_module(test_fcache,       "for testing fcache set and get");
     tu_register_module(test_timer,        "for testing ftimerfd");
-    //tu_register_module(test_fco,          "for testing fco create, resume and yield");
+    tu_register_module(test_fco,          "for testing fco create, resume and yield");
 
     //tu_register_module(test_fev,          "for testing fev for create register add del methods");
     //tu_register_module(test_fev_listener, "for testing fev listener");
