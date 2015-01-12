@@ -8,9 +8,9 @@
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
 
-#include "ftu/ftu_inc.h"
-#include "fhash/fhash.h"
-#include "fhash/fhash_int.h"
+#include "flibs/ftu_inc.h"
+#include "flibs/fhash.h"
+#include "flibs/fhash_int.h"
 #include "inc.h"
 
 //=====================FAKE STRUCTURE===========================================
@@ -39,11 +39,11 @@ typedef struct _fhash {
     uint32_t index_used;
 
     size_t   slots_used;
-    _fhash_node_mgr node_mgr[0];
+    _fhash_node_mgr node_mgr[1];
 } _fhash;
 
 typedef union {
-    struct {
+    struct flags {
         // user flags
         uint32_t auto_rehash:1;
         uint32_t padding:29;    // reserved
@@ -51,7 +51,7 @@ typedef union {
         // internal use
         uint32_t rehashing:1;   // doing rehash
         uint32_t performing:1;  // doing delayed actions
-    };
+    } flags;
 
     uint32_t value;
 } fhash_mask;
@@ -91,7 +91,7 @@ int hash_core_compare(const void* key1, key_sz_t key_sz1,
         return 1;
     }
 
-    return memcmp(key1, key2, key_sz1);
+    return memcmp(key1, key2, (size_t)key_sz1);
 }
 
 int hash_int_each(void* ud, int key, void* value)
@@ -412,7 +412,7 @@ void test_hash_uint64()
     {
         fhash* phash = fhash_u64_create(0, FHASH_MASK_NONE);
 
-        int key = 10;
+        uint64_t key = 10;
         char value[] = "test_value";
         fhash_u64_set(phash, key, value);
         char* ret = fhash_u64_get(phash, key);
@@ -427,19 +427,19 @@ void test_hash_uint64()
     {
         fhash* phash = fhash_u64_create(0, FHASH_MASK_NONE);
 
-        int key = 10;
+        uint64_t key = 10;
         char value[] = "test_value";
-        int key2 = 11;
+        uint64_t key2 = 11;
         char value2[] = "test_value2";
-        int key3 = 12;
+        uint64_t key3 = 12;
         char value3[] = "test_value3";
-        int key4 = 13;
+        uint64_t key4 = 13;
         char value4[] = "test_value4";
-        int key5 = 14;
+        uint64_t key5 = 14;
         char value5[] = "test_value5";
-        int key6 = 15;
+        uint64_t key6 = 15;
         char value6[] = "test_value6";
-        int key7 = 16;
+        uint64_t key7 = 16;
 
         fhash_u64_set(phash, key, value);
         fhash_u64_set(phash, key2, value2);
@@ -508,17 +508,17 @@ void test_hash_uint64()
     {
         fhash* phash = fhash_u64_create(0, FHASH_MASK_NONE);
 
-        int key = 10;
+        uint64_t key = 10;
         char value[] = "test_value";
-        int key2 = 11;
+        uint64_t key2 = 11;
         char value2[] = "test_value2";
-        int key3 = 12;
+        uint64_t key3 = 12;
         char value3[] = "test_value3";
-        int key4 = 13;
+        uint64_t key4 = 13;
         char value4[] = "test_value4";
-        int key5 = 14;
+        uint64_t key5 = 14;
         char value5[] = "test_value5";
-        int key6 = 15;
+        uint64_t key6 = 15;
         char value6[] = "test_value6";
 
         fhash_u64_set(phash, key, value);
@@ -548,17 +548,17 @@ void test_hash_uint64()
     {
         fhash* phash = fhash_u64_create(0, FHASH_MASK_NONE);
 
-        int key = 10;
+        uint64_t key = 10;
         char value[] = "test_value";
-        int key2 = 11;
+        uint64_t key2 = 11;
         char value2[] = "test_value2";
-        int key3 = 12;
+        uint64_t key3 = 12;
         char value3[] = "test_value3";
-        int key4 = 13;
+        uint64_t key4 = 13;
         char value4[] = "test_value4";
-        int key5 = 14;
+        uint64_t key5 = 14;
         char value5[] = "test_value5";
-        int key6 = 15;
+        uint64_t key6 = 15;
         char value6[] = "test_value6";
 
         fhash_u64_set(phash, key, value);
@@ -852,7 +852,8 @@ void test_hash_core()
 
         char key[] = "test_key";
         char value[] = "test_value";
-        fhash_set(phash, key, strlen(key), value, strlen(value));
+        fhash_set(phash, key, (key_sz_t)strlen(key),
+                  value, (value_sz_t)strlen(value));
         FTU_ASSERT(phash->temporary == NULL);
         FTU_ASSERT(phash->iter_refs == 0);
         FTU_ASSERT(phash->current->index_size == 10);
@@ -860,7 +861,7 @@ void test_hash_core()
         FTU_ASSERT(phash->current->slots_used == 1);
 
         value_sz_t ret_value_sz = 0;
-        char* ret_value = (char*)fhash_get(phash, key, strlen(key),
+        char* ret_value = (char*)fhash_get(phash, key, (key_sz_t)strlen(key),
                                            &ret_value_sz);
         FTU_ASSERT(0 == strcmp(ret_value, value));
         FTU_ASSERT((size_t)ret_value_sz == strlen(value));
@@ -871,7 +872,7 @@ void test_hash_core()
         FTU_ASSERT(phash->current->index_used == 1);
         FTU_ASSERT(phash->current->slots_used == 1);
 
-        fhash_del(phash, key, strlen(key));
+        fhash_del(phash, key, (key_sz_t)strlen(key));
         FTU_ASSERT(phash->temporary == NULL);
         FTU_ASSERT(phash->iter_refs == 0);
         FTU_ASSERT(phash->current->index_size == 10);
@@ -890,7 +891,8 @@ void test_hash_core()
 
         char key[] = "test_key";
         char value[] = "test_value";
-        fhash_set(phash, key, strlen(key), value, strlen(value));
+        fhash_set(phash, key, (key_sz_t)strlen(key),
+                  value, (value_sz_t)strlen(value));
         FTU_ASSERT(phash->temporary == NULL);
         FTU_ASSERT(phash->iter_refs == 0);
         FTU_ASSERT(phash->current->index_size == 10);
@@ -898,7 +900,7 @@ void test_hash_core()
         FTU_ASSERT(phash->current->slots_used == 1);
 
         value_sz_t ret_value_sz = 0;
-        char* ret_value = (char*)fhash_get(phash, key, strlen(key),
+        char* ret_value = (char*)fhash_get(phash, key, (key_sz_t)strlen(key),
                                            &ret_value_sz);
         FTU_ASSERT(0 == strcmp(ret_value, value));
         FTU_ASSERT((size_t)ret_value_sz == strlen(value));
@@ -911,7 +913,7 @@ void test_hash_core()
 
         char data[1024];
         memset(data, 0, 1024);
-        char* ret_value1 = fhash_fetch_and_del(phash, key, strlen(key),
+        char* ret_value1 = fhash_fetch_and_del(phash, key, (key_sz_t)strlen(key),
                                                data, 1024);
         FTU_ASSERT(phash->temporary == NULL);
         FTU_ASSERT(phash->iter_refs == 0);
@@ -938,7 +940,8 @@ void test_hash_core()
         // set items
         char key1[] = "test_key1";
         char value1[] = "test_value1";
-        fhash_set(phash, key1, strlen(key1), value1, strlen(value1));
+        fhash_set(phash, key1, (key_sz_t)strlen(key1),
+                  value1, (value_sz_t)strlen(value1));
         FTU_ASSERT(phash->temporary == NULL);
         FTU_ASSERT(phash->iter_refs == 0);
         FTU_ASSERT(phash->current->index_size == 1);
@@ -956,7 +959,8 @@ void test_hash_core()
 
         char key2[] = "test_key2";
         char value2[] = "test_value2";
-        fhash_set(phash, key2, strlen(key2), value2, strlen(value2));
+        fhash_set(phash, key2, (key_sz_t)strlen(key2),
+                  value2, (value_sz_t)strlen(value2));
         FTU_ASSERT(phash->temporary == NULL);
         FTU_ASSERT(phash->iter_refs == 0);
         FTU_ASSERT(phash->current->index_size == 1);
@@ -972,7 +976,8 @@ void test_hash_core()
 
         char key3[] = "test_key3";
         char value3[] = "test_value3";
-        fhash_set(phash, key3, strlen(key3), value3, strlen(value3));
+        fhash_set(phash, key3, (key_sz_t)strlen(key3),
+                  value3, (value_sz_t)strlen(value3));
         FTU_ASSERT(phash->temporary == NULL);
         FTU_ASSERT(phash->iter_refs == 0);
         FTU_ASSERT(phash->current->index_size == 1);
@@ -988,7 +993,8 @@ void test_hash_core()
 
         char key4[] = "test_key4";
         char value4[] = "test_value4";
-        fhash_set(phash, key4, strlen(key4), value4, strlen(value4));
+        fhash_set(phash, key4, (key_sz_t)strlen(key4),
+                  value4, (value_sz_t)strlen(value4));
         FTU_ASSERT(phash->temporary == NULL);
         FTU_ASSERT(phash->iter_refs == 0);
         FTU_ASSERT(phash->current->index_size == 1);
@@ -1005,7 +1011,7 @@ void test_hash_core()
         // get items
         {
             value_sz_t ret_value_sz = 0;
-            char* ret_value = (char*)fhash_get(phash, key1, strlen(key1),
+            char* ret_value = (char*)fhash_get(phash, key1, (key_sz_t)strlen(key1),
                                                &ret_value_sz);
             FTU_ASSERT(0 == strcmp(ret_value, value1));
             FTU_ASSERT((size_t)ret_value_sz == strlen(value1));
@@ -1013,7 +1019,7 @@ void test_hash_core()
 
         {
             value_sz_t ret_value_sz = 0;
-            char* ret_value = (char*)fhash_get(phash, key2, strlen(key2),
+            char* ret_value = (char*)fhash_get(phash, key2, (key_sz_t)strlen(key2),
                                                &ret_value_sz);
             FTU_ASSERT(0 == strcmp(ret_value, value2));
             FTU_ASSERT((size_t)ret_value_sz == strlen(value2));
@@ -1021,7 +1027,7 @@ void test_hash_core()
 
         {
             value_sz_t ret_value_sz = 0;
-            char* ret_value = (char*)fhash_get(phash, key3, strlen(key3),
+            char* ret_value = (char*)fhash_get(phash, key3, (key_sz_t)strlen(key3),
                                                &ret_value_sz);
             FTU_ASSERT(0 == strcmp(ret_value, value3));
             FTU_ASSERT((size_t)ret_value_sz == strlen(value3));
@@ -1029,7 +1035,7 @@ void test_hash_core()
 
         {
             value_sz_t ret_value_sz = 0;
-            char* ret_value = (char*)fhash_get(phash, key4, strlen(key4),
+            char* ret_value = (char*)fhash_get(phash, key4, (key_sz_t)strlen(key4),
                                                &ret_value_sz);
             FTU_ASSERT(0 == strcmp(ret_value, value4));
             FTU_ASSERT((size_t)ret_value_sz == strlen(value4));
@@ -1043,10 +1049,10 @@ void test_hash_core()
 
         // delete items
         {
-            fhash_del(phash, key1, strlen(key1));
-            fhash_del(phash, key2, strlen(key2));
-            fhash_del(phash, key3, strlen(key3));
-            fhash_del(phash, key4, strlen(key4));
+            fhash_del(phash, key1, (key_sz_t)strlen(key1));
+            fhash_del(phash, key2, (key_sz_t)strlen(key2));
+            fhash_del(phash, key3, (key_sz_t)strlen(key3));
+            fhash_del(phash, key4, (key_sz_t)strlen(key4));
             FTU_ASSERT(phash->temporary == NULL);
             FTU_ASSERT(phash->iter_refs == 0);
             FTU_ASSERT(phash->current->index_size == 1);
@@ -1072,10 +1078,10 @@ void test_hash_core()
         char value2[] = "test_value2";
         char value3[] = "test_value3";
         char value4[] = "test_value4";
-        fhash_set(phash, key1, strlen(key1), value1, strlen(value1));
-        fhash_set(phash, key2, strlen(key2), value2, strlen(value2));
-        fhash_set(phash, key3, strlen(key3), value3, strlen(value3));
-        fhash_set(phash, key4, strlen(key4), value4, strlen(value4));
+        fhash_set(phash, key1, (key_sz_t)strlen(key1), value1, (value_sz_t)strlen(value1));
+        fhash_set(phash, key2, (key_sz_t)strlen(key2), value2, (value_sz_t)strlen(value2));
+        fhash_set(phash, key3, (key_sz_t)strlen(key3), value3, (value_sz_t)strlen(value3));
+        fhash_set(phash, key4, (key_sz_t)strlen(key4), value4, (value_sz_t)strlen(value4));
 
         fhash_iter iter = fhash_iter_new(phash);
         FTU_ASSERT(phash->iter_refs == 1);
@@ -1141,8 +1147,8 @@ void test_hash_core()
         char value1[] = "test_value1";
         char value2[] = "test_value2";
 
-        fhash_set(phash, key1, strlen(key1), value1, strlen(value1));
-        fhash_set(phash, key2, strlen(key2), value2, strlen(value2));
+        fhash_set(phash, key1, (key_sz_t)strlen(key1), value1, (value_sz_t)strlen(value1));
+        fhash_set(phash, key2, (key_sz_t)strlen(key2), value2, (value_sz_t)strlen(value2));
 
         FTU_ASSERT(phash->iter_refs == 0);
         FTU_ASSERT(phash->current->index_size == 10);
@@ -1166,25 +1172,25 @@ void test_hash_core()
             if (strcmp(data, value1) == 0) {
                 key1_exist = 1;
 
-                fhash_set(phash, key3, strlen(key3), value3, strlen(value3));
+                fhash_set(phash, key3, (key_sz_t)strlen(key3), value3, (value_sz_t)strlen(value3));
                 FTU_ASSERT(phash->current->index_size == 10);
                 FTU_ASSERT(phash->current->index_used == 2);
                 FTU_ASSERT(phash->current->slots_used == 2);
 
                 value_sz_t value_sz = 0;
-                char* retv = fhash_get(phash, key3, strlen(key3), &value_sz);
+                char* retv = fhash_get(phash, key3, (key_sz_t)strlen(key3), &value_sz);
                 FTU_ASSERT(strcmp(retv, value3) == 0);
                 FTU_ASSERT(value_sz == (value_sz_t)strlen(value3));
             } else if (strcmp(data, value2) == 0) {
                 key2_exist = 1;
 
-                fhash_set(phash, key4, strlen(key4), value4, strlen(value4));
+                fhash_set(phash, key4, (key_sz_t)strlen(key4), value4, (value_sz_t)strlen(value4));
                 FTU_ASSERT(phash->current->index_size == 10);
                 FTU_ASSERT(phash->current->index_used == 2);
                 FTU_ASSERT(phash->current->slots_used == 2);
 
                 value_sz_t value_sz = 0;
-                char* retv = fhash_get(phash, key4, strlen(key4), &value_sz);
+                char* retv = fhash_get(phash, key4, (key_sz_t)strlen(key4), &value_sz);
                 FTU_ASSERT(strcmp(retv, value4) == 0);
                 FTU_ASSERT(value_sz == (value_sz_t)strlen(value4));
             } else {
@@ -1222,8 +1228,8 @@ void test_hash_core()
         char value1[] = "test_value1";
         char value2[] = "test_value2";
 
-        fhash_set(phash, key1, strlen(key1), value1, strlen(value1));
-        fhash_set(phash, key2, strlen(key2), value2, strlen(value2));
+        fhash_set(phash, key1, (key_sz_t)strlen(key1), value1, (value_sz_t)strlen(value1));
+        fhash_set(phash, key2, (key_sz_t)strlen(key2), value2, (value_sz_t)strlen(value2));
 
         FTU_ASSERT(phash->iter_refs == 0);
         FTU_ASSERT(phash->current->index_size == 10);
@@ -1245,14 +1251,16 @@ void test_hash_core()
             if (strcmp(data, value1) == 0) {
                 key1_exist = 1;
 
-                fhash_set(phash, key1, strlen(key1), value3, strlen(value3));
+                fhash_set(phash, key1, (key_sz_t)strlen(key1),
+                          value3, (value_sz_t)strlen(value3));
                 FTU_ASSERT(phash->current->index_size == 10);
                 FTU_ASSERT(phash->current->index_used == 2);
                 FTU_ASSERT(phash->current->slots_used == 2);
             } else if (strcmp(data, value2) == 0) {
                 key2_exist = 1;
 
-                fhash_set(phash, key2, strlen(key2), value4, strlen(value4));
+                fhash_set(phash, key2, (key_sz_t)strlen(key2),
+                          value4, (value_sz_t)strlen(value4));
                 FTU_ASSERT(phash->current->index_size == 10);
                 FTU_ASSERT(phash->current->index_used == 2);
                 FTU_ASSERT(phash->current->slots_used == 2);
@@ -1271,13 +1279,13 @@ void test_hash_core()
 
         // check the new values have already be replaced
         value_sz_t new_value1sz = 0;
-        char* new_value1 = (char*)fhash_get(phash, key1, strlen(key1),
+        char* new_value1 = (char*)fhash_get(phash, key1, (key_sz_t)strlen(key1),
                                             &new_value1sz);
         FTU_ASSERT(0 == strcmp(new_value1, value3));
         FTU_ASSERT((value_sz_t)strlen(new_value1) == new_value1sz);
 
         value_sz_t new_value2sz = 0;
-        char* new_value2 = (char*)fhash_get(phash, key2, strlen(key2),
+        char* new_value2 = (char*)fhash_get(phash, key2, (key_sz_t)strlen(key2),
                                             &new_value2sz);
         FTU_ASSERT(0 == strcmp(new_value2, value4));
         FTU_ASSERT((value_sz_t)strlen(new_value2) == new_value2sz);
@@ -1304,8 +1312,8 @@ void test_hash_core()
         char value1[] = "test_value1";
         char value2[] = "test_value2";
 
-        fhash_set(phash, key1, strlen(key1), value1, strlen(value1));
-        fhash_set(phash, key2, strlen(key2), value2, strlen(value2));
+        fhash_set(phash, key1, (key_sz_t)strlen(key1), value1, (value_sz_t)strlen(value1));
+        fhash_set(phash, key2, (key_sz_t)strlen(key2), value2, (value_sz_t)strlen(value2));
 
         FTU_ASSERT(phash->iter_refs == 0);
         FTU_ASSERT(phash->current->index_size == 10);
@@ -1324,12 +1332,12 @@ void test_hash_core()
             if (strcmp(data, value1) == 0) {
                 key1_exist = 1;
 
-                fhash_del(phash, key1, strlen(key1));
+                fhash_del(phash, key1, (key_sz_t)strlen(key1));
                 FTU_ASSERT(phash->current->index_size == 10);
             } else if (strcmp(data, value2) == 0) {
                 key2_exist = 1;
 
-                fhash_del(phash, key2, strlen(key2));
+                fhash_del(phash, key2, (key_sz_t)strlen(key2));
                 FTU_ASSERT(phash->current->index_size == 10);
             } else {
                 // shouldn't reach here
@@ -1348,13 +1356,13 @@ void test_hash_core()
 
         // check the new values have already be replaced
         value_sz_t new_value1sz = 0;
-        char* new_value1 = (char*)fhash_get(phash, key1, strlen(key1),
+        char* new_value1 = (char*)fhash_get(phash, key1, (key_sz_t)strlen(key1),
                                             &new_value1sz);
         FTU_ASSERT(new_value1 == NULL);
         FTU_ASSERT(new_value1sz == 0);
 
         value_sz_t new_value2sz = 0;
-        char* new_value2 = (char*)fhash_get(phash, key2, strlen(key2),
+        char* new_value2 = (char*)fhash_get(phash, key2, (key_sz_t)strlen(key2),
                                             &new_value2sz);
         FTU_ASSERT(new_value2 == NULL);
         FTU_ASSERT(new_value2sz == 0);
@@ -1384,10 +1392,10 @@ void test_hash_core()
         char value2[] = "test_value2";
         char value3[] = "test_value3";
         char value4[] = "test_value4";
-        fhash_set(phash, key1, strlen(key1), value1, strlen(value1));
-        fhash_set(phash, key2, strlen(key2), value2, strlen(value2));
-        fhash_set(phash, key3, strlen(key3), value3, strlen(value3));
-        fhash_set(phash, key4, strlen(key4), value4, strlen(value4));
+        fhash_set(phash, key1, (key_sz_t)strlen(key1), value1, (value_sz_t)strlen(value1));
+        fhash_set(phash, key2, (key_sz_t)strlen(key2), value2, (value_sz_t)strlen(value2));
+        fhash_set(phash, key3, (key_sz_t)strlen(key3), value3, (value_sz_t)strlen(value3));
+        fhash_set(phash, key4, (key_sz_t)strlen(key4), value4, (value_sz_t)strlen(value4));
 
         int ret = fhash_rehash(phash, 20);
         FTU_ASSERT(ret == 0);
@@ -1399,22 +1407,22 @@ void test_hash_core()
         FTU_ASSERT(phash->delayed_actions.used == 0);
 
         value_sz_t value_sz = 0;
-        char* data = fhash_get(phash, key1, strlen(key1), &value_sz);
+        char* data = fhash_get(phash, key1, (key_sz_t)strlen(key1), &value_sz);
         FTU_ASSERT((size_t)value_sz == strlen(value1));
         FTU_ASSERT(strcmp(data, value1) == 0);
 
         value_sz = 0;
-        data = fhash_get(phash, key2, strlen(key2), &value_sz);
+        data = fhash_get(phash, key2, (key_sz_t)strlen(key2), &value_sz);
         FTU_ASSERT((size_t)value_sz == strlen(value2));
         FTU_ASSERT(strcmp(data, value2) == 0);
 
         value_sz = 0;
-        data = fhash_get(phash, key3, strlen(key3), &value_sz);
+        data = fhash_get(phash, key3, (key_sz_t)strlen(key3), &value_sz);
         FTU_ASSERT((size_t)value_sz == strlen(value3));
         FTU_ASSERT(strcmp(data, value3) == 0);
 
         value_sz = 0;
-        data = fhash_get(phash, key4, strlen(key4), &value_sz);
+        data = fhash_get(phash, key4, (key_sz_t)strlen(key4), &value_sz);
         FTU_ASSERT((size_t)value_sz == strlen(value4));
         FTU_ASSERT(strcmp(data, value4) == 0);
 
@@ -1436,10 +1444,10 @@ void test_hash_core()
         char value2[] = "test_value2";
         char value3[] = "test_value3";
         char value4[] = "test_value4";
-        fhash_set(phash, key1, strlen(key1), value1, strlen(value1));
-        fhash_set(phash, key2, strlen(key2), value2, strlen(value2));
-        fhash_set(phash, key3, strlen(key3), value3, strlen(value3));
-        fhash_set(phash, key4, strlen(key4), value4, strlen(value4));
+        fhash_set(phash, key1, (key_sz_t)strlen(key1), value1, (value_sz_t)strlen(value1));
+        fhash_set(phash, key2, (key_sz_t)strlen(key2), value2, (value_sz_t)strlen(value2));
+        fhash_set(phash, key3, (key_sz_t)strlen(key3), value3, (value_sz_t)strlen(value3));
+        fhash_set(phash, key4, (key_sz_t)strlen(key4), value4, (value_sz_t)strlen(value4));
 
         FTU_ASSERT(phash->temporary == NULL);
         FTU_ASSERT(phash->current->index_size == 1);
@@ -1450,39 +1458,39 @@ void test_hash_core()
 
         char key5[] = "test_value5";
         char value5[] = "test_value5";
-        fhash_set(phash, key5, strlen(key5), value5, strlen(value5));
+        fhash_set(phash, key5, (key_sz_t)strlen(key5), value5, (value_sz_t)strlen(value5));
         FTU_ASSERT(phash->temporary == NULL);
         FTU_ASSERT(phash->current->index_size == 2);
         FTU_ASSERT(phash->current->index_used == 2);
         FTU_ASSERT(phash->current->slots_used == 5);
         FTU_ASSERT(phash->delayed_actions.size == 0);
         FTU_ASSERT(phash->delayed_actions.used == 0);
-        FTU_ASSERT(phash->mask.rehashing == 0);
-        FTU_ASSERT(phash->mask.performing == 0);
-        FTU_ASSERT(phash->mask.auto_rehash == 1);
+        FTU_ASSERT(phash->mask.flags.rehashing == 0);
+        FTU_ASSERT(phash->mask.flags.performing == 0);
+        FTU_ASSERT(phash->mask.flags.auto_rehash == 1);
 
         value_sz_t value_sz = 0;
-        char* data = fhash_get(phash, key1, strlen(key1), &value_sz);
+        char* data = fhash_get(phash, key1, (key_sz_t)strlen(key1), &value_sz);
         FTU_ASSERT((size_t)value_sz == strlen(value1));
         FTU_ASSERT(strcmp(data, value1) == 0);
 
         value_sz = 0;
-        data = fhash_get(phash, key2, strlen(key2), &value_sz);
+        data = fhash_get(phash, key2, (key_sz_t)strlen(key2), &value_sz);
         FTU_ASSERT((size_t)value_sz == strlen(value2));
         FTU_ASSERT(strcmp(data, value2) == 0);
 
         value_sz = 0;
-        data = fhash_get(phash, key3, strlen(key3), &value_sz);
+        data = fhash_get(phash, key3, (key_sz_t)strlen(key3), &value_sz);
         FTU_ASSERT((size_t)value_sz == strlen(value3));
         FTU_ASSERT(strcmp(data, value3) == 0);
 
         value_sz = 0;
-        data = fhash_get(phash, key4, strlen(key4), &value_sz);
+        data = fhash_get(phash, key4, (key_sz_t)strlen(key4), &value_sz);
         FTU_ASSERT((size_t)value_sz == strlen(value4));
         FTU_ASSERT(strcmp(data, value4) == 0);
 
         value_sz = 0;
-        data = fhash_get(phash, key5, strlen(key5), &value_sz);
+        data = fhash_get(phash, key5, (key_sz_t)strlen(key5), &value_sz);
         FTU_ASSERT((size_t)value_sz == strlen(value5));
         FTU_ASSERT(strcmp(data, value5) == 0);
 
@@ -1504,10 +1512,10 @@ void test_hash_core()
         char value2[] = "test_value2";
         char value3[] = "test_value3";
         char value4[] = "test_value4";
-        fhash_set(phash, key1, strlen(key1), value1, strlen(value1));
-        fhash_set(phash, key2, strlen(key2), value2, strlen(value2));
-        fhash_set(phash, key3, strlen(key3), value3, strlen(value3));
-        fhash_set(phash, key4, strlen(key4), value4, strlen(value4));
+        fhash_set(phash, key1, (key_sz_t)strlen(key1), value1, (value_sz_t)strlen(value1));
+        fhash_set(phash, key2, (key_sz_t)strlen(key2), value2, (value_sz_t)strlen(value2));
+        fhash_set(phash, key3, (key_sz_t)strlen(key3), value3, (value_sz_t)strlen(value3));
+        fhash_set(phash, key4, (key_sz_t)strlen(key4), value4, (value_sz_t)strlen(value4));
 
         fhash_iter iter = fhash_iter_new(phash);
         FTU_ASSERT(phash->iter_refs == 1);
@@ -1572,8 +1580,8 @@ void test_hash_core()
         FTU_ASSERT(phash->current->index_size == 10);
         FTU_ASSERT(phash->current->index_used == 4);
         FTU_ASSERT(phash->current->slots_used == 4);
-        FTU_ASSERT(phash->mask.rehashing == 0);
-        FTU_ASSERT(phash->mask.performing == 0);
+        FTU_ASSERT(phash->mask.flags.rehashing == 0);
+        FTU_ASSERT(phash->mask.flags.performing == 0);
 
         fhash_delete(phash);
     }
@@ -1587,7 +1595,7 @@ void test_hash_core()
 
         char key[] = "test_key";
         char value[] = "test_value";
-        fhash_set(phash, key, strlen(key), value, strlen(value));
+        fhash_set(phash, key, (key_sz_t)strlen(key), value, (value_sz_t)strlen(value));
         FTU_ASSERT(phash->temporary == NULL);
         FTU_ASSERT(phash->iter_refs == 0);
         FTU_ASSERT(phash->current->index_size == 10);
@@ -1595,7 +1603,7 @@ void test_hash_core()
         FTU_ASSERT(phash->current->slots_used == 1);
 
         value_sz_t ret_value_sz = 0;
-        char* ret_value = (char*)fhash_get(phash, key, strlen(key),
+        char* ret_value = (char*)fhash_get(phash, key, (key_sz_t)strlen(key),
                                            &ret_value_sz);
         FTU_ASSERT(0 == strcmp(ret_value, value));
         FTU_ASSERT((size_t)ret_value_sz == strlen(value));
@@ -1607,7 +1615,7 @@ void test_hash_core()
         FTU_ASSERT(phash->current->slots_used == 1);
 
         char value2[] = "test_value2";
-        fhash_set(phash, key, strlen(key), value2, strlen(value2));
+        fhash_set(phash, key, (key_sz_t)strlen(key), value2, (value_sz_t)strlen(value2));
         FTU_ASSERT(phash->temporary == NULL);
         FTU_ASSERT(phash->iter_refs == 0);
         FTU_ASSERT(phash->current->index_size == 10);
@@ -1615,7 +1623,7 @@ void test_hash_core()
         FTU_ASSERT(phash->current->slots_used == 1);
 
         value_sz_t ret_value_sz2 = 0;
-        char* ret_value2 = (char*)fhash_get(phash, key, strlen(key),
+        char* ret_value2 = (char*)fhash_get(phash, key, (key_sz_t)strlen(key),
                                            &ret_value_sz2);
         FTU_ASSERT(0 == strcmp(ret_value2, value2));
         FTU_ASSERT((size_t)ret_value_sz2 == strlen(value2));
@@ -1632,7 +1640,7 @@ void test_hash_core()
 
         char key[] = "";
         char value[] = "test_value";
-        fhash_set(phash, key, strlen(key), value, strlen(value));
+        fhash_set(phash, key, (key_sz_t)strlen(key), value, (value_sz_t)strlen(value));
         FTU_ASSERT(phash->temporary == NULL);
         FTU_ASSERT(phash->iter_refs == 0);
         FTU_ASSERT(phash->current->index_size == 10);
@@ -1640,7 +1648,7 @@ void test_hash_core()
         FTU_ASSERT(phash->current->slots_used == 0);
 
         value_sz_t ret_value_sz = 0;
-        char* ret_value = (char*)fhash_get(phash, key, strlen(key),
+        char* ret_value = (char*)fhash_get(phash, key, (key_sz_t)strlen(key),
                                            &ret_value_sz);
         FTU_ASSERT(ret_value == NULL);
         FTU_ASSERT(ret_value_sz == 0);
@@ -1653,7 +1661,7 @@ void test_hash_core()
 
         char key2[] = "test_key2";
         char value2[] = "";
-        fhash_set(phash, key2, strlen(key2), value2, strlen(value2));
+        fhash_set(phash, key2, (key_sz_t)strlen(key2), value2, (value_sz_t)strlen(value2));
         FTU_ASSERT(phash->temporary == NULL);
         FTU_ASSERT(phash->iter_refs == 0);
         FTU_ASSERT(phash->current->index_size == 10);
@@ -1661,7 +1669,7 @@ void test_hash_core()
         FTU_ASSERT(phash->current->slots_used == 0);
 
         value_sz_t ret_value_sz2 = 0;
-        char* ret_value2 = (char*)fhash_get(phash, key, strlen(key),
+        char* ret_value2 = (char*)fhash_get(phash, key, (key_sz_t)strlen(key),
                                            &ret_value_sz2);
         FTU_ASSERT(ret_value2 == NULL);
         FTU_ASSERT(ret_value_sz2 == 0);
@@ -1678,7 +1686,7 @@ void test_hash_core()
 
         char key[] = "test_key";
         char value[] = "test_value";
-        fhash_set(phash, key, strlen(key), value, strlen(value));
+        fhash_set(phash, key, (key_sz_t)strlen(key), value, (value_sz_t)strlen(value));
         FTU_ASSERT(phash->temporary == NULL);
         FTU_ASSERT(phash->iter_refs == 0);
         FTU_ASSERT(phash->current->index_size == 10);
@@ -1686,7 +1694,7 @@ void test_hash_core()
         FTU_ASSERT(phash->current->slots_used == 1);
 
         value_sz_t ret_value_sz = 0;
-        char* ret_value = (char*)fhash_get(phash, key, strlen(key),
+        char* ret_value = (char*)fhash_get(phash, key, (key_sz_t)strlen(key),
                                            &ret_value_sz);
         FTU_ASSERT(strcmp(ret_value, value) == 0);
         FTU_ASSERT((size_t)ret_value_sz == strlen(value));
@@ -1698,7 +1706,7 @@ void test_hash_core()
         FTU_ASSERT(phash->current->slots_used == 1);
 
         char key2[] = "";
-        fhash_del(phash, key2, strlen(key2));
+        fhash_del(phash, key2, (key_sz_t)strlen(key2));
         FTU_ASSERT(phash->temporary == NULL);
         FTU_ASSERT(phash->iter_refs == 0);
         FTU_ASSERT(phash->current->index_size == 10);
@@ -1717,7 +1725,7 @@ void test_hash_core()
 
         char key[] = "test_key";
         char value[] = "test_value";
-        fhash_set(phash, key, strlen(key), value, strlen(value));
+        fhash_set(phash, key, (key_sz_t)strlen(key), value, (value_sz_t)strlen(value));
         FTU_ASSERT(phash->temporary == NULL);
         FTU_ASSERT(phash->iter_refs == 0);
         FTU_ASSERT(phash->current->index_size == 10);
@@ -1725,7 +1733,7 @@ void test_hash_core()
         FTU_ASSERT(phash->current->slots_used == 1);
 
         value_sz_t ret_value_sz = 0;
-        char* ret_value = (char*)fhash_get(phash, key, strlen(key),
+        char* ret_value = (char*)fhash_get(phash, key, (key_sz_t)strlen(key),
                                            &ret_value_sz);
         FTU_ASSERT(strcmp(ret_value, value) == 0);
         FTU_ASSERT((size_t)ret_value_sz == strlen(value));
@@ -1737,7 +1745,7 @@ void test_hash_core()
         FTU_ASSERT(phash->current->slots_used == 1);
 
         char key2[] = "test_key2";
-        fhash_del(phash, key2, strlen(key2));
+        fhash_del(phash, key2, (key_sz_t)strlen(key2));
         FTU_ASSERT(phash->temporary == NULL);
         FTU_ASSERT(phash->iter_refs == 0);
         FTU_ASSERT(phash->current->index_size == 10);
@@ -1756,7 +1764,7 @@ void test_hash_core()
 
         char key[] = "test_key";
         char value[] = "test_value";
-        fhash_set(phash, key, strlen(key), value, strlen(value));
+        fhash_set(phash, key, (key_sz_t)strlen(key), value, (value_sz_t)strlen(value));
         FTU_ASSERT(phash->temporary == NULL);
         FTU_ASSERT(phash->iter_refs == 0);
         FTU_ASSERT(phash->current->index_size == 10);
@@ -1764,7 +1772,7 @@ void test_hash_core()
         FTU_ASSERT(phash->current->slots_used == 1);
 
         value_sz_t ret_value_sz = 0;
-        char* ret_value = (char*)fhash_get(phash, key, strlen(key),
+        char* ret_value = (char*)fhash_get(phash, key, (key_sz_t)strlen(key),
                                            &ret_value_sz);
         FTU_ASSERT(strcmp(ret_value, value) == 0);
         FTU_ASSERT((size_t)ret_value_sz == strlen(value));
@@ -1777,7 +1785,7 @@ void test_hash_core()
 
         char key2[] = "test_key2";
         value_sz_t new_valuesz = 0;
-        char* data = (char*)fhash_get(phash, key2, strlen(key2), &new_valuesz);
+        char* data = (char*)fhash_get(phash, key2, (key_sz_t)strlen(key2), &new_valuesz);
         FTU_ASSERT(new_valuesz == 0);
         FTU_ASSERT(data == NULL);
 

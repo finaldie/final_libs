@@ -167,7 +167,7 @@ clean-fut:
 .PHONY: clean-fut
 
 # tests
-$(TEST_TARGET): $(TEST_OBJS)
+$(TEST_TARGET): $(TARGET_LIBS) $(TEST_OBJS)
 	$(FL_BIN_LD) -o $@ $^ $(TEST_LIBS)
 
 clean-tests:

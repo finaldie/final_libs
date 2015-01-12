@@ -11,10 +11,10 @@
 void register_module(){
     tu_register_module(test_list,         "for testing flist");
     tu_register_module(test_list_sort,    "for testing flist_sort method");
-    //tu_register_module(test_hash_core,      "for testing fhash_core");
-    //tu_register_module(test_hash_int,       "for testing fhash_int");
-    //tu_register_module(test_hash_uint64,    "for testing fhash_uint64");
-    //tu_register_module(test_hash_str,       "for testing fhash_str");
+    tu_register_module(test_hash_core,      "for testing fhash_core");
+    tu_register_module(test_hash_int,       "for testing fhash_int");
+    tu_register_module(test_hash_uint64,    "for testing fhash_uint64");
+    tu_register_module(test_hash_str,       "for testing fhash_str");
 
     //tu_register_module(test_conf,         "for testing fconf");
     //tu_register_module(test_log,          "for testing log system");
@@ -36,13 +36,9 @@ void register_module(){
 int main(int argc    __attribute__((unused)),
          char** argv __attribute__((unused)))
 {
-    printf("start\n");
     tu_register_init();
-    printf("start 1\n");
     register_module();
-    printf("start 2\n");
     int ret = tu_run_cases();
-    printf("start 3\n");
     exit(ret);
 
     return 0;
