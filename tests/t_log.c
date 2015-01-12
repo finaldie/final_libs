@@ -7,8 +7,8 @@
 #include <unistd.h>
 #include <pthread.h>
 
-#include "flog.h"
-#include "ftu_inc.h"
+#include "flibs/flog.h"
+#include "flibs/ftu_inc.h"
 #include "inc.h"
 
 static flog_file_t* log_handler = NULL;
@@ -22,24 +22,24 @@ void    _test_log()
     flog_write(log_handler, "hello world", 11);
     sleep(2);   // wait for log system
 
-    int fd = open("./logs/test_log", O_RDONLY);
-    FTU_ASSERT_GT_INT(0, fd);
+    int fd = open("./tests/logs/test_log", O_RDONLY);
+    FTU_ASSERT(0 < fd);
 
     char assert_info[100];
     memset(assert_info, 0, 100);
-    int bytes_read = read(fd, assert_info, 99);
-    FTU_ASSERT_GT_INT(0, bytes_read);
+    ssize_t bytes_read = read(fd, assert_info, 99);
+    FTU_ASSERT(0 < bytes_read);
 
     printf("read log info:%s\n", assert_info);
     char* ptr = strstr(assert_info, "error log test");
     printf("find ptr=%p\n", ptr);
-    FTU_ASSERT_EXPRESS(ptr!=NULL);
+    FTU_ASSERT(ptr!=NULL);
 
     close(fd);
 }
 
 void    test_log(){
-    log_handler = flog_create("./logs/test_log");
+    log_handler = flog_create("./tests/logs/test_log");
     FTU_ASSERT(log_handler);
     _test_log();
     flog_destroy(log_handler);
@@ -57,19 +57,19 @@ void* _test_async_log(void* arg __attribute__((unused)))
     flog_write(log_handler, "hello world", 11);
     sleep(2);   // wait for log system
 
-    printf("try to open file:%s\n", "./logs/test_async_log");
-    int fd = open("./logs/test_async_log", O_RDONLY);
-    FTU_ASSERT_GT_INT(0, fd);
+    printf("try to open file:%s\n", "./tests/logs/test_async_log");
+    int fd = open("./tests/logs/test_async_log", O_RDONLY);
+    FTU_ASSERT(0 < fd);
 
     char assert_info[100];
     memset(assert_info, 0, 100);
-    int bytes_read = read(fd, assert_info, 99);
-    FTU_ASSERT_GT_INT(0, bytes_read);
+    ssize_t bytes_read = read(fd, assert_info, 99);
+    FTU_ASSERT(0 < bytes_read);
 
     printf("read log info:%s\n", assert_info);
     char* ptr = strstr(assert_info, "debug log test");
     printf("find ptr=%p\n", ptr);
-    FTU_ASSERT_EXPRESS(ptr!=NULL);
+    FTU_ASSERT(ptr!=NULL);
 
     close(fd);
 
@@ -77,7 +77,7 @@ void* _test_async_log(void* arg __attribute__((unused)))
 }
 
 static
-void _test_async_event(FLOG_EVENT event)
+void _test_async_event(flog_event_t event)
 {
     printf("receive log event:%u\n", event);
 
@@ -92,11 +92,11 @@ void test_async_log()
     flog_set_flush_interval(1);
     flog_set_buffer_size(1024 * 1024);
     size_t buffer_size = flog_get_buffer_size();
-    FTU_ASSERT_EXPRESS(buffer_size == (1024*1024));
+    FTU_ASSERT(buffer_size == (1024*1024));
     flog_register_event_callback(_test_async_event);
 
-    log_handler = flog_create("./logs/test_async_log");
-    FTU_ASSERT_EXPRESS(log_handler);
+    log_handler = flog_create("./tests/logs/test_async_log");
+    FTU_ASSERT(log_handler);
 
     pthread_t tid;
     pthread_create(&tid, NULL, _test_async_log, NULL);
@@ -114,13 +114,13 @@ void _test_log_cookie()
     sleep(2);
 
     // open the log file and assert the content
-    printf("try to open file:%s\n", "./logs/test_log_cookie");
-    int fd = open("./logs/test_log_cookie", O_RDONLY);
+    printf("try to open file:%s\n", "./tests/logs/test_log_cookie");
+    int fd = open("./tests/logs/test_log_cookie", O_RDONLY);
     FTU_ASSERT(fd > 0);
 
     char assert_info[100];
     memset(assert_info, 0, 100);
-    int bytes_read = read(fd, assert_info, 99);
+    ssize_t bytes_read = read(fd, assert_info, 99);
     FTU_ASSERT(bytes_read > 0);
 
     printf("read log info:%s\n", assert_info);
@@ -133,7 +133,7 @@ void _test_log_cookie()
 
 void test_log_cookie()
 {
-    log_handler = flog_create("./logs/test_log_cookie");
+    log_handler = flog_create("./tests/logs/test_log_cookie");
     FTU_ASSERT(log_handler);
 
     _test_log_cookie();

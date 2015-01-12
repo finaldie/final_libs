@@ -22,9 +22,11 @@ void register_module(){
     tu_register_module(test_mbuf2,        "for testing mbuf(ring-buffer) of realloc");
 
     tu_register_module(test_conf,         "for testing fconf");
-    //tu_register_module(test_log,          "for testing log system");
-    //tu_register_module(test_async_log,    "for testing async log system");
-    //tu_register_module(test_log_cookie,   "for testing set log cookie");
+
+    tu_register_module(test_log,          "for testing log system");
+    tu_register_module(test_async_log,    "for testing async log system");
+    tu_register_module(test_log_cookie,   "for testing set log cookie");
+
     //tu_register_module(test_timer,        "for testing ftimerfd");
     //tu_register_module(test_fev,          "for testing fev for create register add del methods");
     //tu_register_module(test_fev_listener, "for testing fev listener");
