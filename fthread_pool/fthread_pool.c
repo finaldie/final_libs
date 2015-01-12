@@ -2,10 +2,10 @@
 #include <stdlib.h>
 #include <pthread.h>
 
-#include "flock/flock.h"
-#include "fmbuf/fmbuf.h"
-#include "fhash/fhash.h"
-#include "fthread_pool.h"
+#include "flibs/flock.h"
+#include "flibs/fmbuf.h"
+#include "flibs/fhash.h"
+#include "flibs/fthread_pool.h"
 
 #define TH_QUEUE_BUF_SIZE (1024 * 10 * sizeof(th_msg_t))
 #define TH_POOL_HASH_SIZE 10
@@ -16,10 +16,14 @@ typedef enum {
 } TH_EVENT;
 
 typedef struct {
-    unsigned long tid;
-    cond_var cond;
+    flock_cond_t  cond;
     fmbuf*   pbuf;
     void*    parg;
+    int tid;
+
+#if __WORDSIZE == 64
+    int      padding;
+#endif
 } thread_data;
 
 #pragma pack(4)
@@ -44,7 +48,7 @@ void*    base_work(void* arg)
     th_msg_t msg;
 
 L:
-    cond_wait(&th_data->cond);
+    flock_cond_wait(&th_data->cond);
 
     do {
         int ret = fmbuf_pop(th_data->pbuf, &msg, sizeof(th_msg_t));
@@ -69,18 +73,18 @@ void    fthpool_init(int num)
     if ( num <= 0 ) return;
 
     g_th_pool = fhash_u64_create(TH_POOL_HASH_SIZE, FHASH_MASK_AUTO_REHASH);
-    pth_pool = (thread_data**)malloc( sizeof(thread_data*) * num );
+    pth_pool = (thread_data**)malloc(sizeof(thread_data*) * (size_t)num);
 
     max_num = num;
 }
 
-int     fthpool_add_thread(void* pri_arg)
+int fthpool_add_thread(void* pri_arg)
 {
     thread_data* th_data = malloc(sizeof(thread_data));
     th_data->tid = th_id++;
     th_data->pbuf = fmbuf_create(TH_QUEUE_BUF_SIZE);
     th_data->parg = pri_arg;
-    cond_init(&th_data->cond);
+    flock_cond_init(&th_data->cond);
 
     pthread_t t;
     int rc = pthread_create(&t, 0, base_work, th_data);
@@ -90,7 +94,7 @@ int     fthpool_add_thread(void* pri_arg)
         return -1;
     }
 
-    fhash_u64_set(g_th_pool, th_data->tid, th_data);
+    fhash_int_set(g_th_pool, th_data->tid, th_data);
     pth_pool[curr_num++] = th_data;
 
     return th_data->tid;
@@ -113,7 +117,7 @@ int     fthpool_post_task(fth_task pf, void* arg)
     if ( fmbuf_push(pdata->pbuf, &tmsg, sizeof(th_msg_t)) )
         return 1;
 
-    cond_wakeup(&pdata->cond);
+    flock_cond_signal(&pdata->cond);
 
     return 0;
 }

@@ -27,3 +27,6 @@ FTIME_OBJS = \
 
 FLOCK_OBJS = \
     flock/flock.o
+
+FTHPOOL_OBJS = \
+    fthread_pool/fthread_pool.o

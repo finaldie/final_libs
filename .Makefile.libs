@@ -38,6 +38,11 @@ FLOCK_DEP_LIBS = -pthread
 FLOCK_STATIC_LIB = flock/libflock.a
 FLOCK_DYNAMIC_LIB = flock/libflock.so
 
+# fthread_pool
+FTHPOOL_DEP_LIBS = -pthread
+FTHPOOL_STATIC_LIB = fthread_pool/libfthread_pool.a
+FTHPOOL_DYNAMIC_LIB = fthread_pool/libfthread_pool.so
+
 ################################################################################
 STATIC_LIBS = \
     $(FLIST_STATIC_LIB) \
@@ -47,7 +52,8 @@ STATIC_LIBS = \
     $(FCO_STATIC_LIB) \
     $(FNET_STATIC_LIB) \
     $(FTIME_STATIC_LIB) \
-    $(FLOCK_STATIC_LIB)
+    $(FLOCK_STATIC_LIB) \
+    $(FTHPOOL_STATIC_LIB)
 
 DYNAMIC_LIBS = \
     $(FLIST_DYNAMIC_LIB) \
@@ -57,7 +63,8 @@ DYNAMIC_LIBS = \
     $(FCO_DYNAMIC_LIB) \
     $(FNET_DYNAMIC_LIB) \
     $(FTIME_DYNAMIC_LIB) \
-    $(FLOCK_DYNAMIC_LIB)
+    $(FLOCK_DYNAMIC_LIB) \
+    $(FTHPOOL_DYNAMIC_LIB)
 
 ifeq ($(SHARED), true)
     TARGET_LIBS = $(DYNAMIC_LIBS)

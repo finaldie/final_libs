@@ -78,6 +78,16 @@ $(FLOCK_DYNAMIC_LIB): $(FLOCK_OBJS)
 clean-flock:
 	rm -f $(FLOCK_STATIC_LIB) $(FLOCK_DYNAMIC_LIB) $(FLOCK_OBJS)
 
+# fthread_pool
+$(FTHPOOL_STATIC_LIB): $(FTHPOOL_OBJS)
+	ar -rcs $@ $^
+
+$(FTHPOOL_DYNAMIC_LIB): $(FTHPOOL_OBJS)
+	$(FL_LD) -o $@ $^ $(FTHPOOL_DEP_LIBS)
+
+clean-fthpool:
+	rm -f $(FTHPOOL_STATIC_LIB) $(FTHPOOL_DYNAMIC_LIB) $(FTHPOOL_OBJS)
+
 # all objs
 %.o: %.c
 	$(FL_CC) -c $< -o $@
