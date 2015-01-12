@@ -177,6 +177,7 @@ clean-tests:
 .PHONY: clean-tests
 
 # benchmark
+## bench fhash
 $(BENCH_FHASH_TARGET): $(TARGET_LIBS)
 $(BENCH_FHASH_TARGET): $(BENCH_FHASH_OBJS)
 	$(FL_BIN_LD) -o $@ $(BENCH_FHASH_OBJS) $(BENCH_FHASH_DEP_LIBS)
@@ -191,9 +192,28 @@ bench-fhash:
 clean-bench-fhash:
 	rm -f $(BENCH_FHASH_TARGET) $(BENCH_FHASH_OBJS)
 
-clean-bench: clean-benchmark-fhash
+.PHONY: bench-fhash clean-bench-fhash
 
-.PHONY: bench-fhash clean-bench-fhash clean-bench
+## bench flog
+$(BENCH_FLOG_TARGET): $(TARGET_LIBS)
+$(BENCH_FLOG_TARGET): $(BENCH_FLOG_OBJS)
+	$(FL_BIN_LD) -o $@ $(BENCH_FLOG_OBJS) $(BENCH_FLOG_DEP_LIBS)
+
+bench-flog:
+	@echo "=============== Running benchmark for flog ==============="
+	rm -rf benchmark/flog/logs
+	mkdir -p benchmark/flog/logs
+	./$(BENCH_FLOG_TARGET) 1000000 2 4
+
+clean-bench-flog:
+	rm -rf $(BENCH_FLOG_TARGET) $(BENCH_FLOG_OBJS) benchmark/flog/logs
+
+.PHONY: bench-flog clean-bench-flog
+
+# clean benchmarks
+clean-bench: clean-bench-fhash clean-bench-flog
+
+.PHONY: clean-bench
 
 # all objs
 %.o: %.c

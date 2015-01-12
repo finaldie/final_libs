@@ -10,5 +10,7 @@ types_c.taghl
 *.so
 
 tests/test
-benchmark/fhash/fhash.bm
-benchmark/flog/flog.bm
+tests/logs
+benchmark/fhash/benchmark
+benchmark/flog/benchmark
+benchmark/flog/logs

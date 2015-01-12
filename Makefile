@@ -59,7 +59,7 @@ install:
 
 bench: $(BENCH_TARGETS)
 
-bench-run: bench-fhash
+bench-run: bench-fhash bench-flog
 
 help:
 	@echo "make [CC=gcc] [SHARED=true] [debug=true] [BIT=32] [VERBOSE=true]"

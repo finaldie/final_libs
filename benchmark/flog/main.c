@@ -3,8 +3,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <pthread.h>
-#include "flog/flog.h"
-#include "ftu/ftu_inc.h"
+#include "flibs/flog.h"
+#include "flibs/ftu_inc.h"
 
 // you need change the two marcos as below
 #define MAX_LOG_SIZE             500
@@ -21,7 +21,7 @@ static int error_async_pop_count = 0;
 static int log_truncated_count = 0;
 static int buff_full_count = 0;
 
-static FLOG_MODE log_mode;
+static flog_mode_t log_mode;
 static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
 static
@@ -35,7 +35,7 @@ void init_counters()
 }
 
 static
-void get_log_event(FLOG_EVENT event)
+void get_log_event(flog_event_t event)
 {
     switch (event) {
     case FLOG_EVENT_ERROR_WRITE:
@@ -183,7 +183,7 @@ void do_test(int num, int thread_num)
 static
 void test_single_sync(int num)
 {
-    log_handler = flog_create("sync_single_thread");
+    log_handler = flog_create("benchmark/flog/logs/sync_single_thread.log");
     printf("[SYNC]start single testing...\n");
     log_mode = FLOG_SYNC_MODE;
     do_test(num, 1);
@@ -195,7 +195,7 @@ void test_single_sync(int num)
 static
 void test_multi_sync(int num, int thread_num)
 {
-    log_handler = flog_create("sync_multithread");
+    log_handler = flog_create("benchmark/flog/logs/sync_multithread.log");
     printf("[SYNC]start multip testing ( totally, we start %d threads for testing)...\n", thread_num);
     log_mode = FLOG_SYNC_MODE;
     do_test(num, thread_num);
@@ -207,7 +207,7 @@ void test_multi_sync(int num, int thread_num)
 static
 void test_single_async(int num)
 {
-    log_handler = flog_create("async_single_thread");
+    log_handler = flog_create("benchmark/flog/logs/async_single_thread.log");
     printf("[ASYNC]start single testing...\n");
     log_mode = FLOG_ASYNC_MODE;
     do_test(num, 1);
@@ -219,7 +219,7 @@ void test_single_async(int num)
 static
 void test_multi_async(int num, int thread_num)
 {
-    log_handler = flog_create("async_multithread");
+    log_handler = flog_create("benchmark/flog/logs/async_multithread.log");
     printf("[ASYNC]start multip testing ( totally, we start %d threads for testing)...\n", thread_num);
     log_mode = FLOG_ASYNC_MODE;
     do_test(num, thread_num);

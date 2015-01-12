@@ -1,9 +1,18 @@
+# fhash
 BENCH_FHASH_OBJS = \
     benchmark/fhash/main.o
 
 BENCH_FHASH_DEP_LIBS = -pthread -lftime -lfhash -lrt
 BENCH_FHASH_TARGET = benchmark/fhash/benchmark
 
-BENCH_TARGETS = \
-    $(BENCH_FHASH_TARGET)
+# flog
+BENCH_FLOG_OBJS = \
+    benchmark/flog/main.o
 
+BENCH_FLOG_DEP_LIBS = -pthread -lflog -lfut -lflist -lfmbuf -lfhash
+BENCH_FLOG_TARGET = benchmark/flog/benchmark
+
+# all benchmark targets
+BENCH_TARGETS = \
+    $(BENCH_FHASH_TARGET) \
+    $(BENCH_FLOG_TARGET)
