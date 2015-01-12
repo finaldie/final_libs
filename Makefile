@@ -44,7 +44,7 @@ valgrind-check:
 	@$(MAKE) $(MAKE_FLAGS) -C $(TEST_FOLDER) EXT_FLAGS="$(EXT_FLAGS)" $(ASSEMBLY_LOCAL) || exit "$$?";
 	@$(MAKE) $(MAKE_FLAGS) -C $(TEST_FOLDER) valgrind-check;
 
-clean: clean-flist clean-fcache clean-fhash clean-mbuf
+clean: clean-flist clean-fcache clean-fhash clean-mbuf clean-fco
 	@rm -rf lib
 	@echo "clean complete"
 

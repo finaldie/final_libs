@@ -38,6 +38,16 @@ $(FMBUF_DYNAMIC_LIB): $(FMBUF_OBJS)
 clean-mbuf:
 	rm -f $(FMBUF_STATIS_LIB) $(FMBUF_DYNAMIC_LIB) $(FMBUF_OBJS)
 
+# fco
+$(FCO_STATIS_LIB): $(FCO_OBJS)
+	ar -rcs $@ $^
+
+$(FCO_DYNAMIC_LIB): $(FCO_OBJS)
+	$(FL_LD) -o $@ $^ $(FCO_DEP_LIBS)
+
+clean-fco:
+	rm -f $(FCO_STATIS_LIB) $(FCO_DYNAMIC_LIB) $(FCO_OBJS)
+
 # all objs
 %.o: %.c
 	$(FL_CC) -c $< -o $@

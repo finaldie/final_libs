@@ -15,3 +15,6 @@ FHASH_OBJS = \
 
 FMBUF_OBJS = \
     fmbuf/fmbuf.o
+
+FCO_OBJS = \
+    fco/fco.o

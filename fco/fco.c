@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <errno.h>
 
-#include "fco.h"
+#include "flibs/fco.h"
 
 #define FCO_DEFAULT_STACK_SIZE (1024*1024)
 
@@ -32,7 +32,7 @@ struct _fco {
     struct _fco* prev;
     struct _fco* next;
     int          status;
-    char         stack[0];
+    char         stack[sizeof(int)];
 };
 #pragma pack()
 
@@ -41,7 +41,7 @@ struct _fco_sched {
     volatile void* arg;
     struct _fco*   head;
     struct _fco*   tail;
-    char           plugin_data[0];    // only root used
+    char           plugin_data[sizeof(void*)];    // only root used
 };
 
 fco_sched* _fco_scheduler_create(int is_root)
