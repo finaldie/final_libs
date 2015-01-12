@@ -1,20 +1,3 @@
-/*
- * =============================================================================
- *
- *       Filename:  t_fev.c
- *
- *    Description:  test fev
- *
- *        Version:  1.0
- *        Created:  11/26/2011 12:29:56
- *       Revision:  none
- *       Compiler:  gcc
- *
- *         Author:  finaldie
- *        Company:
- *
- * =============================================================================
- */
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -25,15 +8,15 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "ftu_inc.h"
-#include "fhash.h"
-#include "fev.h"
-#include "fnet_core.h"
-#include "fev_buff.h"
-#include "fev_listener.h"
-#include "fev_conn.h"
-#include "fev_timer.h"
-#include "fev_timer_service.h"
+#include "flibs/ftu_inc.h"
+#include "flibs/fhash.h"
+#include "flibs/fev.h"
+#include "flibs/fnet_core.h"
+#include "flibs/fev_buff.h"
+#include "flibs/fev_listener.h"
+#include "flibs/fev_conn.h"
+#include "flibs/fev_timer.h"
+#include "flibs/fev_timer_service.h"
 
 #include "inc.h"
 
@@ -89,7 +72,7 @@ void test_fev()
     fake_fev_state* fake_fev = (fake_fev_state*)fev;
     FTU_ASSERT_EQUAL_INT(0, fake_fev->fire_num);
 
-    int fd = fnet_create_listen(NULL, 17758, 100, 0);
+    int fd = fnet_listen(NULL, 17758, 100, 0);
     FTU_ASSERT_GREATER_THAN_INT(0, fd);
 
     int ret = fev_reg_event(NULL, fd, 0, NULL, NULL, NULL);
@@ -213,33 +196,32 @@ static void buff_read(fev_state* fev, fev_buff* evbuff, void* arg)
     (void)arg;
     FTU_ASSERT_EXPRESS(fev==g_fev);
 
-    int buff_read_len = fevbuff_get_bufflen(evbuff, FEVBUFF_TYPE_READ);
-    FTU_ASSERT_GREATER_THAN_INT(0, buff_read_len);
+    size_t buff_read_len = fevbuff_get_bufflen(evbuff, FEVBUFF_TYPE_READ);
+    FTU_ASSERT(0 < buff_read_len);
 
-    int buff_read_used = fevbuff_get_usedlen(evbuff, FEVBUFF_TYPE_READ);
-    FTU_ASSERT_EQUAL_INT(0, buff_read_used);   
+    size_t buff_read_used = fevbuff_get_usedlen(evbuff, FEVBUFF_TYPE_READ);
+    FTU_ASSERT(0 == buff_read_used);
 
     char read_buf[20];
     memset(read_buf, 0, 20);
-    int read_size = fevbuff_read(evbuff, read_buf, 20);
+    ssize_t read_size = fevbuff_read(evbuff, read_buf, 20);
     if( read_size > 0 ) {
         buff_read_used = fevbuff_get_usedlen(evbuff, FEVBUFF_TYPE_READ);
-        FTU_ASSERT_EQUAL_INT(buff_read_used, read_size);
-        printf("read size=%d, read_str=%s\n", read_size, read_buf);
+        FTU_ASSERT(buff_read_used == (size_t)read_size);
+        printf("read size=%zu, read_str=%s\n", read_size, read_buf);
 
         char compare_str[20];
         memset(compare_str, 0, 20);
-        snprintf(compare_str, read_size, "hello final");
+        snprintf(compare_str, (size_t)read_size, "hello final");
         FTU_ASSERT_EQUAL_CHAR(compare_str, read_buf);
-        
-        int pop_len = fevbuff_pop(evbuff, read_size);
-        FTU_ASSERT_EQUAL_INT(read_size, pop_len);
+
+        size_t pop_len = fevbuff_pop(evbuff, (size_t)read_size);
+        FTU_ASSERT((size_t)read_size == pop_len);
 
         char* write_str = "hi final";
-        int write_len = fevbuff_write(evbuff, write_str, 9);
-        FTU_ASSERT_EQUAL_INT(9, write_len);
-    }
-    else{
+        ssize_t write_len = fevbuff_write(evbuff, write_str, 9);
+        FTU_ASSERT(9 == write_len);
+    } else {
         //error happened
         printf("error happened haha\n");
     }
@@ -269,17 +251,17 @@ static void fake_accept(fev_state* fev, int fd, void* ud)
     void* test_arg = fevbuff_get_arg(evbuff);
     FTU_ASSERT_EXPRESS(test_arg==NULL);
 
-    int buff_read_len = fevbuff_get_bufflen(evbuff, FEVBUFF_TYPE_READ);
-    FTU_ASSERT_EQUAL_INT((1024*4), buff_read_len);
+    size_t buff_read_len = fevbuff_get_bufflen(evbuff, FEVBUFF_TYPE_READ);
+    FTU_ASSERT((1024*4) == buff_read_len);
 
-    int buff_write_len = fevbuff_get_bufflen(evbuff, FEVBUFF_TYPE_WRITE);
-    FTU_ASSERT_EQUAL_INT((1024*4), buff_write_len);
+    size_t buff_write_len = fevbuff_get_bufflen(evbuff, FEVBUFF_TYPE_WRITE);
+    FTU_ASSERT((1024*4) == buff_write_len);
 
-    int buff_read_used = fevbuff_get_usedlen(evbuff, FEVBUFF_TYPE_READ);
-    FTU_ASSERT_EQUAL_INT(0, buff_read_used);
+    size_t buff_read_used = fevbuff_get_usedlen(evbuff, FEVBUFF_TYPE_READ);
+    FTU_ASSERT(0 == buff_read_used);
 
-    int buff_write_used = fevbuff_get_usedlen(evbuff, FEVBUFF_TYPE_WRITE);
-    FTU_ASSERT_EQUAL_INT(0, buff_write_used);
+    size_t buff_write_used = fevbuff_get_usedlen(evbuff, FEVBUFF_TYPE_WRITE);
+    FTU_ASSERT(0 == buff_write_used);
 }
 
 static void* fake_listener(void* arg)
@@ -317,14 +299,14 @@ void test_fev_buff()
     FTU_ASSERT_GREATER_THAN_INT(0, conn_fd);
 
     char* send_str = "hello final";
-    int send_num = fnet_send_safe(conn_fd, send_str, strlen(send_str)+1);
-    FTU_ASSERT_EQUAL_INT(12, send_num);
+    ssize_t send_num = fnet_send_safe(conn_fd, send_str, strlen(send_str)+1);
+    FTU_ASSERT(12 == send_num);
 
     // recv a string
     char recv_buf[20];
     memset(recv_buf, 0, 20);
-    int recv_size = fnet_recv(conn_fd, recv_buf, 20);
-    FTU_ASSERT_EQUAL_INT(9, recv_size);
+    ssize_t recv_size = fnet_recv(conn_fd, recv_buf, 20);
+    FTU_ASSERT(9 == recv_size);
     printf("main recv str=%s\n", recv_buf);
     close(conn_fd);
 
@@ -335,7 +317,7 @@ void test_fev_buff()
 
     start = 0;  // let listener thread going down
     pthread_join(tid, NULL);
-    
+
     fev_del_listener(g_fev, fli);
     fev_destroy(g_fev);
 }

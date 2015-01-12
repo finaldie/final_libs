@@ -31,11 +31,11 @@ void register_module(){
     tu_register_module(test_timer,        "for testing ftimerfd");
     tu_register_module(test_fco,          "for testing fco create, resume and yield");
 
-    //tu_register_module(test_fev,          "for testing fev for create register add del methods");
-    //tu_register_module(test_fev_listener, "for testing fev listener");
-    //tu_register_module(test_fev_buff,     "for testing fev buff");
-    //tu_register_module(test_fev_conn,     "for testing fev asynchronous connect");
-    //tu_register_module(test_timer_service,"for testing timer service");
+    tu_register_module(test_fev,          "for testing fev for create register add del methods");
+    tu_register_module(test_fev_listener, "for testing fev listener");
+    tu_register_module(test_fev_buff,     "for testing fev buff");
+    tu_register_module(test_fev_conn,     "for testing fev asynchronous connect");
+    tu_register_module(test_timer_service,"for testing timer service");
 }
 
 int main(int argc    __attribute__((unused)),

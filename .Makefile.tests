@@ -9,17 +9,20 @@ TEST_OBJS = \
     tests/t_log.o \
     tests/t_fcache.o \
     tests/t_timer.o \
-    tests/t_fco.o
+    tests/t_fco.o \
+    tests/t_fev.o
 
 TEST_LIBS = \
-    -lflist \
-    -lfhash \
-    -lfmbuf \
-    -lfconf \
+    -lfut \
+    -lfev \
     -lflog \
     -lfcache \
     -lftime \
+    -lfnet \
     -lfco \
-    -lfut \
-    -pthread \
-    -lrt
+    -lfconf \
+    -lflist \
+    -lfhash \
+    -lfmbuf \
+    -lrt \
+    -pthread

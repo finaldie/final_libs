@@ -31,8 +31,6 @@
 #include "flibs/fev.h"
 #include "flibs/fhash.h"
 
-#define FEV_MAX_EVENT_NUM   (1024 * 10)
-
 typedef struct fev_event {
     int         mask;       // READ OR WRITE
     int         fire_idx;   // we set the idx when the event has been disabled

@@ -37,11 +37,13 @@ all: $(TARGET_LIBS)
 
 check: $(TEST_TARGET)
 	@echo "================Running $(BUILD_BIT)bit Unit Test==============";
+	@rm -rf tests/logs
 	@test -d tests/logs || mkdir tests/logs
 	./$(TEST_TARGET)
 
 valgrind-check: $(TEST_TARGET)
 	@echo "==============Running $(BUILD_BIT)bit Valgrind Test============";
+	@rm -rf tests/logs
 	@test -d tests/logs || mkdir tests/logs
 	valgrind --tool=memcheck --leak-check=full --suppressions=./tests/valgrind.suppress --gen-suppressions=all --error-exitcode=1 ./$(TEST_TARGET)
 
