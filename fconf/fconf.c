@@ -1,89 +1,134 @@
 #include <stdio.h>
-#include <string.h>
-#include <unistd.h>
 #include <stdlib.h>
-#include <fcntl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include "fconf.h"
+#include <string.h>
 
-//return    0:normal 1:error
-int     fconf_load2buf(const char* filename, char* buf, size_t len)
+#include "fconf_core.h"
+#include "flibs/fconf.h"
+
+#define CONF_BUFF_LEN (1024 * 1024)
+#define READ_LINE_LEN 1024
+#define READ_WORD_LEN 512
+
+static
+char* trim_left(char* str)
 {
-    int fd, bytes_read = 0;
-
-    if ( (fd = open(filename, O_RDONLY)) == -1 ) {
-        return -1;
+    if (!str) return NULL;
+    if (*str == ' ') {
+        return trim_left(str + 1);
+    } else {
+        return str;
     }
 
-    bytes_read = read(fd, buf, len);
-    if (bytes_read == -1)
-        return -1;
-    else if ( bytes_read > 0 ) {
-        buf[bytes_read] = '\0';
-    }
-
-    return bytes_read;
 }
 
-int     fconf_istoken(const char src, const char cmp)
+static
+char* _trim_right(char* str, char* end) {
+    if (*str == ' ') {
+        *str = '\0';
+
+        if (str == end) {
+            return end;
+        } else {
+            return _trim_right(str - 1, end);
+        }
+    } else {
+        return end;
+    }
+}
+
+static
+char* trim_right(char* str)
 {
-    if ( src == cmp )
-        return 1;
+    if (!str) return NULL;
+
+    size_t len = strlen(str);
+    if (!len) return str;
+
+    return _trim_right(str + len - 1, str);
+}
+
+char* trim(char* str)
+{
+    char* s1 = trim_left(str);
+    return trim_right(s1);
+}
+
+int fconf_readkv(char* line, char** key, char** value)
+{
+    *key = NULL;
+    *value = NULL;
+    size_t lenofline = strlen(line);
+    if ( lenofline == 0 ) {
+        return -1;
+    }
+
+    // find the first '='
+    char* loc = strchr(line, '=');
+    if (!loc) {
+        return -2;
+    }
+
+    // split it into key and value
+    *key = line;
+    *value = loc + 1;
+    *loc = '\0'; // replace '=' with '\0'
+
+    // trim the key and value
+    *key = trim(*key);
+    *value = trim(*value);
+
+    // validate key, if key contain blanks, that's a
+    // invalid key
+    if (strchr(*key, ' ')) {
+        return -3;
+    }
+
     return 0;
 }
 
-int     fconf_istoken_null(const char str)
+int fconf_load(const char* filename, fconf_load_cfg_cb pfunc)
 {
-    return fconf_istoken(str, '\0');
-}
+    int ret = 0;
+    int next = 0;
+    ssize_t buf_size = 0;
+    char  line[READ_LINE_LEN];
+    char* conf_buf = malloc(CONF_BUFF_LEN);
 
-int     fconf_istoken_lf(const char str)
-{
-    return fconf_istoken(str, '\n');
-}
+    buf_size = fconf_load2buf(filename, conf_buf, CONF_BUFF_LEN);
 
-int     fconf_istoken_numsign(const char str)
-{
-    return fconf_istoken(str, '#');
-}
+    // an empty config is a valid config
+    if ( buf_size <= 0 )
+        goto out;
 
-int     fconf_istoken_blank(const char str)
-{
-    return fconf_istoken(str, ' ');
-}
+    next = fconf_readline(conf_buf, next, line);
 
-int     fconf_readline(const char* buf, unsigned int start, char* line)
-{
-    int len = 0;
+    while (next > 0) {
+        if (*line == '\0') {
+            goto next_round;
+        }
 
-    // skip all the blank, stop at the first non-blank location
-    while ( !fconf_istoken_lf(buf[start]) ) {
-        if ( fconf_istoken_blank(buf[start]) ) {
-            start++;
+        char* key = NULL;
+        char* value = NULL;
+        if (fconf_readkv(line, &key, &value)) {
+            ret = 1;
+            goto out;
         } else {
+            pfunc(key, value);
+        }
+
+        // the next is a array index, the buf_size is a exact
+        // size of the buffer, so compare them should convert
+        // the next index to a normal size: next - 1 means how
+        // many bytes we have already handled
+        if ( (next - 1) >= buf_size ) {
             break;
         }
+
+next_round:
+        next = fconf_readline(conf_buf, next, line);
     }
 
-    if ( fconf_istoken_null(buf[start]) )
-        return -1;
-
-    // store the string before number sign('#')
-    // people don't want to store the comments into
-    // the buffer
-    while ( !fconf_istoken_null(buf[start]) && !fconf_istoken_lf(buf[start]) ) {
-        if ( !fconf_istoken_numsign(buf[start]) ) {
-            line[len++] = buf[start++];
-        } else {
-            break;
-        }
-    }
-    line[len] = '\0';
-
-    // Move the 'start' pointer to the 1st char of the next line
-    while ( !fconf_istoken_lf(buf[start]) )
-        start++;
-
-    return ++start;
+out:
+    free(conf_buf);
+    return ret;
 }

@@ -30,3 +30,7 @@ FLOCK_OBJS = \
 
 FTHPOOL_OBJS = \
     fthread_pool/fthread_pool.o
+
+FCONF_OBJS = \
+    fconf/fconf_core.o \
+    fconf/fconf.o

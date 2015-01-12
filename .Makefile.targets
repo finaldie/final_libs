@@ -88,6 +88,16 @@ $(FTHPOOL_DYNAMIC_LIB): $(FTHPOOL_OBJS)
 clean-fthpool:
 	rm -f $(FTHPOOL_STATIC_LIB) $(FTHPOOL_DYNAMIC_LIB) $(FTHPOOL_OBJS)
 
+# fconf
+$(FCONF_STATIC_LIB): $(FCONF_OBJS)
+	ar -rcs $@ $^
+
+$(FCONF_DYNAMIC_LIB): $(FCONF_OBJS)
+	$(FL_LD) -o $@ $^ $(FCONF_DEP_LIBS)
+
+clean-fconf:
+	rm -f $(FCONF_STATIC_LIB) $(FCONF_DYNAMIC_LIB) $(FCONF_OBJS)
+
 # all objs
 %.o: %.c
 	$(FL_CC) -c $< -o $@
