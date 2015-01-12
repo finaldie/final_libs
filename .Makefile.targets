@@ -68,6 +68,16 @@ $(FTIME_DYNAMIC_LIB): $(FTIME_OBJS)
 clean-ftime:
 	rm -f $(FTIME_STATIC_LIB) $(FTIME_DYNAMIC_LIB) $(FTIME_OBJS)
 
+# flock
+$(FLOCK_STATIC_LIB): $(FLOCK_OBJS)
+	ar -rcs $@ $^
+
+$(FLOCK_DYNAMIC_LIB): $(FLOCK_OBJS)
+	$(FL_LD) -o $@ $^ $(FLOCK_DEP_LIBS)
+
+clean-flock:
+	rm -f $(FLOCK_STATIC_LIB) $(FLOCK_DYNAMIC_LIB) $(FLOCK_OBJS)
+
 # all objs
 %.o: %.c
 	$(FL_CC) -c $< -o $@
