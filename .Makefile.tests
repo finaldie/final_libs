@@ -3,11 +3,13 @@ TEST_TARGET = tests/test
 TEST_OBJS = \
     tests/main.o \
     tests/t_list.o \
-    tests/t_hash.o
+    tests/t_hash.o \
+    tests/t_mbuf.o
 
 TEST_LIBS = \
     -pthread \
     -lrt \
     -lflist \
     -lfhash \
+    -lfmbuf \
     -lfut

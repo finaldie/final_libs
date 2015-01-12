@@ -1,24 +1,5 @@
-/*
- * =============================================================================
- *
- *       Filename:  t_mbuf.c
- *
- *    Description:
- *
- *        Version:  1.0
- *        Created:  11/25/2011 10:37:45
- *       Revision:  none
- *       Compiler:  gcc
- *
- *         Author:  finaldie
- *        Company:
- *
- * =============================================================================
- */
-
-
-#include "ftu/ftu_inc.h"
-#include "fmbuf/fmbuf.h"
+#include "flibs/ftu_inc.h"
+#include "flibs/fmbuf.h"
 #include "inc.h"
 
 // mbuf as a array
@@ -27,20 +8,20 @@ void test_mbuf()
     fmbuf* pbuf = fmbuf_create(100);
 
     {
-        int used = fmbuf_used(pbuf);
-        FTU_ASSERT_EQUAL_INT(0, used);
+        size_t used = fmbuf_used(pbuf);
+        FTU_ASSERT(0 == used);
 
-        int total_free = fmbuf_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(100, total_free);
+        size_t total_free = fmbuf_free(pbuf);
+        FTU_ASSERT(100 == total_free);
 
-        int head_free = fmbuf_head_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(0, head_free);
+        size_t head_free = fmbuf_head_free(pbuf);
+        FTU_ASSERT(0 == head_free);
 
-        int tail_free = fmbuf_tail_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(100, tail_free);
+        size_t tail_free = fmbuf_tail_free(pbuf);
+        FTU_ASSERT(100 == tail_free);
 
-        int size = fmbuf_size(pbuf);
-        FTU_ASSERT_EQUAL_INT(100, size);
+        size_t size = fmbuf_size(pbuf);
+        FTU_ASSERT(100 == size);
     }
 
     // setup mbuf, header at 10, tailer at 20 (10 bytes used)
@@ -48,39 +29,39 @@ void test_mbuf()
         fmbuf_head_seek(pbuf, 10, FMBUF_SEEK_RIGHT);
         fmbuf_tail_seek(pbuf, 20, FMBUF_SEEK_RIGHT);
 
-        int used = fmbuf_used(pbuf);
-        FTU_ASSERT_EQUAL_INT(10, used);
+        size_t used = fmbuf_used(pbuf);
+        FTU_ASSERT(10 == used);
 
-        int total_free = fmbuf_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(90, total_free);
+        size_t total_free = fmbuf_free(pbuf);
+        FTU_ASSERT(90 == total_free);
 
-        int head_free = fmbuf_head_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(10, head_free);
+        size_t head_free = fmbuf_head_free(pbuf);
+        FTU_ASSERT(10 == head_free);
 
-        int tail_free = fmbuf_tail_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(80, tail_free);
+        size_t tail_free = fmbuf_tail_free(pbuf);
+        FTU_ASSERT(80 == tail_free);
 
-        int size = fmbuf_size(pbuf);
-        FTU_ASSERT_EQUAL_INT(100, size);
+        size_t size = fmbuf_size(pbuf);
+        FTU_ASSERT(100 == size);
     }
 
     // rewind it
     {
         fmbuf_rewind(pbuf);
-        int used = fmbuf_used(pbuf);
-        FTU_ASSERT_EQUAL_INT(10, used);
+        size_t used = fmbuf_used(pbuf);
+        FTU_ASSERT(10 == used);
 
-        int total_free = fmbuf_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(90, total_free);
+        size_t total_free = fmbuf_free(pbuf);
+        FTU_ASSERT(90 == total_free);
 
-        int head_free = fmbuf_head_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(0, head_free);
+        size_t head_free = fmbuf_head_free(pbuf);
+        FTU_ASSERT(0 == head_free);
 
-        int tail_free = fmbuf_tail_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(90, tail_free);
+        size_t tail_free = fmbuf_tail_free(pbuf);
+        FTU_ASSERT(90 == tail_free);
 
-        int size = fmbuf_size(pbuf);
-        FTU_ASSERT_EQUAL_INT(100, size);
+        size_t size = fmbuf_size(pbuf);
+        FTU_ASSERT(100 == size);
     }
 
     // realloc it with same size
@@ -93,39 +74,39 @@ void test_mbuf()
     {
         fmbuf* new_buf = pbuf;
         pbuf = fmbuf_realloc(new_buf, 200);
-        int used = fmbuf_used(pbuf);
-        FTU_ASSERT_EQUAL_INT(10, used);
+        size_t used = fmbuf_used(pbuf);
+        FTU_ASSERT(10 == used);
 
-        int total_free = fmbuf_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(190, total_free);
+        size_t total_free = fmbuf_free(pbuf);
+        FTU_ASSERT(190 == total_free);
 
-        int head_free = fmbuf_head_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(0, head_free);
+        size_t head_free = fmbuf_head_free(pbuf);
+        FTU_ASSERT(0 == head_free);
 
-        int tail_free = fmbuf_tail_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(190, tail_free);
+        size_t tail_free = fmbuf_tail_free(pbuf);
+        FTU_ASSERT(190 == tail_free);
 
-        int size = fmbuf_size(pbuf);
-        FTU_ASSERT_EQUAL_INT(200, size);
+        size_t size = fmbuf_size(pbuf);
+        FTU_ASSERT(200 == size);
     }
 
     // decrease the buff size < data size
     {
         pbuf = fmbuf_realloc(pbuf, 5);
-        int used = fmbuf_used(pbuf);
-        FTU_ASSERT_EQUAL_INT(10, used);
+        size_t used = fmbuf_used(pbuf);
+        FTU_ASSERT(10 == used);
 
-        int total_free = fmbuf_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(0, total_free);
+        size_t total_free = fmbuf_free(pbuf);
+        FTU_ASSERT(0 == total_free);
 
-        int head_free = fmbuf_head_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(0, head_free);
+        size_t head_free = fmbuf_head_free(pbuf);
+        FTU_ASSERT(0 == head_free);
 
-        int tail_free = fmbuf_tail_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(0, tail_free);
+        size_t tail_free = fmbuf_tail_free(pbuf);
+        FTU_ASSERT(0 == tail_free);
 
-        int size = fmbuf_size(pbuf);
-        FTU_ASSERT_EQUAL_INT(10, size);
+        size_t size = fmbuf_size(pbuf);
+        FTU_ASSERT(10 == size);
     }
 
     // realloc it, new buffer size > data size
@@ -134,20 +115,20 @@ void test_mbuf()
         fmbuf_head_seek(pbuf, 10, FMBUF_SEEK_RIGHT);
         fmbuf_tail_seek(pbuf, 10, FMBUF_SEEK_RIGHT);
         pbuf = fmbuf_realloc(pbuf, 15);
-        int used = fmbuf_used(pbuf);
-        FTU_ASSERT_EQUAL_INT(10, used);
+        size_t used = fmbuf_used(pbuf);
+        FTU_ASSERT(10 == used);
 
-        int total_free = fmbuf_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(5, total_free);
+        size_t total_free = fmbuf_free(pbuf);
+        FTU_ASSERT(5 == total_free);
 
-        int head_free = fmbuf_head_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(0, head_free);
+        size_t head_free = fmbuf_head_free(pbuf);
+        FTU_ASSERT(0 == head_free);
 
-        int tail_free = fmbuf_tail_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(5, tail_free);
+        size_t tail_free = fmbuf_tail_free(pbuf);
+        FTU_ASSERT(5 == tail_free);
 
-        int size = fmbuf_size(pbuf);
-        FTU_ASSERT_EQUAL_INT(15, size);
+        size_t size = fmbuf_size(pbuf);
+        FTU_ASSERT(15 == size);
     }
 
     fmbuf_delete(pbuf);
@@ -298,20 +279,20 @@ void test_mbuf1()
         int ret = fmbuf_push(pbuf, push_buf, 1);
         FTU_ASSERT_EQUAL_INT(0, ret);
 
-        int size = fmbuf_size(pbuf);
-        FTU_ASSERT_EQUAL_INT(10, size);
+        size_t size = fmbuf_size(pbuf);
+        FTU_ASSERT(10 == size);
 
-        int used = fmbuf_used(pbuf);
-        FTU_ASSERT_EQUAL_INT(1, used);
+        size_t used = fmbuf_used(pbuf);
+        FTU_ASSERT(1 == used);
 
-        int head_free = fmbuf_head_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(0, head_free);
+        size_t head_free = fmbuf_head_free(pbuf);
+        FTU_ASSERT(0 == head_free);
 
-        int tail_free = fmbuf_tail_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(9, tail_free);
+        size_t tail_free = fmbuf_tail_free(pbuf);
+        FTU_ASSERT(9 == tail_free);
 
-        int total_free = fmbuf_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(9, total_free);
+        size_t total_free = fmbuf_free(pbuf);
+        FTU_ASSERT(9 == total_free);
     }
 
     // push 9 byte data
@@ -319,20 +300,20 @@ void test_mbuf1()
         int ret = fmbuf_push(pbuf, push_buf, 9);
         FTU_ASSERT_EQUAL_INT(0, ret);
 
-        int size = fmbuf_size(pbuf);
-        FTU_ASSERT_EQUAL_INT(10, size);
+        size_t size = fmbuf_size(pbuf);
+        FTU_ASSERT(10 == size);
 
-        int used = fmbuf_used(pbuf);
-        FTU_ASSERT_EQUAL_INT(10, used);
+        size_t used = fmbuf_used(pbuf);
+        FTU_ASSERT(10 == used);
 
-        int head_free = fmbuf_head_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(0, head_free);
+        size_t head_free = fmbuf_head_free(pbuf);
+        FTU_ASSERT(0 == head_free);
 
-        int tail_free = fmbuf_tail_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(0, tail_free);
+        size_t tail_free = fmbuf_tail_free(pbuf);
+        FTU_ASSERT(0 == tail_free);
 
-        int total_free = fmbuf_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(0, total_free);
+        size_t total_free = fmbuf_free(pbuf);
+        FTU_ASSERT(0 == total_free);
     }
 
     // continue push 1 byte data when mbuf is full
@@ -340,27 +321,27 @@ void test_mbuf1()
         int ret = fmbuf_push(pbuf, push_buf, 1);
         FTU_ASSERT_EQUAL_INT(1, ret);
 
-        int size = fmbuf_size(pbuf);
-        FTU_ASSERT_EQUAL_INT(10, size);
+        size_t size = fmbuf_size(pbuf);
+        FTU_ASSERT(10 == size);
 
-        int used = fmbuf_used(pbuf);
-        FTU_ASSERT_EQUAL_INT(10, used);
+        size_t used = fmbuf_used(pbuf);
+        FTU_ASSERT(10 == used);
 
-        int head_free = fmbuf_head_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(0, head_free);
+        size_t head_free = fmbuf_head_free(pbuf);
+        FTU_ASSERT(0 == head_free);
 
-        int tail_free = fmbuf_tail_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(0, tail_free);
+        size_t tail_free = fmbuf_tail_free(pbuf);
+        FTU_ASSERT(0 == tail_free);
 
-        int total_free = fmbuf_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(0, total_free);
+        size_t total_free = fmbuf_free(pbuf);
+        FTU_ASSERT(0 == total_free);
     }
 
     // clear and seek mbuf and push 5 bytes
     {
         fmbuf_clear(pbuf);
-        int total_free = fmbuf_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(10, total_free);
+        size_t total_free = fmbuf_free(pbuf);
+        FTU_ASSERT(10 == total_free);
 
         fmbuf_head_seek(pbuf, 4, FMBUF_SEEK_RIGHT);
         fmbuf_tail_seek(pbuf, 6, FMBUF_SEEK_RIGHT);
@@ -368,14 +349,14 @@ void test_mbuf1()
         int ret = fmbuf_push(pbuf, push_buf, 5);
         FTU_ASSERT_EQUAL_INT(0, ret);
 
-        int size = fmbuf_size(pbuf);
-        FTU_ASSERT_EQUAL_INT(10, size);
+        size_t size = fmbuf_size(pbuf);
+        FTU_ASSERT(10 == size);
 
-        int used = fmbuf_used(pbuf);
-        FTU_ASSERT_EQUAL_INT(7, used);
+        size_t used = fmbuf_used(pbuf);
+        FTU_ASSERT(7 == used);
 
         total_free = fmbuf_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(3, total_free);
+        FTU_ASSERT(3 == total_free);
     }
 
     // push 4 bytes but the mbuf only have 3 bytes left
@@ -383,14 +364,14 @@ void test_mbuf1()
         int ret = fmbuf_push(pbuf, push_buf, 4);
         FTU_ASSERT_EQUAL_INT(1, ret);
 
-        int size = fmbuf_size(pbuf);
-        FTU_ASSERT_EQUAL_INT(10, size);
+        size_t size = fmbuf_size(pbuf);
+        FTU_ASSERT(10 == size);
 
-        int used = fmbuf_used(pbuf);
-        FTU_ASSERT_EQUAL_INT(7, used);
+        size_t used = fmbuf_used(pbuf);
+        FTU_ASSERT(7 == used);
 
-        int total_free = fmbuf_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(3, total_free);
+        size_t total_free = fmbuf_free(pbuf);
+        FTU_ASSERT(3 == total_free);
     }
 
     // push 3 bytes the mbuf is full
@@ -398,14 +379,14 @@ void test_mbuf1()
         int ret = fmbuf_push(pbuf, push_buf, 3);
         FTU_ASSERT_EQUAL_INT(0, ret);
 
-        int size = fmbuf_size(pbuf);
-        FTU_ASSERT_EQUAL_INT(10, size);
+        size_t size = fmbuf_size(pbuf);
+        FTU_ASSERT(10 == size);
 
-        int used = fmbuf_used(pbuf);
-        FTU_ASSERT_EQUAL_INT(10, used);
+        size_t used = fmbuf_used(pbuf);
+        FTU_ASSERT(10 == used);
 
-        int total_free = fmbuf_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(0, total_free);
+        size_t total_free = fmbuf_free(pbuf);
+        FTU_ASSERT(0 == total_free);
 
         ret = fmbuf_push(pbuf, push_buf, 1);
         FTU_ASSERT_EQUAL_INT(1, ret);
@@ -416,23 +397,23 @@ void test_mbuf1()
     {
         fmbuf_clear(pbuf);
 
-        int size = fmbuf_size(pbuf);
-        FTU_ASSERT_EQUAL_INT(10, size);
+        size_t size = fmbuf_size(pbuf);
+        FTU_ASSERT(10 == size);
 
         int ret = fmbuf_pop(pbuf, pop_buf, 1);
         FTU_ASSERT_EQUAL_INT(1, ret);
 
-        int used = fmbuf_used(pbuf);
-        FTU_ASSERT_EQUAL_INT(0, used);
+        size_t used = fmbuf_used(pbuf);
+        FTU_ASSERT(0 == used);
 
-        int head_free = fmbuf_head_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(0, head_free);
+        size_t head_free = fmbuf_head_free(pbuf);
+        FTU_ASSERT(0 == head_free);
 
-        int tail_free = fmbuf_tail_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(10, tail_free);
+        size_t tail_free = fmbuf_tail_free(pbuf);
+        FTU_ASSERT(10 == tail_free);
 
-        int total_free = fmbuf_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(10, total_free);
+        size_t total_free = fmbuf_free(pbuf);
+        FTU_ASSERT(10 == total_free);
     }
 
     // push 5 bytes and pop 1 bytes
@@ -443,20 +424,20 @@ void test_mbuf1()
         ret = fmbuf_pop(pbuf, pop_buf, 1);
         FTU_ASSERT_EQUAL_INT(0, ret);
 
-        int size = fmbuf_size(pbuf);
-        FTU_ASSERT_EQUAL_INT(10, size);
+        size_t size = fmbuf_size(pbuf);
+        FTU_ASSERT(10 == size);
 
-        int used = fmbuf_used(pbuf);
-        FTU_ASSERT_EQUAL_INT(4, used);
+        size_t used = fmbuf_used(pbuf);
+        FTU_ASSERT(4 == used);
 
-        int head_free = fmbuf_head_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(1, head_free);
+        size_t head_free = fmbuf_head_free(pbuf);
+        FTU_ASSERT(1 == head_free);
 
-        int tail_free = fmbuf_tail_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(5, tail_free);
+        size_t tail_free = fmbuf_tail_free(pbuf);
+        FTU_ASSERT(5 == tail_free);
 
-        int total_free = fmbuf_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(6, total_free);
+        size_t total_free = fmbuf_free(pbuf);
+        FTU_ASSERT(6 == total_free);
     }
 
     // pop 3 bytes and left 1 byte
@@ -464,20 +445,20 @@ void test_mbuf1()
         int ret = fmbuf_pop(pbuf, pop_buf, 3);
         FTU_ASSERT_EQUAL_INT(0, ret);
 
-        int size = fmbuf_size(pbuf);
-        FTU_ASSERT_EQUAL_INT(10, size);
+        size_t size = fmbuf_size(pbuf);
+        FTU_ASSERT(10 == size);
 
-        int used = fmbuf_used(pbuf);
-        FTU_ASSERT_EQUAL_INT(1, used);
+        size_t used = fmbuf_used(pbuf);
+        FTU_ASSERT(1 == used);
 
-        int head_free = fmbuf_head_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(4, head_free);
+        size_t head_free = fmbuf_head_free(pbuf);
+        FTU_ASSERT(4 == head_free);
 
-        int tail_free = fmbuf_tail_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(5, tail_free);
+        size_t tail_free = fmbuf_tail_free(pbuf);
+        FTU_ASSERT(5 == tail_free);
 
-        int total_free = fmbuf_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(9, total_free);
+        size_t total_free = fmbuf_free(pbuf);
+        FTU_ASSERT(9 == total_free);
     }
 
     // pop 2 bytes
@@ -485,20 +466,20 @@ void test_mbuf1()
         int ret = fmbuf_pop(pbuf, pop_buf, 2);
         FTU_ASSERT_EQUAL_INT(1, ret);
 
-        int size = fmbuf_size(pbuf);
-        FTU_ASSERT_EQUAL_INT(10, size);
+        size_t size = fmbuf_size(pbuf);
+        FTU_ASSERT(10 == size);
 
-        int used = fmbuf_used(pbuf);
-        FTU_ASSERT_EQUAL_INT(1, used);
+        size_t used = fmbuf_used(pbuf);
+        FTU_ASSERT(1 == used);
 
-        int head_free = fmbuf_head_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(4, head_free);
+        size_t head_free = fmbuf_head_free(pbuf);
+        FTU_ASSERT(4 == head_free);
 
-        int tail_free = fmbuf_tail_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(5, tail_free);
+        size_t tail_free = fmbuf_tail_free(pbuf);
+        FTU_ASSERT(5 == tail_free);
 
-        int total_free = fmbuf_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(9, total_free);
+        size_t total_free = fmbuf_free(pbuf);
+        FTU_ASSERT(9 == total_free);
     }
 
     // clear mbuf and seek tail < head
@@ -507,20 +488,20 @@ void test_mbuf1()
         fmbuf_head_seek(pbuf, 4, FMBUF_SEEK_RIGHT);
         fmbuf_tail_seek(pbuf, 2, FMBUF_SEEK_RIGHT);
 
-        int size = fmbuf_size(pbuf);
-        FTU_ASSERT_EQUAL_INT(10, size);
+        size_t size = fmbuf_size(pbuf);
+        FTU_ASSERT(10 == size);
 
-        int used = fmbuf_used(pbuf);
-        FTU_ASSERT_EQUAL_INT(9, used);
+        size_t used = fmbuf_used(pbuf);
+        FTU_ASSERT(9 == used);
 
-        int head_free = fmbuf_head_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(4, head_free);
+        size_t head_free = fmbuf_head_free(pbuf);
+        FTU_ASSERT(4 == head_free);
 
-        int tail_free = fmbuf_tail_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(8, tail_free);
+        size_t tail_free = fmbuf_tail_free(pbuf);
+        FTU_ASSERT(8 == tail_free);
 
-        int total_free = fmbuf_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(1, total_free);
+        size_t total_free = fmbuf_free(pbuf);
+        FTU_ASSERT(1 == total_free);
     }
 
     // total 9 bytes, pop 7 bytes
@@ -528,20 +509,20 @@ void test_mbuf1()
         int ret = fmbuf_pop(pbuf, pop_buf, 7);
         FTU_ASSERT_EQUAL_INT(0, ret);
 
-        int size = fmbuf_size(pbuf);
-        FTU_ASSERT_EQUAL_INT(10, size);
+        size_t size = fmbuf_size(pbuf);
+        FTU_ASSERT(10 == size);
 
-        int used = fmbuf_used(pbuf);
-        FTU_ASSERT_EQUAL_INT(2, used);
+        size_t used = fmbuf_used(pbuf);
+        FTU_ASSERT(2 == used);
 
-        int head_free = fmbuf_head_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(0, head_free);
+        size_t head_free = fmbuf_head_free(pbuf);
+        FTU_ASSERT(0 == head_free);
 
-        int tail_free = fmbuf_tail_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(8, tail_free);
+        size_t tail_free = fmbuf_tail_free(pbuf);
+        FTU_ASSERT(8 == tail_free);
 
-        int total_free = fmbuf_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(8, total_free);
+        size_t total_free = fmbuf_free(pbuf);
+        FTU_ASSERT(8 == total_free);
     }
 
     // pop 2 bytes and then the mbuf is empty
@@ -549,20 +530,20 @@ void test_mbuf1()
         int ret = fmbuf_pop(pbuf, pop_buf, 2);
         FTU_ASSERT_EQUAL_INT(0, ret);
 
-        int size = fmbuf_size(pbuf);
-        FTU_ASSERT_EQUAL_INT(10, size);
+        size_t size = fmbuf_size(pbuf);
+        FTU_ASSERT(10 == size);
 
-        int used = fmbuf_used(pbuf);
-        FTU_ASSERT_EQUAL_INT(0, used);
+        size_t used = fmbuf_used(pbuf);
+        FTU_ASSERT(0 == used);
 
-        int head_free = fmbuf_head_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(2, head_free);
+        size_t head_free = fmbuf_head_free(pbuf);
+        FTU_ASSERT(2 == head_free);
 
-        int tail_free = fmbuf_tail_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(8, tail_free);
+        size_t tail_free = fmbuf_tail_free(pbuf);
+        FTU_ASSERT(8 == tail_free);
 
-        int total_free = fmbuf_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(10, total_free);
+        size_t total_free = fmbuf_free(pbuf);
+        FTU_ASSERT(10 == total_free);
     }
 
     {
@@ -573,40 +554,40 @@ void test_mbuf1()
         int ret = fmbuf_pop(pbuf, NULL, 4);
         FTU_ASSERT(ret == 1);
 
-        int size = fmbuf_size(pbuf);
-        FTU_ASSERT_EQUAL_INT(10, size);
+        size_t size = fmbuf_size(pbuf);
+        FTU_ASSERT(10 == size);
 
-        int used = fmbuf_used(pbuf);
-        FTU_ASSERT_EQUAL_INT(2, used);
+        size_t used = fmbuf_used(pbuf);
+        FTU_ASSERT(2 == used);
 
-        int head_free = fmbuf_head_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(4, head_free);
+        size_t head_free = fmbuf_head_free(pbuf);
+        FTU_ASSERT(4 == head_free);
 
-        int tail_free = fmbuf_tail_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(4, tail_free);
+        size_t tail_free = fmbuf_tail_free(pbuf);
+        FTU_ASSERT(4 == tail_free);
 
-        int total_free = fmbuf_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(8, total_free);
+        size_t total_free = fmbuf_free(pbuf);
+        FTU_ASSERT(8 == total_free);
     }
 
     // move 2 bytes
     {
         fmbuf_pop(pbuf, NULL, 2);
 
-        int size = fmbuf_size(pbuf);
-        FTU_ASSERT_EQUAL_INT(10, size);
+        size_t size = fmbuf_size(pbuf);
+        FTU_ASSERT(10 == size);
 
-        int used = fmbuf_used(pbuf);
-        FTU_ASSERT_EQUAL_INT(0, used);
+        size_t used = fmbuf_used(pbuf);
+        FTU_ASSERT(0 == used);
 
-        int head_free = fmbuf_head_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(6, head_free);
+        size_t head_free = fmbuf_head_free(pbuf);
+        FTU_ASSERT(6 == head_free);
 
-        int tail_free = fmbuf_tail_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(4, tail_free);
+        size_t tail_free = fmbuf_tail_free(pbuf);
+        FTU_ASSERT(4 == tail_free);
 
-        int total_free = fmbuf_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(10, total_free);
+        size_t total_free = fmbuf_free(pbuf);
+        FTU_ASSERT(10 == total_free);
     }
 
     // tail < head, tail_use == 5, but pop 6 bytes
@@ -615,25 +596,25 @@ void test_mbuf1()
         fmbuf_head_seek(pbuf, 6, FMBUF_SEEK_RIGHT);
         fmbuf_tail_seek(pbuf, 4, FMBUF_SEEK_RIGHT);
 
-        int used = fmbuf_used(pbuf);
-        FTU_ASSERT_EQUAL_INT(9, used);
+        size_t used = fmbuf_used(pbuf);
+        FTU_ASSERT(9 == used);
 
         fmbuf_pop(pbuf, NULL, 6);
 
-        int size = fmbuf_size(pbuf);
-        FTU_ASSERT_EQUAL_INT(10, size);
+        size_t size = fmbuf_size(pbuf);
+        FTU_ASSERT(10 == size);
 
         used = fmbuf_used(pbuf);
-        FTU_ASSERT_EQUAL_INT(3, used);
+        FTU_ASSERT(3 == used);
 
-        int head_free = fmbuf_head_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(1, head_free);
+        size_t head_free = fmbuf_head_free(pbuf);
+        FTU_ASSERT(1 == head_free);
 
-        int tail_free = fmbuf_tail_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(6, tail_free);
+        size_t tail_free = fmbuf_tail_free(pbuf);
+        FTU_ASSERT(6 == tail_free);
 
-        int total_free = fmbuf_free(pbuf);
-        FTU_ASSERT_EQUAL_INT(7, total_free);
+        size_t total_free = fmbuf_free(pbuf);
+        FTU_ASSERT(7 == total_free);
     }
 
     fmbuf_delete(pbuf);
