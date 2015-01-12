@@ -14,3 +14,5 @@ tests/logs
 benchmark/fhash/benchmark
 benchmark/flog/benchmark
 benchmark/flog/logs
+
+doc

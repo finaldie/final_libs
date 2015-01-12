@@ -1,0 +1,26 @@
+API_DOC_FOLDER = doc
+
+doc-gen: clean-doc doc-prepare run_doxygen
+	cd doc/xml \
+	    && ls | grep .xml | grep -vE "dir_|struct|union|index.xml" > doc.list \
+	    && for xml_file in `cat doc.list`; \
+		do \
+		    output_path="../markdown"; \
+		    output_file_name=`echo "$$xml_file" | sed 's/_8h//g' | sed 's/__/_/g' | sed 's/.xml//g'`; \
+		    output_file=$$output_path/$$output_file_name.md; \
+		    $(shell pwd)/3rds/convert2markdown/src/xml2markdown.py -f $$xml_file > $$output_file; \
+		    echo "generate api doc for $$xml_file, output doc -> $$output_file_name"; \
+		done;
+
+doc-prepare:
+	test -d $(API_DOC_FOLDER) || mkdir -p $(API_DOC_FOLDER)
+	test -d $(API_DOC_FOLDER)/markdown || mkdir -p $(API_DOC_FOLDER)/markdown
+
+run_doxygen:
+	doxygen .api_doxyfile
+
+clean-doc:
+	@rm -rf $(API_DOC_FOLDER)
+	@echo "doc clean done"
+
+.PHONY: doc-gen clean-doc doc-prepare run_doxygen

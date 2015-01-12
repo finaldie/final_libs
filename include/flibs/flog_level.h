@@ -21,7 +21,7 @@ extern "C" {
 
 /**
  * @brief Set global log level
- * @notes This is all the flog loggers
+ * @note  This is all the flog loggers
  *
  * @param level     log level
  * @return          previous log level

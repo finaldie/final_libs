@@ -1,18 +1,8 @@
 MAKE ?= make
+SHARED ?= false
 
 INCLUDE_FOLDER = include/flibs
 LIB_FOLDER = lib
-
-BENCHMARK_FOLDER = benchmark
-API_DOC_FOLDER = doc
-
-SHARED ?= false
-
-# verbose
-VERBOSE ?= false
-ifeq ($(VERBOSE), false)
-	MAKE_FLAGS += -s
-endif
 
 include .Makefile.inc
 include .Makefile.objs
@@ -25,7 +15,6 @@ all: $(TARGET_LIBS)
 	@echo "CC = $(CC)"
 	@echo "MAKE = $(MAKE)"
 	@echo "prefix = $(prefix)"
-	@echo "VERBOSE = $(VERBOSE)"
 	@echo "PLATFORM BIT = $(PLAT_BIT)"
 	@echo "debug = $(debug)"
 	test -d $(LIB_FOLDER) || mkdir -p $(LIB_FOLDER)
@@ -61,10 +50,12 @@ bench: $(BENCH_TARGETS)
 
 bench-run: bench-fhash bench-flog
 
+doc: doc-gen
+
 help:
-	@echo "make [CC=gcc] [SHARED=true] [debug=true] [BIT=32] [VERBOSE=true]"
-	@echo "make check [CC=gcc] [BIT=32] [VERBOSE=true]"
-	@echo "make valgrind-check [CC=gcc] [BIT=32] [VERBOSE=true]"
+	@echo "make [CC=gcc] [SHARED=true] [debug=true] [BIT=32]"
+	@echo "make check [CC=gcc] [BIT=32]"
+	@echo "make valgrind-check [CC=gcc] [BIT=32]"
 	@echo "make install [BIT=32] [prefix=/usr/local] "
 	@echo "make clean"
 	@echo "make bench"
@@ -74,5 +65,6 @@ help:
 	@echo "make clean-doc"
 
 include .Makefile.targets
+include .Makefile.doc
 
 .PHONY: all prepare check valgrind-check clean install bench bench-run doc help

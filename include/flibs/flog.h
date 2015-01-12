@@ -106,7 +106,7 @@ void flog_vwritef(flog_file_t*, const char* fmt, va_list ap);
 /**
  * @brief Set log cookie, user set up once, then every log will include this
  *        cookie string
- * @notes Cookie string is per-thread, and the max length of cookie is 256 bytes
+ * @note  Cookie string is per-thread, and the max length of cookie is 256 bytes
  *
  * @param fmt       string format
  * @return          void
@@ -116,7 +116,7 @@ void flog_set_cookie(const char* fmt, ...);
 /**
  * @brief Set log cookie, user set up once, then every log will include this
  *        cookie string
- * @notes Cookie string is per-thread, and the max length of cookie is 256 bytes
+ * @note  Cookie string is per-thread, and the max length of cookie is 256 bytes
  *
  * @param fmt       string format
  * @param ap        dynamic arg list using by fmt
@@ -126,7 +126,7 @@ void flog_vset_cookie(const char* fmt, va_list ap);
 
 /**
  * @brief Clear the cookie string
- * @notes Clear action only impact the current thread cookie data
+ * @note  Clear action only impact the current thread cookie data
  *
  * @return          void
  */

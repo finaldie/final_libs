@@ -186,10 +186,10 @@ void*   fmbuf_alloc(fmbuf* mbuf, size_t size);
  * Move the header pointer of the mbuf
  *
  * @param mbuf      pointer of fmbuf
- * @param bytes     the distance of user want to move,
+ * @param offset    the distance of user want to move,
  * @param direction
- *                  - FMBUF_SEEK_LEFT: move left the header
- *                  - FMBUF_SEEK_RIGHT: move right the header
+ *                  - FMBUF_SEEK_LEFT: move left to the header
+ *                  - FMBUF_SEEK_RIGHT: move right to the header
  *
  * @return void
  */
@@ -201,8 +201,8 @@ void    fmbuf_head_seek(fmbuf* mbuf, size_t offset, int direction);
  * @param mbuf      pointer of fmbuf
  * @param offset    the distance of user want to move,
  * @param direction
- *                  - FMBUF_SEEK_LEFT: move left the tailer
- *                  - FMBUF_SEEK_RIGHT: move right the tailer
+ *                  - FMBUF_SEEK_LEFT: move left to the tailer
+ *                  - FMBUF_SEEK_RIGHT: move right to the tailer
  *
  * @return void
  */
