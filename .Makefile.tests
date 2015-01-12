@@ -7,15 +7,17 @@ TEST_OBJS = \
     tests/t_mbuf.o \
     tests/t_conf.o \
     tests/t_log.o \
-    tests/t_fcache.o
+    tests/t_fcache.o \
+    tests/t_timer.o
 
 TEST_LIBS = \
-    -pthread \
-    -lrt \
     -lflist \
     -lfhash \
     -lfmbuf \
     -lfconf \
     -lflog \
     -lfcache \
-    -lfut
+    -lftime \
+    -lfut \
+    -pthread \
+    -lrt

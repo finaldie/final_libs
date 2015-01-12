@@ -5,8 +5,8 @@
 #include <unistd.h>
 #include <stdint.h>
 
-#include "ftimer.h"
-#include "ftu_inc.h"
+#include "flibs/ftime.h"
+#include "flibs/ftu_inc.h"
 #include "inc.h"
 
 void    test_timer()
@@ -19,8 +19,8 @@ void    test_timer()
     sleep(2);
 
     uint64_t exp;
-    int s = read(fd, (char*)&exp, sizeof(exp));
-    FTU_ASSERT_EQUAL_INT((int)sizeof(exp), s);
+    ssize_t s = read(fd, (char*)&exp, sizeof(exp));
+    FTU_ASSERT(sizeof(exp) == s);
 
     ret = ftimerfd_stop(fd);
     FTU_ASSERT_EQUAL_INT(0, ret);
