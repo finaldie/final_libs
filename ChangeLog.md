@@ -1,3 +1,8 @@
+* 2015-01-13 0.7.4
+   * Refactor all the makefiles, now it can be built in parallel
+   * Refactor the header files folder structure, to make them more user friendly
+   * Fefactor some apis, to make them more user friendly
+   * Fix the valgrind errors when building the libs in 32 bit platform
 * 2015-01-10 0.7.3
    * **flog:** Remove the useless print
 * 2015-01-10 0.7.2
