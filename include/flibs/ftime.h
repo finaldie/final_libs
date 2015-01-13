@@ -1,12 +1,5 @@
-/**
- * effect: real time timer
- * support both signal & file descriptor
- * author: yuzhang hu(final)
- * lib dependence: -lrt -lpthread
-*/
-
-#ifndef _F_TIMER_H_
-#define _F_TIMER_H_
+#ifndef FTIME_H
+#define FTIME_H
 
 #ifdef __cplusplus
 extern "C" {

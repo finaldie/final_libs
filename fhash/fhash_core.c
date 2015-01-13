@@ -117,7 +117,7 @@ void _hash_node_try_enlarge(_fhash_node* node,
 {
     data_sz_t new_data_sz = FHASH_DATASZ(key_sz, value_sz);
     if (new_data_sz > node->real_sz) {
-        node->data = realloc(node->data, new_data_sz);
+        node->data = realloc(node->data, (size_t)new_data_sz);
         node->real_sz = new_data_sz;
     }
 }

@@ -53,10 +53,10 @@ int ftimer_create(f_timer* pt, long long nsecs, long long alter,
     if (timer_create(CLOCKID, &pt->sev, &pt->timerid) == -1)
         return 1;
 
-    pt->its.it_value.tv_sec = nsecs / TRANS_STONS;
-    pt->its.it_value.tv_nsec = nsecs % TRANS_STONS;
-    pt->its.it_interval.tv_sec = alter / TRANS_STONS;
-    pt->its.it_interval.tv_nsec = alter % TRANS_STONS;
+    pt->its.it_value.tv_sec = (time_t)(nsecs / TRANS_STONS);
+    pt->its.it_value.tv_nsec = (__syscall_slong_t)(nsecs % TRANS_STONS);
+    pt->its.it_interval.tv_sec = (time_t)(alter / TRANS_STONS);
+    pt->its.it_interval.tv_nsec = (__syscall_slong_t)(alter % TRANS_STONS);
 
     pt->pfunc = pfunc;
     pt->arg = arg;
@@ -90,10 +90,10 @@ int ftimerfd_create()
 int ftimerfd_start(int fd, long long nsesc, long long alter)
 {
     struct itimerspec new_value;
-    new_value.it_value.tv_sec = nsesc / TRANS_STONS;
-    new_value.it_value.tv_nsec = nsesc % TRANS_STONS;
-    new_value.it_interval.tv_sec = alter / TRANS_STONS;
-    new_value.it_interval.tv_nsec = alter % TRANS_STONS;
+    new_value.it_value.tv_sec = (time_t)(nsesc / TRANS_STONS);
+    new_value.it_value.tv_nsec = (__syscall_slong_t)(nsesc % TRANS_STONS);
+    new_value.it_interval.tv_sec = (time_t)(alter / TRANS_STONS);
+    new_value.it_interval.tv_nsec = (__syscall_slong_t)(alter % TRANS_STONS);
 
     if ( timerfd_settime(fd, 0, &new_value, NULL) == -1 ) {
         return 1;
