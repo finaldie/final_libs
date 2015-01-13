@@ -64,6 +64,25 @@ make debug=true
 make BIT=32
 ```
 
+## Example (on 64bit platform)
+* Build 64bit static-link libraries
+```
+make -j4 && make -j4 check
+```
+* Build 64bit dynamic-link libraries
+```
+make SHARED=true -j4 && make SHARED=true check
+```
+* Install flibs to system
+```
+make install
+```
+**notes:** By default, the `prefix` is **/usr/local**, so the flibs will be installed to **/usr/local**, if you want to change the prefix, just run the following:
+```
+make SHARED=true prefix=$(other_location) -j4
+make prefix=$(other_location) install
+```
+
 ## ChangeLog
 See [change log](ChangeLog.md)
 
