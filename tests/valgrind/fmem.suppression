@@ -1,0 +1,92 @@
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Leak
+    fun:calloc
+    fun:_dl_allocate_tls
+    fun:pthread_create@@GLIBC_2.2.5
+    fun:test_mem
+    fun:tu_run_cases
+    fun:main
+}
+
+{
+    <fix for ubuntu 10.04>
+    Memcheck:Leak
+    fun:calloc
+    fun:_dl_allocate_tls
+    fun:pthread_create@@GLIBC_2.1
+    fun:test_mem
+    fun:tu_run_cases
+    fun:main
+}
+
+{
+    <ubuntu 10.04>
+    Memcheck:Leak
+    fun:malloc
+    fun:f_block_create
+    fun:flmgr_create
+    fun:f_mp_create
+    fun:pthread_once
+    fun:f_alloc
+    fun:alloc_test
+    fun:_test_mem
+    fun:start_thread
+    obj:*
+}
+
+{
+    <ubuntu 12.04>
+    Memcheck:Leak
+    fun:malloc
+    fun:f_block_create
+    fun:flmgr_create.isra.7
+    fun:f_mp_create
+    fun:pthread_once
+    fun:f_alloc
+    fun:alloc_test
+    fun:_test_mem
+    fun:start_thread
+}
+
+{
+   <ubuntu 14.04>
+   Memcheck:Leak
+   fun:malloc
+   fun:f_block_create
+   fun:flmgr_create.isra.8
+   fun:f_mp_create
+   fun:pthread_once
+   fun:f_alloc
+   fun:alloc_test
+   fun:_test_mem
+   fun:start_thread
+   fun:clone
+}
+
+{
+    <fix for ubuntu 10.04>
+    Memcheck:Leak
+    fun:malloc
+    fun:f_block_create
+    fun:flmgr_create
+    fun:f_mp_create
+    fun:pthread_once
+    fun:alloc_test
+    fun:_test_mem
+    fun:start_thread
+    fun:clone
+}
+
+{
+   <for clang, ubuntu 12.04>
+   Memcheck:Leak
+   fun:malloc
+   fun:flmgr_create
+   fun:f_mp_create
+   fun:pthread_once
+   fun:f_alloc
+   fun:alloc_test
+   fun:_test_mem
+   fun:start_thread
+}

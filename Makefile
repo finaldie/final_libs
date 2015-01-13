@@ -33,7 +33,11 @@ valgrind-check: $(TEST_TARGET)
 	@echo "==============Running $(BUILD_BIT)bit Valgrind Test============";
 	@rm -rf tests/logs
 	@test -d tests/logs || mkdir tests/logs
-	valgrind --tool=memcheck --leak-check=full --suppressions=./tests/valgrind.suppress --gen-suppressions=all --error-exitcode=1 ./$(TEST_TARGET)
+	valgrind --tool=memcheck --leak-check=full \
+	    --suppressions=./tests/valgrind/fco.suppression \
+	    --suppressions=./tests/valgrind/flog.suppression \
+	    --suppressions=./tests/valgrind/pthread.suppression \
+	    --gen-suppressions=all --error-exitcode=1 ./$(TEST_TARGET)
 
 clean: clean-flist clean-fcache clean-fhash clean-fmbuf clean-fco clean-fnet
 clean: clean-ftime clean-flock clean-fthpool clean-fconf clean-flog clean-fev

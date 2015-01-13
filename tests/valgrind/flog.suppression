@@ -1,0 +1,25 @@
+{
+   <unknown issue, for flog>
+   Memcheck:Leak
+   fun:calloc
+   fun:_dl_allocate_tls
+   fun:pthread_create@@GLIBC_2.2.5
+   fun:flog_set_mode
+   fun:test_async_log
+   fun:tu_run_cases
+   fun:main
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   fun:calloc
+   fun:allocate_dtv
+   fun:_dl_allocate_tls
+   fun:pthread_create@@GLIBC_2.1
+   fun:flog_set_mode
+   fun:test_async_log
+   fun:tu_run_cases
+   fun:main
+}
+
