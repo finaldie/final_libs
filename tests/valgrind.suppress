@@ -250,6 +250,72 @@
 }
 
 {
+   <insert_a_suppression_name_here>
+   Memcheck:Param
+   sigprocmask(set)
+   fun:setcontext
+   fun:makecontext
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value4
+   fun:setcontext
+   fun:makecontext
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value4
+   fun:makecontext
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value4
+   fun:co_main
+   obj:*
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   fun:makecontext
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value4
+   fun:test
+   obj:*
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value4
+   fun:fco_resume
+   obj:*
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value4
+   fun:_fco_do_swap
+   obj:*
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value4
+   fun:_fco_call_plugin
+   fun:fco_resume
+   fun:test
+   fun:co_main
+   fun:makecontext
+   obj:*
+}
+
+{
     <insert_a_suppression_name_here>
     Memcheck:Leak
     fun:calloc
@@ -277,6 +343,19 @@
    fun:calloc
    fun:_dl_allocate_tls
    fun:pthread_create@@GLIBC_2.2.5
+   fun:flog_set_mode
+   fun:test_async_log
+   fun:tu_run_cases
+   fun:main
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   fun:calloc
+   fun:allocate_dtv
+   fun:_dl_allocate_tls
+   fun:pthread_create@@GLIBC_2.1
    fun:flog_set_mode
    fun:test_async_log
    fun:tu_run_cases

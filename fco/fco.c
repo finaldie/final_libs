@@ -21,7 +21,6 @@ typedef struct plugin_meta {
     ucontext_t   main_ctx;
 } plugin_meta;
 
-#pragma pack(4)
 struct _fco {
     ucontext_t   ctx;
     ucontext_t*  prev_ctx;
@@ -34,7 +33,6 @@ struct _fco {
     int          status;
     char         stack[sizeof(int)];
 };
-#pragma pack()
 
 struct _fco_sched {
     uint64_t       numco;
@@ -47,10 +45,7 @@ struct _fco_sched {
 fco_sched* _fco_scheduler_create(int is_root)
 {
     size_t tot_size = sizeof(fco_sched) + (is_root ? sizeof(plugin_meta) : 0);
-    fco_sched* sched = malloc(tot_size);
-    if ( !sched ) return NULL;
-
-    memset(sched, 0, tot_size);
+    fco_sched* sched = calloc(1, tot_size);
     return sched;
 }
 
@@ -79,8 +74,7 @@ void fco_scheduler_destroy(fco_sched* fco_sched)
 static
 plugin_node* _fco_create_plugin_node(phook_cb cb, void* arg)
 {
-    plugin_node* node = malloc(sizeof(plugin_node));
-    if ( !node ) return NULL;
+    plugin_node* node = calloc(1, sizeof(plugin_node));
 
     node->cb = cb;
     node->arg = arg;
@@ -136,10 +130,8 @@ void _fco_call_plugin(fco* co, int type)
 static
 fco* _fco_create(fco_sched* root, fco_sched* owner, ucontext_t* prev_ctx, pfunc_co pf)
 {
-    fco* co = malloc(sizeof(fco) + FCO_DEFAULT_STACK_SIZE);
-    if ( !co ) return NULL;
+    fco* co = calloc(1, sizeof(fco) + FCO_DEFAULT_STACK_SIZE);
 
-    memset(co, 0, sizeof(fco) + FCO_DEFAULT_STACK_SIZE);
     co->prev_ctx = prev_ctx;
     co->root = root;
     co->owner = owner;
