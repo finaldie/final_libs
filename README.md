@@ -57,11 +57,7 @@ make SHARED=true
 ```
 * Build debug version without any optimization parameters
 ```
-make MODE=debug
-```
-* Show verbose output
-```
-make VERBOSE=true
+make debug=true
 ```
 * Build `32`bit libraries under `64`bit platform
 ```
