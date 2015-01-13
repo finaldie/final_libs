@@ -1,29 +1,11 @@
-/*
- * =====================================================================================
- *
- *       Filename:  fev_timer.h
- *
- *    Description:  
- *
- *        Version:  1.0
- *        Created:  11/18/2011 16:58:07
- *       Revision:  none
- *       Compiler:  gcc
- *
- *         Author:  finaldie
- *        Company:  
- *
- * =====================================================================================
- */
-
-#ifndef _FEV_TIMER_H_
-#define _FEV_TIMER_H_
+#ifndef FEV_TIMER_H
+#define FEV_TIMER_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "fev.h"
+#include <flibs/fev.h>
 
 typedef struct fev_timer fev_timer;
 typedef void (*fev_timer_cb)(fev_state*, void* arg);
@@ -42,3 +24,4 @@ int     fev_del_timer_event(fev_state* fev, fev_timer*);
 #endif
 
 #endif
+

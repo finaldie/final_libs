@@ -7,8 +7,8 @@ extern "C" {
 
 #include <stdint.h>
 
-#include "flibs/fev_timer.h"
-#include "flibs/fev_tmsvc_types.h"
+#include <flibs/fev_timer.h>
+#include <flibs/fev_tmsvc_types.h>
 
 fev_timer_svc* fev_create_timer_service(
                 fev_state*,
@@ -38,3 +38,4 @@ int fev_tmsvc_reset_timer(ftimer_node*);
 #endif
 
 #endif
+

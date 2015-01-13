@@ -1,11 +1,11 @@
-#ifndef HASH_UINT64_H
-#define HASH_UINT64_H
+#ifndef FHASH_UINT64_H
+#define FHASH_UINT64_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "fhash_core.h"
+#include <flibs/fhash_core.h>
 
 typedef struct {
     // private
@@ -126,3 +126,4 @@ void           fhash_u64_foreach(fhash* table, fhash_u64_each_cb cb, void* ud);
 #endif
 
 #endif
+

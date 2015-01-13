@@ -1,15 +1,5 @@
-/** ==========================================================================
- *       Filename:  compiler.h
- *
- *    Description:  Some marcos for compiler
- *
- *        Version:  1.0
- *        Created:  07/29/2012 21:05:39
- *       Revision:  none
- *       Compiler:  gcc
- *
- *         Author:  finaldie
- * =========================================================================*/
+#ifndef FLIBS_COMPILER_H
+#define FLIBS_COMPILER_H
 
 #if ((__GNUC__ == 2) && ( __GNUC_MINOR__ >= 96 )) || ( __GNUC__ >= 3 )
 #define likely(x)   __builtin_expect(!!(x), 1)
@@ -18,3 +8,6 @@
 #define likely(x)   (x)
 #define unlikely(x) (x)
 #endif
+
+#endif
+

@@ -7,7 +7,7 @@ extern "C" {
 
 #include <stdint.h>
 #include <netinet/in.h>
-#include "flibs/fev.h"
+#include <flibs/fev.h>
 
 typedef union conn_arg_t {
     int      u32;
@@ -38,3 +38,4 @@ int    fev_conn(fev_state*,
 #endif
 
 #endif
+

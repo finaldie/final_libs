@@ -1,11 +1,11 @@
-#ifndef HASH_INT_H
-#define HASH_INT_H
+#ifndef FHASH_INT_H
+#define FHASH_INT_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "fhash_core.h"
+#include <flibs/fhash_core.h>
 
 typedef struct {
     // private
@@ -130,3 +130,4 @@ void           fhash_int_foreach(fhash* table, fhash_int_each_cb cb, void* ud);
 #endif
 
 #endif
+

@@ -1,20 +1,3 @@
-/*
- * =====================================================================================
- *
- *       Filename:  fcache.h
- *
- *    Description:  A Fast cache with LRU
- *
- *        Version:  1.0
- *        Created:  08/16/2012 15:18:39
- *       Revision:  none
- *       Compiler:  gcc
- *
- *         Author:  finaldie
- *
- * =====================================================================================
- */
-
 #ifndef _FLIBS_FCACHE_H_
 #define _FLIBS_FCACHE_H_
 
@@ -72,3 +55,4 @@ void*     fcache_get_obj(fcache_t*, const char* key);
 #endif
 
 #endif
+

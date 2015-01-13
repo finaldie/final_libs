@@ -1,8 +1,3 @@
-/*
- * =============================================================================
- *    Description:  put listen fd into event framework and wait callback simply 
- * =============================================================================
- */
 #ifndef FEV_LISTEN_H
 #define FEV_LISTEN_H
 

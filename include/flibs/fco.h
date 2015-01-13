@@ -1,16 +1,5 @@
-/*
- * =====================================================================================
- *    Filename:  fco.h
- *    Description: C coroutine
- *    Version:  1.0
- *    Created:  09/30/2012 19:04:15
- *    Compiler:  gcc
- *    Author:  finaldie
- * =====================================================================================
- */
-
-#ifndef _F_COROUTINE_H_
-#define _F_COROUTINE_H_
+#ifndef FCOROUTINE_H
+#define FCOROUTINE_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -47,3 +36,4 @@ void       fco_register_plugin(fco_sched*, void* arg, plugin_init init,
 #endif
 
 #endif
+

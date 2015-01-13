@@ -1,16 +1,11 @@
-/**
- *  This header file expose to user, to declare some public types
- */
-
-
-#ifndef _FEV_TIMER_SERVICE_TYPES_H_
-#define _FEV_TIMER_SERVICE_TYPES_H_
+#ifndef FEV_TIMER_SERVICE_TYPES_H
+#define FEV_TIMER_SERVICE_TYPES_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "fev.h"
+#include <flibs/fev.h>
 
 #define NS_PER_SECOND 1000000000L
 #define NS_PER_MS     1000000L
@@ -32,3 +27,4 @@ typedef void (*ftimer_cb)(fev_state*, void* arg);
 #endif
 
 #endif
+

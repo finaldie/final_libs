@@ -1,9 +1,5 @@
-//base info: create by hyz
-/*effect: lockfree fifo list
-*/
-
-#ifndef _FLIST_H_
-#define _FLIST_H_
+#ifndef FLIST_H
+#define FLIST_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -42,3 +38,4 @@ void*      flist_each(flist_iter*);
 #endif
 
 #endif
+

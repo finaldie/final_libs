@@ -1,5 +1,5 @@
-#ifndef _TEST_UNIT_INC_H_
-#define _TEST_UNIT_INC_H_
+#ifndef FUNIT_TEST_H
+#define FUNIT_TEST_H
 
 #ifdef __cplusplus
 extern "C" {

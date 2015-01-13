@@ -1,23 +1,5 @@
-/*
- * =============================================================================
- *
- *       Filename:  fev.h
- *
- *    Description:  a light-weight event framework
- *
- *        Version:  1.0
- *        Created:  11/13/2011 15:15:12
- *       Revision:  none
- *       Compiler:  gcc
- *
- *         Author:  finaldie
- *        Company:
- *
- * =============================================================================
- */
-
-#ifndef _FEV_H_
-#define _FEV_H_
+#ifndef FEV_H
+#define FEV_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -58,3 +40,4 @@ void* fev_get_module_data(fev_state*, const char* module_name);
 #endif
 
 #endif
+

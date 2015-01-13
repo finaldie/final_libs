@@ -1,9 +1,3 @@
-//base info: create by hyz
-/*effect: log system header file
-*
-*
-*/
-
 #ifndef FLOG_LEVEL_H
 #define FLOG_LEVEL_H
 
@@ -48,3 +42,4 @@ int          flog_is_fatal_enabled();
 #endif
 
 #endif
+

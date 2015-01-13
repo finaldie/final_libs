@@ -1,23 +1,5 @@
-/*
- * =============================================================================
- *
- *       Filename:  fdlist.h
- *
- *    Description:
- *
- *        Version:  1.0
- *        Created:  07/25/2013 12:40:55 AM
- *       Revision:  none
- *       Compiler:  gcc
- *
- *         Author:  finaldie
- *        Company:
- *
- * =============================================================================
- */
-
-#ifndef _FD_LIST_H_
-#define _FD_LIST_H_
+#ifndef FD_LIST_H
+#define FD_LIST_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -55,3 +37,4 @@ void*           fdlist_get_nodedata(fdlist_node_t*);
 #endif
 
 #endif
+

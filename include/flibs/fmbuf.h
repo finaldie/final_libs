@@ -3,8 +3,8 @@
  *  Array
  */
 
-#ifndef MBUF_H_FINAL
-#define MBUF_H_FINAL
+#ifndef FMBUF_H_FINAL
+#define FMBUF_H_FINAL
 
 #ifdef __cplusplus
 extern "C" {
@@ -240,3 +240,4 @@ size_t  fmbuf_tail_free(fmbuf* mbuf);
 #endif
 
 #endif
+

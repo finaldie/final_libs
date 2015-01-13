@@ -17,8 +17,8 @@ extern "C" {
 #include <stdarg.h>
 #include <time.h>
 
-#include "flibs/flog_level.h"
-#include "flibs/flog_helpers.h"
+#include <flibs/flog_level.h>
+#include <flibs/flog_helpers.h>
 
 /**
  * @brief flog working mode: sync or async
