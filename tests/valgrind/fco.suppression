@@ -332,6 +332,18 @@
 
 {
    <insert_a_suppression_name_here>
+   Memcheck:Value4
+   obj:*
+   fun:fco_resume
+   fun:test
+   fun:co_main
+   fun:makecontext
+   obj:*
+}
+
+
+{
+   <insert_a_suppression_name_here>
    Memcheck:Cond
    fun:fco_resume
    fun:test
