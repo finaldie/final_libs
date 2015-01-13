@@ -24,8 +24,8 @@ struct list_mgr {
 
 flist*  flist_create()
 {
-    flist* pmgr = (flist*)malloc(sizeof(lmgr));
-    pnode  node = (pnode)malloc(sizeof(lnode));
+    flist* pmgr = (flist*)calloc(1, sizeof(lmgr));
+    pnode  node = (pnode)calloc(1, sizeof(lnode));
     node->pre = node->next = NULL;
     pmgr->head = pmgr->tail = node;
 
@@ -45,7 +45,7 @@ int     flist_push(flist* pmgr, void* data)
     if ( !data )
         return 1;
 
-    pnode node = (pnode)malloc(sizeof(lnode));
+    pnode node = (pnode)calloc(1, sizeof(lnode));
     node->data = data;
     node->next = NULL;
     node->pre  = pmgr->tail;

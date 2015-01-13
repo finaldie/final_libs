@@ -1,21 +1,3 @@
-/*
- * =============================================================================
- *
- *       Filename:  fev_epoll.c
- *
- *    Description:
- *
- *        Version:  1.0
- *        Created:  2011/11/13 16/37/50
- *       Revision:  none
- *       Compiler:  gcc
- *
- *         Author:  finaldie
- *        Company:
- *
- * =============================================================================
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -29,7 +11,7 @@ typedef struct state {
 
 static int fev_state_create(fev_state* fev, int max_ev_size)
 {
-    state* st = (state*)malloc(sizeof(state) + (size_t)max_ev_size * sizeof(struct epoll_event));
+    state* st = (state*)calloc(1, sizeof(state) + (size_t)max_ev_size * sizeof(struct epoll_event));
 
     st->epfd = epoll_create(1024);  // the size argument is unused, so 1024 is just a hint for kernel
     if( st->epfd == -1 ) return 1;

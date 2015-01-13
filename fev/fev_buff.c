@@ -109,8 +109,7 @@ fev_buff*    fevbuff_new(
 {
     if ( !fev ) return NULL;
 
-    fev_buff* evbuff = malloc(sizeof(fev_buff));
-    if ( !evbuff ) return NULL;
+    fev_buff* evbuff = calloc(1, sizeof(fev_buff));
 
     evbuff->fstate = fev;
     evbuff->fd = fd;

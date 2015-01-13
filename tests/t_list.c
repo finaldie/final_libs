@@ -76,9 +76,9 @@ void test_list()
     int is_empty = flist_empty(plist);
     FTU_ASSERT_EQUAL_INT(1, is_empty);
 
-    tnode* tn = (tnode*)malloc(sizeof(tnode));
+    tnode* tn = (tnode*)calloc(1, sizeof(tnode));
     tn->i = 100;
-    tnode* tn1 = (tnode*)malloc(sizeof(tnode));
+    tnode* tn1 = (tnode*)calloc(1, sizeof(tnode));
     tn1->i = 200;
 
     {

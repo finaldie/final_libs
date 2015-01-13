@@ -91,15 +91,15 @@ fev_state*    fev_create(int max_ev_size)
         max_ev_size = (int)limit.rlim_cur;
     }
 
-    fev_state* fev = (fev_state*)malloc(sizeof(fev_state));
+    fev_state* fev = (fev_state*)calloc(1, sizeof(fev_state));
     if( fev_state_create(fev, max_ev_size) ) {
         perror("fev create state");
         free(fev);
         return NULL;
     }
 
-    fev->fevents = (fev_event*)malloc(sizeof(fev_event) * (size_t)max_ev_size);
-    fev->firelist = (int*)malloc(sizeof(int) * (size_t)max_ev_size);
+    fev->fevents = (fev_event*)calloc(1, sizeof(fev_event) * (size_t)max_ev_size);
+    fev->firelist = (int*)calloc(1, sizeof(int) * (size_t)max_ev_size);
     fev->module_tbl = fhash_str_create(FEV_DEFAULT_MODULE_CNT,
                                        FHASH_MASK_AUTO_REHASH);
 
@@ -243,7 +243,7 @@ int  fev_get_fd(fev_state* fev)
 
 int  fev_register_module(fev_state* fev, fev_module_t* module)
 {
-    fev_module_t* new_module = malloc(sizeof(fev_module_t));
+    fev_module_t* new_module = calloc(1, sizeof(fev_module_t));
     memcpy(new_module, module, sizeof(fev_module_t));
 
     fhash_str_set(fev->module_tbl, new_module->name, new_module);

@@ -27,10 +27,7 @@ fcache_t* fcache_create(size_t max_size, cache_obj_free obj_free)
 {
     if (!max_size) return NULL;
 
-    fcache_t* pcache = malloc(sizeof(fcache_t));
-    if ( !pcache ) return NULL;
-    memset(pcache, 0, sizeof(fcache_t));
-
+    fcache_t* pcache = calloc(1, sizeof(fcache_t));
     pcache->phash_node_index = fhash_str_create(0, FHASH_MASK_AUTO_REHASH);
 
     pcache->pactive_list = fcache_list_create();

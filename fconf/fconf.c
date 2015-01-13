@@ -92,7 +92,7 @@ int fconf_load(const char* filename, fconf_load_cfg_cb pfunc)
     int next = 0;
     ssize_t buf_size = 0;
     char  line[READ_LINE_LEN];
-    char* conf_buf = malloc(CONF_BUFF_LEN);
+    char* conf_buf = calloc(1, CONF_BUFF_LEN);
 
     buf_size = fconf_load2buf(filename, conf_buf, CONF_BUFF_LEN);
 

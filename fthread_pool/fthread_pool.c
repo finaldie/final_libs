@@ -73,14 +73,14 @@ void    fthpool_init(int num)
     if ( num <= 0 ) return;
 
     g_th_pool = fhash_int_create(TH_POOL_HASH_SIZE, FHASH_MASK_AUTO_REHASH);
-    pth_pool = (thread_data**)malloc(sizeof(thread_data*) * (size_t)num);
+    pth_pool = (thread_data**)calloc(1, sizeof(thread_data*) * (size_t)num);
 
     max_num = num;
 }
 
 int fthpool_add_thread(void* pri_arg)
 {
-    thread_data* th_data = malloc(sizeof(thread_data));
+    thread_data* th_data = calloc(1, sizeof(thread_data));
     th_data->tid = th_id++;
     th_data->pbuf = fmbuf_create(TH_QUEUE_BUF_SIZE);
     th_data->parg = pri_arg;

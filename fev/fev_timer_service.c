@@ -81,8 +81,7 @@ fev_timer_svc* fev_create_timer_service(
         return NULL;
     }
 
-    fev_timer_svc* timer_svc = malloc(sizeof(fev_timer_svc));
-    memset(timer_svc, 0, sizeof(fev_timer_svc));
+    fev_timer_svc* timer_svc = calloc(1, sizeof(fev_timer_svc));
 
     timer_svc->fev = fev;
     long long te_interval = (long long)interval * NS_PER_MS;
@@ -141,8 +140,7 @@ ftimer_node* fev_tmsvc_add_timer(
         return NULL;
     }
 
-    ftimer_node* node = malloc(sizeof(ftimer_node));
-    memset(node, 0, sizeof(ftimer_node));
+    ftimer_node* node = calloc(1, sizeof(ftimer_node));
 
     if( clock_gettime(svc->clockid, &node->start) ) {
         free(node);

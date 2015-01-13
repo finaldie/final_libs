@@ -102,13 +102,13 @@ int    fev_conn(fev_state* fev,
     } else if ( s == -1 ){ // connect error
         return -1;
     } else {
-        fev_conn_info* conn_info = malloc(sizeof(fev_conn_info));
+        fev_conn_info* conn_info = calloc(1, sizeof(fev_conn_info));
         conn_info->fd = sockfd;
         fev_timer_svc* timer_svc = (fev_timer_svc*)fev_get_module_data(fev,
                                         FEV_CONN_MODULE_NAME);
         conn_info->timer = fev_tmsvc_add_timer(timer_svc, (uint32_t)timeout,
                                                 on_timer, conn_info);
-        if ( !conn_info->timer ) {
+        if (!conn_info->timer) {
             close(sockfd);
             free(conn_info);
             return -1;
@@ -119,7 +119,7 @@ int    fev_conn(fev_state* fev,
 
         int ret = fev_reg_event(fev, sockfd, FEV_WRITE, NULL,
                                 on_connect, conn_info);
-        if ( ret != 0 ) {
+        if (ret != 0) {
             fev_tmsvc_del_timer(conn_info->timer);
             close(sockfd);
             free(conn_info);

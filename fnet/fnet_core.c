@@ -369,19 +369,19 @@ int     fnet_get_host(const char* host_name, fhost_info_t* hinfo)
     }
 
     size_t host_name_len = strlen(hptr->h_name) + 1;
-    char* h_name = malloc(host_name_len);
+    char* h_name = calloc(1, host_name_len);
     hinfo->official_name = strncpy(h_name, hptr->h_name, host_name_len);
 
     for (pptr = hptr->h_aliases; *pptr != NULL; pptr++)
         hinfo->alias_count++;
 
-    hinfo->alias_names = (char**)malloc(sizeof(char*) * (size_t)hinfo->alias_count);
+    hinfo->alias_names = (char**)calloc(1, sizeof(char*) * (size_t)hinfo->alias_count);
     int i = 0;
     for (pptr = hptr->h_aliases;
          *pptr != NULL && i < hinfo->alias_count;
          pptr++, i++) {
         size_t len = strlen(*pptr) + 1;
-        char* alias_name = malloc(len);
+        char* alias_name = calloc(1, len);
         hinfo->alias_names[i] = strncpy(alias_name, *pptr, len);
     }
 
@@ -393,9 +393,9 @@ int     fnet_get_host(const char* host_name, fhost_info_t* hinfo)
                 hinfo->ip_count++;
 
             pptr = hptr->h_addr_list;
-            hinfo->ips = (char**)malloc(sizeof(char*) * (size_t)hinfo->ip_count);
+            hinfo->ips = (char**)calloc(1, sizeof(char*) * (size_t)hinfo->ip_count);
             for (i=0; *pptr!=NULL && i < hinfo->ip_count; pptr++, i++) {
-                char* ip = malloc(STATIC_IP_LEN);
+                char* ip = calloc(1, STATIC_IP_LEN);
                 inet_ntop(hptr->h_addrtype, *pptr, ip, STATIC_IP_LEN);
                 hinfo->ips[i] = ip;
             }

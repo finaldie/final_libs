@@ -55,8 +55,7 @@ fev_timer*  fev_add_timer_event(fev_state* fev,
     int fd = ftimerfd_create();
     if (fd == -1) return NULL;
 
-    fev_timer* evt = malloc(sizeof(fev_timer));
-    if (!evt) return NULL;
+    fev_timer* evt = calloc(1, sizeof(fev_timer));
     evt->fd = fd;
     evt->once = alter == 0 ? 1 : 0;
     evt->callback = callback;

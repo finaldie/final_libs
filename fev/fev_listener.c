@@ -35,8 +35,7 @@ fev_listen_info* fev_add_listener(fev_state* fev,
 {
     if( !fev ) return NULL;
 
-    fev_listen_info* listen_info = malloc(sizeof(fev_listen_info));
-    if( !listen_info ) return NULL;
+    fev_listen_info* listen_info = calloc(1, sizeof(fev_listen_info));
 
     int listen_fd = fnet_listen(NULL, port, FEV_LISTEN_QUEUE_NUM, 0);
     if( listen_fd < 0 ) {
@@ -63,8 +62,7 @@ fev_listen_info* fev_add_listener_byfd(fev_state* fev, int listen_fd,
     if( !fev ) return NULL;
     if( listen_fd < 0 || !accept_cb) return NULL;
 
-    fev_listen_info* listen_info = malloc(sizeof(fev_listen_info));
-    if( !listen_info ) return NULL;
+    fev_listen_info* listen_info = calloc(1, sizeof(fev_listen_info));
 
     listen_info->fd = listen_fd;
     listen_info->accept_cb = accept_cb;

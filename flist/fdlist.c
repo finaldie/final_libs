@@ -43,9 +43,7 @@ struct _fdlist_mgr {
 
 fdlist* fdlist_create()
 {
-    fdlist* list = malloc(sizeof(fdlist));
-    if ( !list ) return NULL;
-
+    fdlist* list = calloc(1, sizeof(fdlist));
     list->head = list->tail = NULL;
     list->size = 0;
     list->total_data_size = 0;
@@ -69,15 +67,12 @@ int      fdlist_empty(fdlist* plist)
 
 fdlist_node_t* fdlist_make_node(void* data, size_t data_size)
 {
-    if( !data || !data_size ) {
+    if (!data || !data_size) {
         return NULL;
     }
 
-    fdlist_orig_node_t* orig_node = malloc(sizeof(fdlist_orig_node_t));
-    if ( !orig_node ) return NULL;
-    memset(orig_node, 0, sizeof(fdlist_orig_node_t));
-
-    if( fdlist_set_nodedata(&orig_node->node, data, data_size) ) {
+    fdlist_orig_node_t* orig_node = calloc(1, sizeof(fdlist_orig_node_t));
+    if (fdlist_set_nodedata(&orig_node->node, data, data_size)) {
         free(orig_node);
         return NULL;
     }

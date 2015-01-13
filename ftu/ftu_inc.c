@@ -42,7 +42,7 @@ void    tu_register_init(){
 void    _tu_register_module(ftu_init pfunc, char* case_name, char* describe){
     tu_case_num++;
 
-    ftest_case* ftc = malloc(sizeof(ftest_case));
+    ftest_case* ftc = calloc(1, sizeof(ftest_case));
     ftc->pfunc = pfunc;
     ftc->case_name = case_name;
     ftc->describe = describe;

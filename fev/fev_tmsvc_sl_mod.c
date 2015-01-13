@@ -33,8 +33,7 @@ int _destroy_timerlist(fdlist* timer_list)
 static
 int fev_tmmod_single_linked_init(void** mod_data)
 {
-    tm_sl_data* sl_data = malloc(sizeof(tm_sl_data));
-    memset(sl_data, 0, sizeof(tm_sl_data));
+    tm_sl_data* sl_data = calloc(1, sizeof(tm_sl_data));
 
     sl_data->timer_list = fdlist_create();
     sl_data->backup_list = fdlist_create();
