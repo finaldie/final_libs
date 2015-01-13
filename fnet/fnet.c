@@ -14,7 +14,7 @@
 #include <errno.h>
 #include <fcntl.h>
 
-#include "flibs/fnet_core.h"
+#include "flibs/fnet.h"
 
 #define STATIC_IP_LEN    32    // compatible ipv6
 

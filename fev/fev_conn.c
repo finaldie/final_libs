@@ -1,27 +1,10 @@
-/*
- * =============================================================================
- *
- *       Filename:  fev_conn.c
- *
- *    Description:
- *
- *        Version:  1.0
- *        Created:  11/23/2011 01:59:17
- *       Revision:  none
- *       Compiler:  gcc
- *
- *         Author:  yuzhang hu(finaldie)
- *
- * =============================================================================
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
 #include <time.h>
-#include "flibs/fnet_core.h"
+#include "flibs/fnet.h"
 #include "flibs/fev_timer_service.h"
 #include "flibs/fev_conn.h"
 

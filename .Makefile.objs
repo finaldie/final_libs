@@ -20,7 +20,7 @@ FCO_OBJS = \
     fco/fco.o
 
 FNET_OBJS = \
-    fnet/fnet_core.o
+    fnet/fnet.o
 
 FTIME_OBJS = \
     ftime/ftime.o

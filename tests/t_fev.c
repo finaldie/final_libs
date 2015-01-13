@@ -11,7 +11,7 @@
 #include "flibs/ftu_inc.h"
 #include "flibs/fhash.h"
 #include "flibs/fev.h"
-#include "flibs/fnet_core.h"
+#include "flibs/fnet.h"
 #include "flibs/fev_buff.h"
 #include "flibs/fev_listener.h"
 #include "flibs/fev_conn.h"
