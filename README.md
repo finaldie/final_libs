@@ -30,7 +30,7 @@ fco      | C coroutine support |
 ## API Documents
 See [Wiki][1]
 
-## Compile and INSTALL
+## Compile
 ```c
 git clone git@github.com:finaldie/final_libs.git flibs
 cd flibs
@@ -42,8 +42,8 @@ make valgrind-check
 
 ## Benchmark
 ```
-make benchmark
-make benchmark-run
+make bench
+make bench-run
 ```
 
 ## Flags
@@ -62,6 +62,10 @@ make debug=true
 * Build `32`bit libraries under `64`bit platform
 ```
 make BIT=32
+```
+* Build in parallel
+```
+make -j4   # replace the number 4 according to your real cpu number to speed up the compile time
 ```
 
 ## Example (on 64bit platform)
