@@ -1,3 +1,5 @@
+* 2015-01-21 0.7.5
+   * **Fix:** Remove the useless #pragma pack()
 * 2015-01-13 0.7.4
    * Refactor all the makefiles, now it can be built in parallel
    * Refactor the header files folder structure, to make them more user friendly
