@@ -6,13 +6,15 @@
 
 #define FEV_LISTEN_QUEUE_NUM 1024
 
-#pragma pack(4)
 struct fev_listen_info {
     int           fd;
+#if __WORDSIZE == 64
+    int           padding;
+#endif
+
     fev_accept_cb accept_cb;
     void*         ud;
 };
-#pragma pack()
 
 static void on_listen_port(fev_state* fev,
                             int fd      __attribute__((unused)),

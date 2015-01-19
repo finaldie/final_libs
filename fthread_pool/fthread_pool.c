@@ -13,7 +13,7 @@
 typedef enum {
     TH_TASK = 0,
     TH_RELEASE
-} TH_EVENT;
+} th_event_t;
 
 typedef struct {
     flock_cond_t  cond;
@@ -27,10 +27,10 @@ typedef struct {
 } thread_data;
 
 #pragma pack(4)
-typedef struct {
-    fth_task pf;
-    void*    arg;
-    TH_EVENT ev;
+typedef struct th_msg_t {
+    fth_task   pf;
+    void*      arg;
+    th_event_t ev;
 } th_msg_t;
 #pragma pack()
 

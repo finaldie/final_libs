@@ -10,9 +10,12 @@
 
 #define FEV_BUFF_DEFAULT_SIZE   (1024 * 4)
 
-#pragma pack(4)
 struct fev_buff {
     int             fd;
+#if __WORDSIZE == 64
+    int             padding;
+#endif
+
     fev_state*      fstate;
     fmbuf*          rbuf;
     fmbuf*          wbuf;
@@ -20,7 +23,6 @@ struct fev_buff {
     fev_buff_error  error_cb;
     void*           arg;
 };
-#pragma pack()
 
 static
 ssize_t fev_read(int fd, void* pbuf, size_t len)

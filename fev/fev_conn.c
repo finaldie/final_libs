@@ -11,14 +11,16 @@
 #define FEV_CONN_MODULE_NAME "__fev_connection_module__"
 #define FEV_CONN_TIME_SERVICE_INTERVAL 1
 
-#pragma pack(4)
 typedef struct fev_conn_info {
     int          fd;
+#if __WORDSIZE == 64
+    int          padding;
+#endif
+
     ftimer_node* timer;
     fev_conn_cb  conn_cb;
     conn_arg_t   arg;
 } fev_conn_info;
-#pragma pack()
 
 static
 void    on_connect(fev_state* fev,

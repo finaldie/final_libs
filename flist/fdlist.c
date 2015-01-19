@@ -12,7 +12,6 @@
 #define FN_OWNER(node)         (FO_OWNER(FN_HEAD(node)))
 #define FN_DATASIZE(node)      (FO_DATASIZE(FN_HEAD(node)))
 
-#pragma pack(4)
 struct fdlist_orig_node_t;
 typedef struct fdlist_priv_t {
     struct fdlist_orig_node_t* prev;
@@ -39,7 +38,6 @@ struct _fdlist_mgr {
     size_t size;
     size_t total_data_size;
 };
-#pragma pack()
 
 fdlist* fdlist_create()
 {
