@@ -10,29 +10,31 @@ extern "C" {
 #include <time.h>
 #include <unistd.h>
 
-typedef void (*ptimer)(void*);
+typedef void (*ftimer_cb)(void*);
 typedef struct _f_timer {
     timer_t timerid;
     struct  sigevent sev;
     struct  itimerspec its;
 
-    ptimer  pfunc;
+    ftimer_cb cb;
     void*   arg;
-} f_timer;
+} ftimer;
 
-int    ftimer_create(f_timer*, long long nsecs, long long alter,
-                    ptimer pfunc, void* arg);
-int    ftimer_start(f_timer*);
-int    ftimer_del(f_timer*);
+int    ftimer_create(ftimer*, long long nsecs, long long alter,
+                    ftimer_cb pfunc, void* arg);
+int    ftimer_start(ftimer*);
+int    ftimer_del(ftimer*);
 
 #ifdef __linux__
-#define _HAS_TIMER_FD_ 1
+# ifndef HAVE_TIMERFD_H
+# define HAVE_TIMERFD_H 1
 
-#include <sys/timerfd.h>
+# include <sys/timerfd.h>
 
 int    ftimerfd_create();
 int    ftimerfd_start(int fd, long long nsecs, long long alter);
 int    ftimerfd_stop(int fd);
+# endif
 #endif
 
 // return a time value its format is:
