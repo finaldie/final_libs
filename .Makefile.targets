@@ -154,12 +154,16 @@ clean-fev:
 .PHONY: clean-fev
 
 # tests
-$(TEST_TARGET): $(TARGET_LIBS)
-$(TEST_TARGET): $(TEST_OBJS)
-	$(FL_BIN_LD) -o $@ $(TEST_OBJS) $(TEST_LIBS)
+$(TEST_TARGETS): $(TARGET_LIBS)
+
+tests/test_flist: tests/t_list.o
+	$(FL_BIN_LD) -o $@ $< -lflist
+
+tests/test_fhash: tests/t_hash.o
+	$(FL_BIN_LD) -o $@ $< -lfhash
 
 clean-tests:
-	rm -rf tests/logs $(TEST_TARGET) $(TEST_OBJS)
+	rm -rf tests/logs $(TEST_TARGETS) tests/t_list.o tests/t_hash.o
 
 .PHONY: clean-tests
 

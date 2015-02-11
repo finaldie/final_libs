@@ -1,7 +1,15 @@
-TEST_TARGET = tests/test
+TEST_TARGETS = \
+    tests/test_flist \
+    tests/test_fhash
+#    tests/test_fmbuf \
+#    tests/test_fconf \
+#    tests/test_flog \
+#    tests/test_fcache \
+#    tests/test_ftime \
+#    tests/test_fco \
+#    tests/test_fev
 
 TEST_OBJS = \
-    tests/main.o \
     tests/t_list.o \
     tests/t_hash.o \
     tests/t_mbuf.o \
@@ -25,3 +33,4 @@ TEST_LIBS = \
     -lfmbuf \
     -lrt \
     -pthread
+

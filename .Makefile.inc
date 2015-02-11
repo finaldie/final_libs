@@ -11,7 +11,9 @@ EXTRA += -Wconversion
 OTHER = -pipe -g -ggdb3
 CC_SHARED = -fPIC
 MACRO = -D_POSIX_C_SOURCE=200809L -D_BSD_SOURCE
-INC = -I./include
+INC = \
+    -I./include \
+    -I./3rds/fcunit
 
 ifeq ($(debug), false)
 OPT = -O2

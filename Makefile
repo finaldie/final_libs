@@ -23,11 +23,12 @@ all: $(TARGET_LIBS)
 validate:
 	(cd $(LIB_FOLDER) && exit `find . -name "*.so" | xargs ldd -r | grep "undefine" | wc -l`)
 
-check: $(TEST_TARGET)
+check: $(TEST_TARGETS)
 	@echo "================Running $(BUILD_BIT)bit Unit Test==============";
 	@rm -rf tests/logs
 	@test -d tests/logs || mkdir tests/logs
-	./$(TEST_TARGET)
+	@./tests/test_flist
+	@./tests/test_fhash
 
 valgrind-check: $(TEST_TARGET)
 	@echo "==============Running $(BUILD_BIT)bit Valgrind Test============";

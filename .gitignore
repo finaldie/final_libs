@@ -11,6 +11,9 @@ types_c.taghl
 
 tests/test
 tests/logs
+tests/test_flist
+tests/test_fhash
+
 benchmark/fhash/benchmark
 benchmark/flog/benchmark
 benchmark/flog/logs
