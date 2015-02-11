@@ -153,19 +153,6 @@ clean-fev:
 
 .PHONY: clean-fev
 
-# fut
-$(FUT_STATIC_LIB): $(FUT_OBJS)
-	ar -rcs $@ $^
-
-$(FUT_DYNAMIC_LIB): $(FLIST_DYNAMIC_LIB)
-$(FUT_DYNAMIC_LIB): $(FUT_OBJS)
-	$(FL_LD) -o $@ $(FUT_OBJS) $(FUT_DEP_LIBS)
-
-clean-fut:
-	rm -f $(FUT_STATIC_LIB) $(FUT_DYNAMIC_LIB) $(FUT_OBJS)
-
-.PHONY: clean-fut
-
 # tests
 $(TEST_TARGET): $(TARGET_LIBS)
 $(TEST_TARGET): $(TEST_OBJS)

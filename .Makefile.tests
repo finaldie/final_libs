@@ -13,7 +13,6 @@ TEST_OBJS = \
     tests/t_fev.o
 
 TEST_LIBS = \
-    -lfut \
     -lfev \
     -lflog \
     -lfcache \

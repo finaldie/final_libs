@@ -38,8 +38,7 @@ DEP_LDFLAGS = \
     -Lfthread_pool \
     -Lflog \
     -Lfev \
-    -Lfco \
-    -Lftu
+    -Lfco
 
 FL_CFLAGS = $(CFLAGS) $(STD) $(WARN) $(EXTRA) $(MACRO) $(OPT) $(OTHER) $(CC_SHARED) $(INC)
 FL_LDFLAGS = $(LDFLAGS) $(OPT) $(OTHER) $(LD_SHARED) $(DEP_LDFLAGS)

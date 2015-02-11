@@ -58,11 +58,6 @@ FEV_DEP_LIBS = -lfmbuf -lfhash -lflist -lftime -lfnet
 FEV_STATIC_LIB = fev/libfev.a
 FEV_DYNAMIC_LIB = fev/libfev.so
 
-# fut
-FUT_DEP_LIBS = -lflist
-FUT_STATIC_LIB = ftu/libfut.a
-FUT_DYNAMIC_LIB = ftu/libfut.so
-
 ################################################################################
 STATIC_LIBS = \
     $(FLIST_STATIC_LIB) \
@@ -76,8 +71,7 @@ STATIC_LIBS = \
     $(FTHPOOL_STATIC_LIB) \
     $(FCONF_STATIC_LIB) \
     $(FLOG_STATIC_LIB) \
-    $(FEV_STATIC_LIB) \
-    $(FUT_STATIC_LIB)
+    $(FEV_STATIC_LIB)
 
 DYNAMIC_LIBS = \
     $(FLIST_DYNAMIC_LIB) \
@@ -91,8 +85,7 @@ DYNAMIC_LIBS = \
     $(FTHPOOL_DYNAMIC_LIB) \
     $(FCONF_DYNAMIC_LIB) \
     $(FLOG_DYNAMIC_LIB) \
-    $(FEV_DYNAMIC_LIB) \
-    $(FUT_DYNAMIC_LIB)
+    $(FEV_DYNAMIC_LIB)
 
 ifeq ($(SHARED), true)
     TARGET_LIBS = $(DYNAMIC_LIBS)
