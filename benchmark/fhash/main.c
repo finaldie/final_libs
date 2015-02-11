@@ -81,30 +81,30 @@ void test_without_autorehash()
 
     // test set
     {
-        unsigned long long start = fgettime();
+        unsigned long long start = ftime_gettime();
         for (int i = 0; i < total_lines; i++) {
             fhash_set(phash, lines[i], (key_sz_t)strlen(lines[i]),
                       lines[i], (value_sz_t)strlen(lines[i]));
         }
-        unsigned long long end = fgettime();
+        unsigned long long end = ftime_gettime();
         printf("fhash_set x%d spend time: %llu usec\n",
                total_lines, end - start);
     }
 
     // test get
     {
-        unsigned long long start = fgettime();
+        unsigned long long start = ftime_gettime();
         for (int i = 0; i < total_lines; i++) {
             fhash_get(phash, lines[i], (key_sz_t)strlen(lines[i]), NULL);
         }
-        unsigned long long end = fgettime();
+        unsigned long long end = ftime_gettime();
         printf("fhash_get x%d spend time: %llu usec\n",
                total_lines, end - start);
     }
 
     // test iteration
     {
-        unsigned long long start = fgettime();
+        unsigned long long start = ftime_gettime();
         fhash_iter iter = fhash_iter_new(phash);
         char* data = NULL;
         int iter_count = 0;
@@ -112,7 +112,7 @@ void test_without_autorehash()
             iter_count++;
         }
         fhash_iter_release(&iter);
-        unsigned long long end = fgettime();
+        unsigned long long end = ftime_gettime();
 
         printf("fhash_next x%d spend time: %llu usec\n",
                iter_count, end -start);
@@ -120,9 +120,9 @@ void test_without_autorehash()
 
     // test rehash
     {
-        unsigned long long start = fgettime();
+        unsigned long long start = ftime_gettime();
         int ret = fhash_rehash(phash, (uint32_t)total_lines);
-        unsigned long long end = fgettime();
+        unsigned long long end = ftime_gettime();
         printf("fhash_rehash (index double), ret: %d, spend time: %llu usec\n",
                ret, end -start);
     }
@@ -133,11 +133,11 @@ void test_without_autorehash()
 
     // test delete
     {
-        unsigned long long start = fgettime();
+        unsigned long long start = ftime_gettime();
         for (int i = 0; i < total_lines; i++) {
             fhash_del(phash, lines[i], (key_sz_t)strlen(lines[i]));
         }
-        unsigned long long end = fgettime();
+        unsigned long long end = ftime_gettime();
         printf("fhash_del x%d spend time: %llu usec\n",
                total_lines, end - start);
     }
@@ -158,30 +158,30 @@ void test_with_autorehash()
 
     // test set
     {
-        unsigned long long start = fgettime();
+        unsigned long long start = ftime_gettime();
         for (int i = 0; i < total_lines; i++) {
             fhash_set(phash, lines[i], (key_sz_t)strlen(lines[i]),
                       lines[i], (value_sz_t)strlen(lines[i]));
         }
-        unsigned long long end = fgettime();
+        unsigned long long end = ftime_gettime();
         printf("fhash_set x%d spend time: %llu usec\n",
                total_lines, end - start);
     }
 
     // test get
     {
-        unsigned long long start = fgettime();
+        unsigned long long start = ftime_gettime();
         for (int i = 0; i < total_lines; i++) {
             fhash_get(phash, lines[i], (key_sz_t)strlen(lines[i]), NULL);
         }
-        unsigned long long end = fgettime();
+        unsigned long long end = ftime_gettime();
         printf("fhash_get x%d spend time: %llu usec\n",
                total_lines, end - start);
     }
 
     // test iteration
     {
-        unsigned long long start = fgettime();
+        unsigned long long start = ftime_gettime();
         fhash_iter iter = fhash_iter_new(phash);
         char* data = NULL;
         int iter_count = 0;
@@ -189,7 +189,7 @@ void test_with_autorehash()
             iter_count++;
         }
         fhash_iter_release(&iter);
-        unsigned long long end = fgettime();
+        unsigned long long end = ftime_gettime();
 
         printf("fhash_next x%d spend time: %llu usec\n",
                iter_count, end -start);
@@ -197,9 +197,9 @@ void test_with_autorehash()
 
     // test rehash
     {
-        unsigned long long start = fgettime();
+        unsigned long long start = ftime_gettime();
         int ret = fhash_rehash(phash, (uint32_t)total_lines);
-        unsigned long long end = fgettime();
+        unsigned long long end = ftime_gettime();
         printf("fhash_rehash (index double), ret: %d, spend time: %llu usec\n",
                ret, end -start);
     }
@@ -210,11 +210,11 @@ void test_with_autorehash()
 
     // test delete
     {
-        unsigned long long start = fgettime();
+        unsigned long long start = ftime_gettime();
         for (int i = 0; i < total_lines; i++) {
             fhash_del(phash, lines[i], (key_sz_t)strlen(lines[i]));
         }
-        unsigned long long end = fgettime();
+        unsigned long long end = ftime_gettime();
         printf("fhash_del x%d spend time: %llu usec\n",
                total_lines, end - start);
     }

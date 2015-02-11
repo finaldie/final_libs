@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <pthread.h>
+
+#include "flibs/ftime.h"
 #include "flibs/flog.h"
-#include "flibs/ftu_inc.h"
 
 // you need change the two marcos as below
 #define MAX_LOG_SIZE             500
@@ -95,8 +97,7 @@ void* write_log(void* arg)
     printf("tid=%lu, max_num_per_group:%d, group:%d, last_miss_count:%d, sleep_step:%d\n",
             pthread_self(), max_num_per_group, group, last_miss_count, sleep_step);
 
-    my_time start, end;
-    get_cur_time(&start);
+    unsigned long long start = ftime_gettime();
     int i = 0, j = 0;
     for ( i = 0; i < group; i++ ) {
         if ( log_mode == FLOG_ASYNC_MODE ) {
@@ -132,9 +133,9 @@ void* write_log(void* arg)
         }
     }
 
-    get_cur_time(&end);
-    int diff_usec = get_diff_time(&start, &end);
-    printf("tid=%lu, call interface time cost (usec):%d, writen msg:%d, final:%f count/s\n", 
+    unsigned long long end = ftime_gettime();
+    unsigned long long diff_usec = end - start;
+    printf("tid=%lu, call interface time cost (usec):%llu, writen msg:%d, final:%f count/s\n", 
             pthread_self(), diff_usec, num, (double)num / ((double)diff_usec / 1000000));
 
     pthread_exit(NULL);
@@ -155,8 +156,7 @@ void do_test(int num, int thread_num)
     init_counters();
     sleep(1);
 
-    my_time start_time, end_time;
-    get_cur_time(&start_time);
+    unsigned long long start_time = ftime_gettime();
     int end = num / thread_num;
     pthread_t tid[thread_num];
     int i = 0;
@@ -168,9 +168,9 @@ void do_test(int num, int thread_num)
         pthread_join(tid[i], NULL);
     }
 
-    get_cur_time(&end_time);
-    int diff_usec = get_diff_time(&start_time, &end_time);
-    printf("pid=%d, tid=%lu, call interface time cost (usec):%d write_msg:%d miss_msg:%d miss_rate:%f final:%f count/s\n",
+    unsigned long long end_time = ftime_gettime();
+    unsigned long long diff_usec = end_time - start_time;
+    printf("pid=%d, tid=%lu, call interface time cost (usec):%llu write_msg:%d miss_msg:%d miss_rate:%f final:%f count/s\n",
             getpid(), pthread_self(), diff_usec, num, buff_full_count, (double)buff_full_count/(double)num, (double)num/((double)diff_usec/1000000));
     printf("metrics:\n");
     printf("\terror_write_count: %d\n", error_write_count);
@@ -240,20 +240,18 @@ size_t critical_test()
         exit(1);
     }
 
-    my_time start_time, end_time;
-    get_cur_time(&start_time);
-
+    unsigned long long start_time = ftime_gettime();
     int i = 0;
     int msg_count = 20000000;
     for ( i = 0; i < msg_count; ++i ) {
         fwrite(log, 1, MAX_LOG_SIZE-1, f);
     }
 
-    get_cur_time(&end_time);
-    int diff_usec = get_diff_time(&start_time, &end_time);
+    unsigned long long end_time = ftime_gettime();
+    unsigned long long diff_usec = end_time - start_time;
     fclose(f);
 
-    printf("total cost (usec):%d, total msg:%d count, per-msg_size:%d bytes\n",
+    printf("total cost (usec):%llu, total msg:%d count, per-msg_size:%d bytes\n",
             diff_usec, msg_count, MAX_LOG_SIZE);
     double max = (double)msg_count / ((double)diff_usec/(double)1000000 );
     return (size_t)max;
