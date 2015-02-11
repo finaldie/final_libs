@@ -116,8 +116,6 @@ void      _fcache_del_node(fcache_t* pcache, fcache_node_t* node)
     const char* key = fcache_list_get_nodekey(node);
     if ( pcache->obj_free ) {
         pcache->obj_free(fcache_list_get_nodedata(node));
-    } else {
-        fprintf(stderr, "[WARNING]: data delete may cause memory leak, key = %s\n", key);
     }
 
     fhash_str_del(pcache->phash_node_index, key);

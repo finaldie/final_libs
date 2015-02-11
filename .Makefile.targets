@@ -171,10 +171,13 @@ tests/test_fconf: tests/t_conf.o
 tests/test_flog: tests/t_log.o
 	$(FL_BIN_LD) -o $@ $< -lflog -lfmbuf -lfhash -pthread
 
+tests/test_fcache: tests/t_fcache.o
+	$(FL_BIN_LD) -o $@ $< -lfcache -lflist -lfhash
+
 clean-tests:
 	rm -rf tests/logs $(TEST_TARGETS) \
 	    tests/t_list.o tests/t_hash.o tests/t_mbuf.o tests/t_conf.o \
-	    tests/t_log.o
+	    tests/t_log.o tests/t_fcache.o
 
 .PHONY: clean-tests
 
