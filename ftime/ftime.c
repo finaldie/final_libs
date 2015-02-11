@@ -115,7 +115,7 @@ int ftimerfd_stop(int fd)
     return 0;
 }
 
-unsigned long long fgettime()
+unsigned long long ftime_gettime()
 {
     struct timeval tv;
     int ret = gettimeofday(&tv, NULL);

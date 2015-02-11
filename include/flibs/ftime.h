@@ -39,7 +39,7 @@ int    ftimerfd_stop(int fd);
 
 // return a time value its format is:
 // current time * 1000000 + current usec
-unsigned long long fgettime();
+unsigned long long ftime_gettime();
 
 #ifdef __cplusplus
 }
