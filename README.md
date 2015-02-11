@@ -15,7 +15,7 @@ flock    | A wraper, which safe and easy to use pthread condition |
 flog     | A High Performance Log System: Thread-Caching Log System |
 fmbuf    | A light-weight buffer |
 fconf    | A simple format config lib |
-ftimer   | Easy to create system timer |
+ftime    | Easy to create system timer |
 fthread_pool | Simple thread pool, which easy to use |
 fnet     | Wrap the system api, easy to use the network api |
 fev      | Event framework, including buffer, network, timer service |
