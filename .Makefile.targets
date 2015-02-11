@@ -162,8 +162,12 @@ tests/test_flist: tests/t_list.o
 tests/test_fhash: tests/t_hash.o
 	$(FL_BIN_LD) -o $@ $< -lfhash
 
+tests/test_fmbuf: tests/t_mbuf.o
+	$(FL_BIN_LD) -o $@ $< -lfmbuf
+
 clean-tests:
-	rm -rf tests/logs $(TEST_TARGETS) tests/t_list.o tests/t_hash.o
+	rm -rf tests/logs $(TEST_TARGETS) \
+	    tests/t_list.o tests/t_hash.o tests/t_mbuf.o
 
 .PHONY: clean-tests
 

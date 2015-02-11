@@ -13,6 +13,7 @@ tests/test
 tests/logs
 tests/test_flist
 tests/test_fhash
+tests/test_fmbuf
 
 benchmark/fhash/benchmark
 benchmark/flog/benchmark
