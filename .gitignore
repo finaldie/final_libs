@@ -17,6 +17,7 @@ tests/test_fmbuf
 tests/test_fconf
 tests/test_flog
 tests/test_fcache
+tests/test_ftime
 
 benchmark/fhash/benchmark
 benchmark/flog/benchmark

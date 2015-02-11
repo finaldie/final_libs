@@ -5,7 +5,7 @@ TEST_TARGETS = \
     tests/test_fconf \
     tests/test_flog \
     tests/test_fcache \
-#    tests/test_ftime \
+    tests/test_ftime \
 #    tests/test_fco \
 #    tests/test_fev
 

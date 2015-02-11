@@ -1,27 +1,32 @@
-//base info: create by hyz
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <stdint.h>
 
+#include <fcunit.h>
 #include "flibs/ftime.h"
-#include "flibs/ftu_inc.h"
-#include "inc.h"
 
-void    test_timer()
+void    test_ftimerfd()
 {
     int fd = ftimerfd_create();
-    FTU_ASSERT_GREATER_THAN_INT(0, fd);
+    FCUNIT_ASSERT(fd > 0);
 
     int ret = ftimerfd_start(fd, 1000000000l, 1000000000l);
-    FTU_ASSERT_EQUAL_INT(0, ret);
+    FCUNIT_ASSERT(0 == ret);
     sleep(2);
 
     uint64_t exp;
     ssize_t s = read(fd, (char*)&exp, sizeof(exp));
-    FTU_ASSERT(sizeof(exp) == s);
+    FCUNIT_ASSERT(sizeof(exp) == s);
 
     ret = ftimerfd_stop(fd);
-    FTU_ASSERT_EQUAL_INT(0, ret);
+    FCUNIT_ASSERT(0 == ret);
+}
+
+int main(int argc, char** argv)
+{
+    FCUNIT_RUN(test_ftimerfd);
+
+    return 0;
 }
