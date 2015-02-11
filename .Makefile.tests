@@ -9,28 +9,13 @@ TEST_TARGETS = \
     tests/test_fco \
     tests/test_fev
 
-TEST_OBJS = \
-    tests/t_list.o \
-    tests/t_hash.o \
-    tests/t_mbuf.o \
-    tests/t_conf.o \
-    tests/t_log.o \
-    tests/t_fcache.o \
-    tests/t_timer.o \
-    tests/t_fco.o \
-    tests/t_fev.o
+VALGRIND = valgrind --tool=memcheck --leak-check=full \
+	    --gen-suppressions=all --error-exitcode=1
 
-TEST_LIBS = \
-    -lfev \
-    -lflog \
-    -lfcache \
-    -lftime \
-    -lfnet \
-    -lfco \
-    -lfconf \
-    -lflist \
-    -lfhash \
-    -lfmbuf \
-    -lrt \
-    -pthread
+VALGRIND_FCO = valgrind --tool=memcheck --leak-check=full \
+	    --suppressions=./tests/valgrind/fco.suppression \
+	    --gen-suppressions=all --error-exitcode=1
 
+VALGRIND_FLOG = valgrind --tool=memcheck --leak-check=full \
+	    --suppressions=./tests/valgrind/flog.suppression \
+	    --gen-suppressions=all --error-exitcode=1

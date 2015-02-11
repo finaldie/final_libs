@@ -41,11 +41,15 @@ valgrind-check: $(TEST_TARGET)
 	@echo "==============Running $(BUILD_BIT)bit Valgrind Test============";
 	@rm -rf tests/logs
 	@test -d tests/logs || mkdir tests/logs
-	valgrind --tool=memcheck --leak-check=full \
-	    --suppressions=./tests/valgrind/fco.suppression \
-	    --suppressions=./tests/valgrind/flog.suppression \
-	    --suppressions=./tests/valgrind/pthread.suppression \
-	    --gen-suppressions=all --error-exitcode=1 ./$(TEST_TARGET)
+	@$(VALGRIND) ./tests/test_flist
+	@$(VALGRIND) ./tests/test_fhash
+	@$(VALGRIND) ./tests/test_fmbuf
+	@$(VALGRIND) ./tests/test_fconf
+	@$(VALGRIND_FLOG) ./tests/test_flog
+	@$(VALGRIND) ./tests/test_fcache
+	@$(VALGRIND) ./tests/test_ftime
+	@$(VALGRIND_FCO) ./tests/test_fco
+	@$(VALGRIND) ./tests/test_fev
 
 clean: clean-flist clean-fcache clean-fhash clean-fmbuf clean-fco clean-fnet
 clean: clean-ftime clean-flock clean-fthpool clean-fconf clean-flog clean-fev

@@ -6,7 +6,6 @@
    fun:pthread_create@@GLIBC_2.2.5
    fun:flog_set_mode
    fun:test_async_log
-   fun:tu_run_cases
    fun:main
 }
 
@@ -22,4 +21,3 @@
    fun:tu_run_cases
    fun:main
 }
-
