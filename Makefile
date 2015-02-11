@@ -30,6 +30,7 @@ check: $(TEST_TARGETS)
 	@./tests/test_flist
 	@./tests/test_fhash
 	@./tests/test_fmbuf
+	@./tests/test_fconf
 
 valgrind-check: $(TEST_TARGET)
 	@echo "==============Running $(BUILD_BIT)bit Valgrind Test============";
