@@ -7,7 +7,7 @@ TEST_TARGETS = \
     tests/test_fcache \
     tests/test_ftime \
     tests/test_fco \
-#    tests/test_fev
+    tests/test_fev
 
 TEST_OBJS = \
     tests/t_list.o \

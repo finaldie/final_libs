@@ -180,10 +180,15 @@ tests/test_ftime: tests/t_ftime.o
 tests/test_fco: tests/t_fco.o
 	$(FL_BIN_LD) -o $@ $< -lfco
 
+tests/test_fev: tests/t_fev.o
+	$(FL_BIN_LD) -o $@ $< -lfev -lflist -lfmbuf -lfnet -lfhash -lftime \
+	    -lrt -pthread
+
 clean-tests:
 	rm -rf tests/logs $(TEST_TARGETS) \
 	    tests/t_list.o tests/t_hash.o tests/t_mbuf.o tests/t_conf.o \
-	    tests/t_log.o tests/t_fcache.o tests/t_ftime.o tests/t_fco.o
+	    tests/t_log.o tests/t_fcache.o tests/t_ftime.o tests/t_fco.o \
+	    tests/t_fev.o
 
 .PHONY: clean-tests
 
