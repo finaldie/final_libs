@@ -74,6 +74,24 @@
 }
 
 {
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   fun:free
+   fun:fco_resume
+   fun:test
+   fun:(below main)
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   fun:free
+   fun:fco_resume
+   fun:test
+   fun:(below main)
+}
+
+{
     <insert_a_suppression_name_here>
     Memcheck:Value8
     fun:test
@@ -325,6 +343,14 @@
    obj:*
 }
 
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value4
+   obj:*
+   fun:fco_resume
+   fun:test
+   fun:(below main)
+}
 
 {
    <insert_a_suppression_name_here>
@@ -333,3 +359,9 @@
    fun:test
 }
 
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value4
+   fun:_fco_call_plugin
+   fun:(below main)
+}
