@@ -3,4 +3,4 @@
 	url = git://github.com/finaldie/convert2markdown.git
 [submodule "3rds/fcunit"]
 	path = 3rds/fcunit
-	url = git@github.com:finaldie/fcunit.git
+	url = git://github.com:finaldie/fcunit.git
