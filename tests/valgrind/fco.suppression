@@ -143,7 +143,6 @@
     fun:co_main
     fun:makecontext
     fun:test_fco
-    fun:tu_run_cases
     fun:main
 }
 
@@ -156,7 +155,6 @@
     fun:co_main
     fun:makecontext
     fun:test_fco
-    fun:tu_run_cases
     fun:main
 }
 
@@ -168,7 +166,6 @@
     fun:co_main
     fun:makecontext
     fun:test_fco
-    fun:tu_run_cases
     fun:main
 }
 
@@ -179,7 +176,6 @@
     fun:co_main
     fun:makecontext
     fun:test_fco
-    fun:tu_run_cases
     fun:main
 }
 
@@ -189,7 +185,6 @@
     fun:test
     fun:makecontext
     fun:test_fco
-    fun:tu_run_cases
     fun:main
 }
 
@@ -199,7 +194,6 @@
     fun:co_main
     fun:makecontext
     fun:test_fco
-    fun:tu_run_cases
     fun:main
 }
 
@@ -208,7 +202,6 @@
     Memcheck:Value4
     fun:co_main
     fun:test_fco
-    fun:tu_run_cases
     fun:main
 }
 
@@ -217,7 +210,6 @@
     Memcheck:Value4
     fun:makecontext
     fun:test_fco
-    fun:tu_run_cases
     fun:main
 }
 
@@ -226,7 +218,6 @@
     Memcheck:Cond
     fun:makecontext
     fun:test_fco
-    fun:tu_run_cases
     fun:main
 }
 
@@ -236,7 +227,6 @@
     sigprocmask(set)
     fun:setcontext
     fun:test_fco
-    fun:tu_run_cases
     fun:main
 }
 
@@ -253,7 +243,6 @@
    Memcheck:Param
    sigprocmask(set)
    fun:setcontext
-   obj:*
 }
 
 {
@@ -261,7 +250,6 @@
     Memcheck:Value4
     fun:setcontext
     fun:test_fco
-    fun:tu_run_cases
     fun:main
 }
 
@@ -276,7 +264,6 @@
    <insert_a_suppression_name_here>
    Memcheck:Value4
    fun:setcontext
-   obj:*
 }
 
 {
@@ -289,7 +276,6 @@
    <insert_a_suppression_name_here>
    Memcheck:Value4
    fun:co_main
-   obj:*
 }
 
 {
@@ -309,7 +295,6 @@
    <insert_a_suppression_name_here>
    Memcheck:Value4
    fun:fco_resume
-   obj:*
 }
 
 {
@@ -347,6 +332,5 @@
    Memcheck:Cond
    fun:fco_resume
    fun:test
-   obj:*
 }
 
