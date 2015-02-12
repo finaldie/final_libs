@@ -19,9 +19,9 @@ ftime    | Easy to create system timer |
 fthread_pool | Simple thread pool, which easy to use |
 fnet     | Wrap the system api, easy to use the network api |
 fev      | Event framework, including buffer, network, timer service |
-ftu      | Unit test framework |
 fcache   | A simple cache with LRU |
 fco      | C coroutine support |
+~~fut~~  | Unit test framework. **notes:** Migrated to [fcunit][4] |
 ~~fmempool~~ | Thread cache memory pool. **notes:** Migrated to [skull-malloc][2] |
 ~~fpcap~~| Pcap file convertion lib. **notes:** Migrated to [fpcap][3] |
 
@@ -93,3 +93,4 @@ See [change log](ChangeLog.md)
 [1]: https://github.com/finaldie/final_libs/wiki
 [2]: https://github.com/finaldie/skull-malloc
 [3]: https://github.com/finaldie/fpcap
+[4]: https://github.com/finaldie/fcunit
