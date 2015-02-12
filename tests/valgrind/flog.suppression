@@ -20,3 +20,14 @@
    fun:test_async_log
    fun:main
 }
+
+{
+   <32 bit mode>
+   Memcheck:Leak
+   fun:calloc
+   fun:allocate_dtv
+   fun:_dl_allocate_tls
+   fun:pthread_create@@GLIBC_2.1
+   fun:flog_set_mode
+   fun:(below main)
+}
