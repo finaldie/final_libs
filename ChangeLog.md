@@ -1,3 +1,6 @@
+* 2015-02-12 0.8.1
+   * Remove fut, use fcunit instead
+   * Change API name `fgettime` to `ftime_gettime`
 * 2015-01-21 0.7.5
    * **Fix:** Remove the useless #pragma pack()
 * 2015-01-13 0.7.4
