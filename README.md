@@ -9,10 +9,10 @@ See [Here][1]
 ## Library contains
 Lib Name | Description |
 ---------|-------------|
-flist    | Lockfree list in one producer one consumer |
+flist    | Lockfree list in one-producer one-consumer |
 fhash    | Hash table |
 flock    | A wraper, which safe and easy to use pthread condition |
-flog     | A High Performance Log System: Thread-Caching Log System |
+flog     | A High Performance Logging System |
 fmbuf    | A light-weight buffer |
 fconf    | A simple format config lib |
 ftime    | Easy to create system timer |
@@ -20,7 +20,7 @@ fthread_pool | Simple thread pool, which easy to use |
 fnet     | Wrap the system api, easy to use the network api |
 fev      | Event framework, including buffer, network, timer service |
 fcache   | A simple cache with LRU |
-fco      | C coroutine support |
+fco      | C coroutine |
 ~~fut~~  | Unit test framework. **notes:** Migrated to [fcunit][4] |
 ~~fmempool~~ | Thread cache memory pool. **notes:** Migrated to [skull-malloc][2] |
 ~~fpcap~~| Pcap file convertion lib. **notes:** Migrated to [fpcap][3] |
