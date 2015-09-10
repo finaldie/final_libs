@@ -30,18 +30,6 @@ typedef struct _mbuf fmbuf;
 fmbuf*  fmbuf_create(size_t size);
 
 /**
- * create a fmbuf, and the buffer will be populated by 'ch'
- *
- * @param size  the buffer size user want to create
- * @return
- *   - the pointer of fmbuf
- *   - NULL if create failure when there is no available memory
- *
- * @note if the size is `0`, it will create a empty fmbuf with size is 0
- */
-fmbuf*  fmbuf_create1(size_t size, int ch);
-
-/**
  * destroy a fmbuf
  *
  * @param mbuf  pointer of fmbuf

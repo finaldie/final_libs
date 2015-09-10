@@ -40,17 +40,9 @@ struct _mbuf {
 fmbuf*    fmbuf_create(size_t size)
 {
     // must reserve 1 byte for mbuf
-    fmbuf* mbuf = malloc(sizeof(fmbuf) + size + 1);
+    fmbuf* mbuf = calloc(1, sizeof(fmbuf) + size + 1);
     mbuf->size = size;
     mbuf->head = mbuf->tail = mbuf->buf;
-
-    return mbuf;
-}
-
-fmbuf*    fmbuf_create1(size_t size, int fill)
-{
-    fmbuf* mbuf = fmbuf_create(size);
-    memset(mbuf->buf, fill, size + 1);
 
     return mbuf;
 }
