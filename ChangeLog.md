@@ -1,3 +1,5 @@
+* 2015-09-25 0.8.2
+   * Remove `fmbuf_create1` api, `fmbuf_create` use `calloc` instead of `malloc`
 * 2015-02-12 0.8.1
    * Remove fut, use fcunit instead
    * Change API name `fgettime` to `ftime_gettime`
