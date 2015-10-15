@@ -57,7 +57,8 @@ typedef struct flog_file_t flog_file_t;
 /**
  *  @brief Create Logger
  *
- *  @param filename
+ *  @param filename log filename
+ *  @param mode     sync or async mode
  *
  *  @return a pointer of log_file structure
  */
