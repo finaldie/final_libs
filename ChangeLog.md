@@ -1,3 +1,5 @@
+* 2015-10-14 0.8.3
+   * Fix `flog` potential coredump when the process exit
 * 2015-09-25 0.8.2
    * Remove `fmbuf_create1` api, `fmbuf_create` use `calloc` instead of `malloc`
 * 2015-02-12 0.8.1
