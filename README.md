@@ -6,6 +6,9 @@ Common Libraries (Linux Platform)
 ## Lastest Release
 See [Here][1]
 
+## ChangeLog
+See [change log](ChangeLog.md)
+
 ## Library contains
 Lib Name | Description |
 ---------|-------------|
@@ -86,9 +89,6 @@ make install
 make SHARED=true prefix=$(other_location) -j4
 make prefix=$(other_location) install
 ```
-
-## ChangeLog
-See [change log](ChangeLog.md)
 
 [1]: https://github.com/finaldie/final_libs/wiki
 [2]: https://github.com/finaldie/skull-malloc
