@@ -29,5 +29,6 @@
    fun:_dl_allocate_tls
    fun:pthread_create@@GLIBC_2.1
    fun:flog_create
+   fun:test_async_log
    fun:(below main)
 }
