@@ -144,7 +144,6 @@ void* write_log(void* arg)
 static
 void do_test(int num, int thread_num)
 {
-    flog_set_mode(log_mode);
     flog_set_flush_interval(2);
     flog_set_level(FLOG_LEVEL_DEBUG);
     flog_set_buffer_size(MAX_BUFF_SIZE_PER_THREAD);
@@ -183,9 +182,9 @@ void do_test(int num, int thread_num)
 static
 void test_single_sync(int num)
 {
-    log_handler = flog_create("benchmark/flog/logs/sync_single_thread.log");
-    printf("[SYNC]start single testing...\n");
     log_mode = FLOG_SYNC_MODE;
+    log_handler = flog_create("benchmark/flog/logs/sync_single_thread.log", log_mode);
+    printf("[SYNC]start single testing...\n");
     do_test(num, 1);
     sleep(2);
     printf("[SYNC]end single testing\n\n");
@@ -195,9 +194,9 @@ void test_single_sync(int num)
 static
 void test_multi_sync(int num, int thread_num)
 {
-    log_handler = flog_create("benchmark/flog/logs/sync_multithread.log");
-    printf("[SYNC]start multip testing ( totally, we start %d threads for testing)...\n", thread_num);
     log_mode = FLOG_SYNC_MODE;
+    log_handler = flog_create("benchmark/flog/logs/sync_multithread.log", log_mode);
+    printf("[SYNC]start multip testing ( totally, we start %d threads for testing)...\n", thread_num);
     do_test(num, thread_num);
     sleep(4);
     printf("[SYNC]end multip testing\n\n");
@@ -207,9 +206,9 @@ void test_multi_sync(int num, int thread_num)
 static
 void test_single_async(int num)
 {
-    log_handler = flog_create("benchmark/flog/logs/async_single_thread.log");
-    printf("[ASYNC]start single testing...\n");
     log_mode = FLOG_ASYNC_MODE;
+    log_handler = flog_create("benchmark/flog/logs/async_single_thread.log", log_mode);
+    printf("[ASYNC]start single testing...\n");
     do_test(num, 1);
     sleep(2);
     printf("[ASYNC]end single testing\n\n");
@@ -219,9 +218,9 @@ void test_single_async(int num)
 static
 void test_multi_async(int num, int thread_num)
 {
-    log_handler = flog_create("benchmark/flog/logs/async_multithread.log");
-    printf("[ASYNC]start multip testing ( totally, we start %d threads for testing)...\n", thread_num);
     log_mode = FLOG_ASYNC_MODE;
+    log_handler = flog_create("benchmark/flog/logs/async_multithread.log", log_mode);
+    printf("[ASYNC]start multip testing ( totally, we start %d threads for testing)...\n", thread_num);
     do_test(num, thread_num);
     sleep(6);
     printf("[ASYNC]end multip testing\n\n");

@@ -41,6 +41,7 @@ typedef enum {
 
     // normal notice metrics
     FLOG_EVENT_USER_BUFFER_RELEASED,    // user logger thread quit gracefully
+    FLOG_EVENT_LOGGER_CLOSED            // logger has been closed (async logger)
 } flog_event_t;
 
 /**
@@ -60,7 +61,7 @@ typedef struct flog_file_t flog_file_t;
  *
  *  @return a pointer of log_file structure
  */
-flog_file_t* flog_create(const char* filename);
+flog_file_t* flog_create(const char* filename, flog_mode_t mode);
 
 /**
  *  @brief Destroy Logger
@@ -131,17 +132,6 @@ void flog_vset_cookie(const char* fmt, va_list ap);
  * @return          void
  */
 void flog_clear_cookie();
-
-/**
- *  @brief Set log mode
- *
- *  @param mode
- *                  - LOG_SYNC_MODE: set synchronization mode
- *                  - LOG_ASYNC_MODE: set asynchronization mode
- *
- *  @return         mode before setting
- */
-flog_mode_t flog_set_mode(flog_mode_t mode);
 
 /**
  *  @brief Set file roll size, when greater than the given size, log system

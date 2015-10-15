@@ -37,8 +37,8 @@ void    _test_log()
     close(fd);
 }
 
-void    test_log(){
-    log_handler = flog_create("./tests/logs/test_log");
+void    test_sync_log(){
+    log_handler = flog_create("./tests/logs/test_log", FLOG_SYNC_MODE);
     FCUNIT_ASSERT(log_handler);
     _test_log();
     flog_destroy(log_handler);
@@ -86,7 +86,6 @@ void _test_async_event(flog_event_t event)
 
 void test_async_log()
 {
-    flog_set_mode(FLOG_ASYNC_MODE);
     flog_set_roll_size(110);
     flog_set_flush_interval(1);
     flog_set_buffer_size(1024 * 1024);
@@ -94,7 +93,7 @@ void test_async_log()
     FCUNIT_ASSERT(buffer_size == (1024*1024));
     flog_register_event_callback(_test_async_event);
 
-    log_handler = flog_create("./tests/logs/test_async_log");
+    log_handler = flog_create("./tests/logs/test_async_log", FLOG_ASYNC_MODE);
     FCUNIT_ASSERT(log_handler);
 
     pthread_t tid;
@@ -106,7 +105,6 @@ void test_async_log()
 static
 void _test_log_cookie()
 {
-    flog_set_mode(FLOG_SYNC_MODE);
     flog_set_level(FLOG_LEVEL_INFO);
     flog_set_cookie("this is the log cookie");
     FLOG_INFO(log_handler, "test log cookie");
@@ -132,7 +130,7 @@ void _test_log_cookie()
 
 void test_log_cookie()
 {
-    log_handler = flog_create("./tests/logs/test_log_cookie");
+    log_handler = flog_create("./tests/logs/test_log_cookie", FLOG_SYNC_MODE);
     FCUNIT_ASSERT(log_handler);
 
     _test_log_cookie();
@@ -141,7 +139,7 @@ void test_log_cookie()
 
 int main(int argc, char** argv)
 {
-    FCUNIT_RUN(test_log);
+    FCUNIT_RUN(test_sync_log);
     FCUNIT_RUN(test_async_log);
     FCUNIT_RUN(test_log_cookie);
 

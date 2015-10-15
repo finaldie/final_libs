@@ -55,6 +55,12 @@ struct flog_file_t {
     char   poutput_filename[LOG_MAX_OUTPUT_NAME];
     char   filebuf[LOG_BUFFER_SIZE_PER_FILE];
     size_t ref_count;
+
+    flog_mode_t mode; // sync or async
+
+#if __WORDSIZE == 64
+    int         _padding;
+#endif
 };
 
 // internal log message protocol
@@ -105,8 +111,12 @@ typedef struct _log_t {
     size_t          roll_size;
     size_t          buffer_size; // buffer size per user thread
     time_t          flush_interval;
-    flog_mode_t     mode;        // global log flag
-    int             is_background_thread_started;
+    pthread_t       b_tid;       // fetcher pthread id
+    int             is_fetcher_started;
+
+#if __WORDSIZE == 64
+    int             _padding;
+#endif
 } f_log;
 
 // define global log struct
@@ -198,7 +208,7 @@ size_t _log_filesize(flog_file_t* f)
 
     struct stat st;
     if (fstat(fd, &st)) {
-        printError("cannot get metadata of log file\n");
+        printError("cannot get metadata of log file");
         abort();
     }
 
@@ -216,13 +226,13 @@ FILE* _log_open(const char* filename, char* buf, size_t size)
 {
     int fd = _lopen(filename);
     if (fd < 0) {
-        printError("open file failed\n");
+        printError("open file failed");
         return NULL;
     }
 
     FILE* f = fdopen(fd, "a");
     if ( NULL == f ) {
-        printError("open file failed: cannot convert fd to a FILE\n");
+        printError("open file failed: cannot convert fd to a FILE");
         return NULL;
     }
 
@@ -235,7 +245,7 @@ char* _log_generate_filename(const char* filename, char* output_filename)
 {
     struct timeval tv;
     if (unlikely(gettimeofday(&tv, NULL))) {
-        printError("cannot get current time\n");
+        printError("cannot get current time");
         abort();
     }
 
@@ -285,7 +295,7 @@ void _log_roll_file(flog_file_t* lf)
     // 1. generate the rolled filename and move the current file to there
     _log_generate_filename(lf->filename, lf->poutput_filename);
     if (rename(lf->filename, lf->poutput_filename)) {
-        printError("rotate file failed: call rename failed\n");
+        printError("rotate file failed: call rename failed");
         abort();
     }
     fclose(lf->pf);
@@ -411,7 +421,7 @@ const char* _log_get_header(size_t* header_len/*out*/)
 
     struct timeval tv;
     if (unlikely(gettimeofday(&tv, NULL))) {
-        printError("cannot get current time\n");
+        printError("cannot get current time");
         abort();
     }
 
@@ -643,7 +653,7 @@ void _log_sync_write_f(flog_file_t* f,
     char log[LOG_MAX_LEN_PER_MSG + 1];
     int len = _log_snprintf(log, LOG_MAX_LEN_PER_MSG + 1, fmt, ap);
     if (len < 0) {
-        printError("sync write failed, due to _log_snprint return -1\n");
+        printError("sync write failed, due to _log_snprint return -1");
         abort();
     }
 
@@ -718,7 +728,12 @@ static
 void* _log_fetcher(void* arg __attribute__((unused))){
     int nums, i;
     struct epoll_event events[1024];
-    pthread_detach(pthread_self());
+
+    int rc = pthread_detach(g_log->b_tid);
+    if (rc) {
+        printError("detach fetcher thread failed");
+        exit(1);
+    }
 
 LOG_LOOP:
     nums = epoll_wait(g_log->epfd, events, 1024, 1000);
@@ -752,11 +767,9 @@ LOG_LOOP:
 
 static
 void _create_fetcher_thread(){
-    pthread_t tid;
-    int rc = pthread_create(&tid, NULL, _log_fetcher, NULL);
-    if( rc )
-    {
-        printError("create send thread failed\n");
+    int rc = pthread_create(&g_log->b_tid, NULL, _log_fetcher, NULL);
+    if (rc) {
+        printError("create fetcher thread failed");
         exit(1);
     }
 }
@@ -787,32 +800,62 @@ void _user_thread_destroy(void* arg)
 }
 
 static
+void _process_exit()
+{
+    fhash_str_iter iter = fhash_str_iter_new(g_log->phash);
+    flog_file_t* logger = NULL;
+
+    while ((logger = fhash_str_next(&iter))) {
+        fclose(logger->pf);
+        fhash_str_del(g_log->phash, logger->filename);
+        free(logger);
+    }
+
+    fhash_str_iter_release(&iter);
+}
+
+static
 void _log_init()
 {
     f_log* t_log = calloc(1, sizeof(f_log));
-    if ( !t_log ) {
+    if (!t_log) {
         printError("cannot alloc memory for global log data");
         exit(1);
     }
 
     int epfd = epoll_create(1024);
-    if ( epfd == -1 ) {
+    if (epfd == -1) {
         printError("cannot create epollfd for global log data");
         exit(1);
     }
 
     t_log->epfd = epfd;
     t_log->phash = fhash_str_create(0, FHASH_MASK_AUTO_REHASH);
-    pthread_mutex_init(&t_log->lock, NULL);
-    pthread_key_create(&t_log->key, _user_thread_destroy);
+    int rc = pthread_mutex_init(&t_log->lock, NULL);
+    if (rc) {
+        printError("cannot init global mutex");
+        exit(1);
+    }
+
+    rc = pthread_key_create(&t_log->key, _user_thread_destroy);
+    if (rc) {
+        printError("cannot create pthread key");
+        exit(1);
+    }
+
     t_log->event_cb = NULL;
-    t_log->mode = FLOG_SYNC_MODE;
     t_log->roll_size = LOG_DEFAULT_ROLL_SIZE;
     t_log->buffer_size = LOG_DEFAULT_LOCAL_BUFFER_SIZE;
-    t_log->is_background_thread_started = 0;
+    t_log->is_fetcher_started = 0;
     t_log->flush_interval = LOG_DEFAULT_FLUSH_INTERVAL;
 
     g_log = t_log;
+
+    rc = atexit(_process_exit);
+    if (rc) {
+        printError("cannot register the process exit function");
+        exit(1);
+    }
 }
 
 static inline
@@ -829,7 +872,7 @@ void _log_clear_cookie(thread_data_t* th_data)
 /******************************************************************************
  * Interfaces
  *****************************************************************************/
-flog_file_t* flog_create(const char* filename)
+flog_file_t* flog_create(const char* filename, flog_mode_t mode)
 {
     // init log system global data
     pthread_once(&init_create, _log_init);
@@ -872,6 +915,12 @@ flog_file_t* flog_create(const char* filename)
         snprintf(f->filename, LOG_MAX_FILE_NAME, "%s", filename);
         fhash_str_set(g_log->phash, filename, f);
         f->ref_count = 1;
+        f->mode = mode;
+
+        if ((mode == FLOG_ASYNC_MODE) && !g_log->is_fetcher_started) {
+            _create_fetcher_thread();
+            g_log->is_fetcher_started = 1;
+        }
     }
     pthread_mutex_unlock(&g_log->lock);
 
@@ -887,9 +936,12 @@ void flog_destroy(flog_file_t* lf)
 
         if ( lf->ref_count == 0 ) {
             _log_flush_file(lf, 0);  // force to flush buffer to disk
-            fclose(lf->pf);
-            fhash_str_del(g_log->phash, lf->filename);
-            free(lf);
+
+            if (lf->mode == FLOG_SYNC_MODE) {
+                fclose(lf->pf);
+                fhash_str_del(g_log->phash, lf->filename);
+                free(lf);
+            }
         }
     }
     pthread_mutex_unlock(&g_log->lock);
@@ -918,7 +970,7 @@ size_t flog_write(flog_file_t* f, const char* log, size_t len)
     const char* header = _log_get_header(&header_len);
 
     // write log according to the working mode
-    if ( unlikely(g_log->mode == FLOG_SYNC_MODE) ) {
+    if ( unlikely(f->mode == FLOG_SYNC_MODE) ) {
         return _log_sync_write(f, header, header_len, log, len);
     } else {
         return _log_async_write(f, header, header_len, log, len);
@@ -940,7 +992,7 @@ void flog_writef(flog_file_t* f, const char* fmt, ...)
     va_list ap;
     va_start(ap, fmt);
 
-    if ( unlikely(g_log->mode == FLOG_SYNC_MODE) ) {
+    if ( unlikely(f->mode == FLOG_SYNC_MODE) ) {
         _log_sync_write_f(f, header, header_len, fmt, ap);
     } else {
         _log_async_write_f(f, header, header_len, fmt, ap);
@@ -961,38 +1013,11 @@ void flog_vwritef(flog_file_t* f, const char* fmt, va_list ap)
     size_t header_len = 0;
     const char* header = _log_get_header(&header_len);
 
-    if ( unlikely(g_log->mode == FLOG_SYNC_MODE) ) {
+    if ( unlikely(f->mode == FLOG_SYNC_MODE) ) {
         _log_sync_write_f(f, header, header_len, fmt, ap);
     } else {
         _log_async_write_f(f, header, header_len, fmt, ap);
     }
-}
-
-flog_mode_t flog_set_mode(flog_mode_t mode)
-{
-    // init log system global data
-    pthread_once(&init_create, _log_init);
-    if ( !g_log ) return FLOG_SYNC_MODE;
-
-    flog_mode_t last_mode;
-    pthread_mutex_lock(&g_log->lock);
-    {
-        if ( mode == g_log->mode ) {
-            pthread_mutex_unlock(&g_log->lock);
-            return g_log->mode;
-        }
-
-        if ( (mode == FLOG_ASYNC_MODE) &&
-             !g_log->is_background_thread_started ) {
-            _create_fetcher_thread();
-            g_log->is_background_thread_started = 1;
-        }
-
-        last_mode = g_log->mode;
-        g_log->mode = mode;
-    }
-    pthread_mutex_unlock(&g_log->lock);
-    return last_mode;
 }
 
 /**

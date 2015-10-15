@@ -9,13 +9,13 @@ TEST_TARGETS = \
     tests/test_fco \
     tests/test_fev
 
-VALGRIND = valgrind --tool=memcheck --leak-check=full \
+VALGRIND = valgrind --tool=memcheck -v --leak-check=full \
 	    --gen-suppressions=all --error-exitcode=1
 
-VALGRIND_FCO = valgrind --tool=memcheck --leak-check=full \
+VALGRIND_FCO = valgrind --tool=memcheck -v --leak-check=full \
 	    --suppressions=./tests/valgrind/fco.suppression \
 	    --gen-suppressions=all --error-exitcode=1
 
-VALGRIND_FLOG = valgrind --tool=memcheck --leak-check=full \
+VALGRIND_FLOG = valgrind --tool=memcheck -v --leak-check=full \
 	    --suppressions=./tests/valgrind/flog.suppression \
 	    --gen-suppressions=all --error-exitcode=1
