@@ -1,11 +1,11 @@
 /*
- * =====================================================================================
+ * =============================================================================
  *
  *       Filename:  fev_timer_service.c
  *
  *    Description:  The framework of Timer Serivce.
- *                  Timer Service compose of user api, service framwork, module sdk and
- *                  modules.
+ *                  Timer Service compose of user api, service framwork, module
+ *                  sdk and modules.
  *
  *                  user api: fev_timer_service.h fev_tmsvc_types.h
  *                            support the add/del/reset api
@@ -13,24 +13,25 @@
  *                  service framework: fev_timer_service.c
  *                            service framework is responsible for:
  *                              1. construct ftimer_node by the user input
- *                              2. communicate with fev state machie to setup the cron
- *                                 timer for checking the ftimer_node status every 1ms
- *                              3. drive the module to do the init/destroy/add/del/reset
- *                                 job
+ *                              2. communicate with fev state machie to setup
+ *                                 the cron timer for checking the ftimer_node
+ *                                 status every 1ms
+ *                              3. drive the module to do the
+ *                                 init/destroy/add/del/reset job
  *
  *                  module sdk: fev_tmsvc_modules.h
  *                            support the api for module developers
  *
  *                  modules: fev_tmsvc_sl_mod.c
- *                            the simple version of the single linked timer system,
- *                            responsible for:
+ *                            the simple version of the single linked timer
+ *                            system, responsible for:
  *                              1. storage system for ftimer_nodes
  *                              2. add/del/reset implementation
- *                              3. in the every loop of checking, remove the inactive
- *                                 timer nodes, and run the callback functions for
- *                                 those timeout timer nodes'
+ *                              3. in the every loop of checking, remove the
+ *                                 inactive timer nodes, and run the callback
+ *                                 functions for those timeout timer nodes'
  *
- * =====================================================================================
+ * =============================================================================
  */
 
 #include <stdio.h>
@@ -62,8 +63,9 @@ void timer_svc_callback(fev_state* fev, void* arg)
 
     // get current timestamp
     struct timespec now;
-    if( clock_gettime(svc->clockid, &now) ) {
-        fprintf(stderr, "FATAL ERROR! timer service cannot get current timestamp:%s\n", strerror(errno));
+    if (clock_gettime(svc->clockid, &now)) {
+        fprintf(stderr, "FATAL ERROR! timer service cannot get current "
+                "timestamp:%s\n", strerror(errno));
         abort();
     }
 
@@ -73,11 +75,11 @@ void timer_svc_callback(fev_state* fev, void* arg)
 
 fev_timer_svc* fev_create_timer_service(
                 fev_state* fev,
-                uint32_t interval,      // unit million second
+                uint32_t interval,      // unit millisecond
                 fev_tmsvc_model_t type
                 )
 {
-    if( !fev || !interval ) {
+    if (!fev || !interval) {
         return NULL;
     }
 
@@ -94,7 +96,7 @@ fev_timer_svc* fev_create_timer_service(
     int mod_init_ret = timer_svc->opt->init(&timer_svc->mod_data);
     timer_svc->interval = interval;
 
-    if( !timer_svc->ftimer || mod_init_ret ) {
+    if (!timer_svc->ftimer || mod_init_ret) {
         timer_svc->opt->destroy(timer_svc->mod_data);
         fev_del_timer_event(fev, timer_svc->ftimer);
         free(timer_svc);
@@ -102,7 +104,7 @@ fev_timer_svc* fev_create_timer_service(
     }
 
     struct timespec resolution;
-    if( 0 == clock_getres(CLOCK_MONOTONIC_COARSE, &resolution) ) {
+    if (0 == clock_getres(CLOCK_MONOTONIC_COARSE, &resolution)) {
         if (resolution.tv_nsec <= NS_PER_MS) {
             timer_svc->clockid = CLOCK_MONOTONIC_COARSE;
             goto done;
@@ -117,7 +119,7 @@ done:
 
 void fev_delete_timer_service(fev_timer_svc* svc)
 {
-    if( !svc ) {
+    if (!svc) {
         return;
     }
 
@@ -136,13 +138,13 @@ ftimer_node* fev_tmsvc_add_timer(
                 ftimer_cb timer_cb,
                 void* arg)
 {
-    if( !svc || !expire || !timer_cb ) {
+    if (!svc || !expire || !timer_cb) {
         return NULL;
     }
 
     ftimer_node* node = calloc(1, sizeof(ftimer_node));
 
-    if( clock_gettime(svc->clockid, &node->start) ) {
+    if (clock_gettime(svc->clockid, &node->start)) {
         free(node);
         return NULL;
     }
@@ -152,13 +154,13 @@ ftimer_node* fev_tmsvc_add_timer(
     node->owner = svc;
     node->expire = expire;
     node->isvalid = 1;
-    if( !node->owner ) {
+    if (!node->owner) {
         free(node);
         return NULL;
     }
 
     // call the module add method to do the actual adding action
-    if( svc->opt->add(node, svc->mod_data) ) {
+    if (svc->opt->add(node, svc->mod_data)) {
         free(node);
     }
 
@@ -167,7 +169,7 @@ ftimer_node* fev_tmsvc_add_timer(
 
 int  fev_tmsvc_del_timer(ftimer_node* node)
 {
-    if( !node || !node->owner ) {
+    if (!node || !node->owner) {
         return 1;
     }
 
@@ -185,12 +187,12 @@ int  fev_tmsvc_del_timer(ftimer_node* node)
 
 int fev_tmsvc_reset_timer(ftimer_node* node)
 {
-    if( !node || !node->owner ) {
+    if (!node || !node->owner) {
         return 1;
     }
 
     fev_timer_svc* svc = node->owner;
-    if( clock_gettime(svc->clockid, &node->start) ) {
+    if (clock_gettime(svc->clockid, &node->start)) {
         return 1;
     }
 

@@ -22,7 +22,7 @@ static
 int _destroy_timerlist(fdlist* timer_list)
 {
     fdlist_node_t* timer_node = NULL;
-    while( (timer_node = fdlist_pop(timer_list) ) ) {
+    while ((timer_node = fdlist_pop(timer_list))) {
         _destroy_timer(timer_node);
     }
 
@@ -56,15 +56,17 @@ void fev_tmmod_single_linked_destroy(void* mod_data)
 }
 
 static
-void fev_tmmod_single_linked_loopcb(fev_state* fev, void* mod_data, struct timespec* now)
+void fev_tmmod_single_linked_loopcb(fev_state* fev, void* mod_data,
+                                    struct timespec* now)
 {
     tm_sl_data* sl_data = (tm_sl_data*)mod_data;
-
     fdlist_node_t* timer_node = NULL;
-    while( (timer_node = fdlist_pop(sl_data->timer_list) ) ) {
+
+    while ((timer_node = fdlist_pop(sl_data->timer_list))) {
         ftimer_node* node = (ftimer_node*)fdlist_get_nodedata(timer_node);
-        if( node && node->isvalid && node->cb ) {
-            if( fev_tmmod_timeout(&node->start, now, node->expire) ) {
+
+        if (node && node->isvalid && node->cb) {
+            if (fev_tmmod_timeout(&node->start, now, node->expire)) {
                 node->cb(fev, node->arg);
                 _destroy_timer(timer_node);
             } else {

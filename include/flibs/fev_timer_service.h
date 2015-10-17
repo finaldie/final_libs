@@ -12,7 +12,7 @@ extern "C" {
 
 fev_timer_svc* fev_create_timer_service(
                 fev_state*,
-                uint32_t interval,     // unit ms
+                uint32_t interval,     // unit millisecond
                 fev_tmsvc_model_t type
                 );
 
@@ -20,7 +20,7 @@ void fev_delete_timer_service(fev_timer_svc*);
 
 ftimer_node*   fev_tmsvc_add_timer(
                 fev_timer_svc*,
-                uint32_t expire,       // unit ms
+                uint32_t expire,       // unit millisecond
                 ftimer_cb,
                 void* arg);
 
@@ -30,7 +30,8 @@ int fev_tmsvc_del_timer(ftimer_node*);
 // reset a timer, the timer start time will be set to
 // the current time, you also can use del_timer and add_timer
 // to achieve that, but it will cost more memory and may have
-// the performance impact
+// the performance impact.
+// Notes: It's no effect if the timer_node is invalid
 int fev_tmsvc_reset_timer(ftimer_node*);
 
 #ifdef __cplusplus
