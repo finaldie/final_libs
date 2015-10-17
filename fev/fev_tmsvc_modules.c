@@ -1,12 +1,13 @@
-#include "fev_tmsvc_modules.h"
 #include <stdio.h>
+#include "fev_tmsvc_modules.h"
 
 // The resolution is million seconds for this API
-int fev_tmmod_timeout(struct timespec* start, struct timespec* now, uint32_t expire)
+int fev_tmmod_timeout(struct timespec* start, struct timespec* now,
+                      uint32_t expire)
 {
     long int diff_sec = now->tv_sec - start->tv_sec;
     long int diff_nsec = now->tv_nsec - start->tv_nsec;
-    
+
     // if the timer will be started in the future, exit with no-timeout
     if (diff_sec < 0) {
         return 0;
@@ -18,7 +19,7 @@ int fev_tmmod_timeout(struct timespec* start, struct timespec* now, uint32_t exp
 
     long int diff_ms = diff_sec * MS_PER_SECOND + (diff_nsec / NS_PER_MS);
 
-    if( diff_ms >= (long int)expire ) {
+    if (diff_ms >= (long int)expire) {
         return 1;
     } else {
         return 0;
