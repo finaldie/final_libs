@@ -1,3 +1,5 @@
+* 2015-12-21 0.8.4
+   * **Fix:** `fev` -> when EPOLLHUP bit be filled, we should still trigger read callback
 * 2015-10-14 0.8.3
    * Fix `flog` potential coredump when the process exit
 * 2015-09-25 0.8.2
