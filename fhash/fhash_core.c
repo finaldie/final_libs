@@ -70,7 +70,6 @@ typedef union {
 } fhash_mask;
 
 struct fhash {
-    void*      ud;          // User Data
     uint32_t   iter_refs;   // how many iterators have already refenerced it
 
     fhash_mask mask;

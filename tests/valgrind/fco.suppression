@@ -365,3 +365,34 @@
    fun:_fco_call_plugin
    fun:(below main)
 }
+
+{
+   <known issue, ubuntu 14.04>
+   Memcheck:Cond
+   fun:_fco_delete
+   fun:fco_resume
+   fun:test
+   fun:co_main
+   obj:*
+}
+
+{
+   <known issue, ubuntu 14.04>
+   Memcheck:Value8
+   fun:_fco_delete
+   fun:fco_resume
+   fun:test
+   fun:co_main
+   obj:*
+}
+
+{
+   <known issue, ubuntu 14.04>
+   Memcheck:Cond
+   fun:free
+   fun:_fco_delete
+   fun:fco_resume
+   fun:test
+   fun:co_main
+   obj:*
+}

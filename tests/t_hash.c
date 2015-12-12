@@ -52,7 +52,6 @@ typedef union {
 } fhash_mask;
 
 struct fhash {
-    void*      ud;          // User Data
     uint32_t   iter_refs;   // how many iterators have already refenerced it
 
     fhash_mask mask;
@@ -829,7 +828,6 @@ void test_hash_core()
         opt.compare = hash_core_compare;
         fhash* phash = fhash_create(0, opt, FHASH_MASK_NONE);
         FCUNIT_ASSERT(phash != NULL);
-        FCUNIT_ASSERT(phash->ud == NULL);
         FCUNIT_ASSERT(phash->iter_refs == 0);
         FCUNIT_ASSERT(phash->mask.value == 0);
         FCUNIT_ASSERT(phash->current != NULL);

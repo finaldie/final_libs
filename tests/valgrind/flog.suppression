@@ -32,3 +32,17 @@
    fun:test_async_log
    fun:(below main)
 }
+
+{
+   <known issue, ubuntu 14.04>
+   Memcheck:Leak
+   fun:calloc
+   fun:allocate_dtv
+   fun:_dl_allocate_tls
+   fun:allocate_stack
+   fun:pthread_create@@*
+   fun:_create_fetcher_thread
+   fun:flog_create
+   fun:test_async_log
+   fun:main
+}
