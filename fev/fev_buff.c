@@ -30,16 +30,19 @@ ssize_t fev_read(int fd, void* pbuf, size_t len)
     do {
         ssize_t read_size = read(fd, pbuf, len);
 
-        if ( read_size == -1 ) {
-            if( errno == EINTR )
+        if (read_size == -1) {
+            if (errno == EINTR) {
                 continue;
-            else if( errno == EAGAIN )
+            } else if (errno == EAGAIN) {
                 return 0;   // we can ignore this and simply to return 0
+            } else {
+                return -1;
+            }
+        } else if (read_size == 0) {
             return -1;
-        } else if( read_size == 0 )
-            return -1;
-        else
+        } else {
             return read_size;
+        }
     } while (1);
 }
 
@@ -49,15 +52,16 @@ ssize_t fev_write(int fd, const char* pbuf, size_t len)
     do {
         ssize_t bytes = write(fd, pbuf, len);
 
-        if ( bytes > 0 )
+        if (bytes > 0) {
             return bytes;
-        else {
-            if( errno == EINTR )
+        } else {
+            if (errno == EINTR) {
                 continue;
-            else if( errno == EAGAIN )
+            } else if (errno == EAGAIN) {
                 return 0;
-            else
+            } else {
                 return -1;
+            }
         }
     } while (1);
 }
@@ -65,12 +69,19 @@ ssize_t fev_write(int fd, const char* pbuf, size_t len)
 static
 void evbuff_read(fev_state* fev,
                  int fd     __attribute__((unused)),
-                 int mask   __attribute__((unused)),
+                 int mask,
                  void* arg)
 {
     fev_buff* evbuff = (fev_buff*)arg;
-    if ( evbuff->read_cb )
+
+    if ((mask & FEV_READ) && evbuff->read_cb) {
         evbuff->read_cb(fev, evbuff, evbuff->arg);
+        return;
+    }
+
+    if ((mask & FEV_ERROR) && evbuff->error_cb) {
+        evbuff->error_cb(fev, evbuff, evbuff->arg);
+    }
 }
 
 static
@@ -83,18 +94,18 @@ void evbuff_write(fev_state* fev,
 
     do {
         size_t buf_len = fmbuf_used(evbuff->wbuf);
-        if ( buf_len == 0 ) {
+        if (buf_len == 0) {
             fev_del_event(evbuff->fstate, evbuff->fd, FEV_WRITE);
             break;
         }
 
         ssize_t bytes = fev_write(evbuff->fd, fmbuf_head(evbuff->wbuf), buf_len);
-        if ( bytes > 0 ) {
+        if (bytes > 0) {
             fmbuf_head_seek(evbuff->wbuf, (size_t)bytes, FMBUF_SEEK_RIGHT);
-        } else if ( bytes == 0 ) { // EAGAIN
+        } else if (bytes == 0) { // EAGAIN
             break;
         } else {
-            if ( evbuff->error_cb )
+            if (evbuff->error_cb)
                 evbuff->error_cb(fev, evbuff, evbuff->arg);
             return;
         }
@@ -109,7 +120,7 @@ fev_buff*    fevbuff_new(
                 fev_buff_error error_cb,    // call when socket has error
                 void* arg)                  // user argument
 {
-    if ( !fev ) return NULL;
+    if (!fev) return NULL;
 
     fev_buff* evbuff = calloc(1, sizeof(fev_buff));
 
@@ -120,19 +131,19 @@ fev_buff*    fevbuff_new(
     evbuff->error_cb = error_cb;
 
     evbuff->rbuf = fmbuf_create(FEV_BUFF_DEFAULT_SIZE);
-    if ( !evbuff->rbuf ) {
+    if (!evbuff->rbuf) {
         free(evbuff);
         return NULL;
     }
 
     evbuff->wbuf = fmbuf_create(FEV_BUFF_DEFAULT_SIZE);
-    if ( !evbuff->wbuf ) {
+    if (!evbuff->wbuf) {
         fmbuf_delete(evbuff->rbuf);
         free(evbuff);
         return NULL;
     }
 
-    if ( fev_reg_event(fev, fd, FEV_READ, evbuff_read, evbuff_write, evbuff) ) {
+    if (fev_reg_event(fev, fd, FEV_READ, evbuff_read, evbuff_write, evbuff)) {
         fmbuf_delete(evbuff->rbuf);
         fmbuf_delete(evbuff->wbuf);
         free(evbuff);
@@ -144,7 +155,7 @@ fev_buff*    fevbuff_new(
 
 int     fevbuff_destroy(fev_buff* evbuff)
 {
-    if ( !evbuff ) return -1;
+    if (!evbuff) return -1;
 
     int fd = evbuff->fd;
     int mask = FEV_READ | FEV_WRITE;
@@ -169,7 +180,7 @@ void*   fevbuff_get_arg(fev_buff* evbuff)
 
 size_t  fevbuff_get_bufflen(fev_buff* evbuff, int type)
 {
-    if ( type == FEVBUFF_TYPE_READ )
+    if (type == FEVBUFF_TYPE_READ)
         return fmbuf_size(evbuff->rbuf);
     else
         return fmbuf_size(evbuff->wbuf);
@@ -177,7 +188,7 @@ size_t  fevbuff_get_bufflen(fev_buff* evbuff, int type)
 
 size_t  fevbuff_get_usedlen(fev_buff* evbuff, int type)
 {
-    if ( type == FEVBUFF_TYPE_READ )
+    if (type == FEVBUFF_TYPE_READ)
         return fmbuf_used(evbuff->rbuf);
     else
         return fmbuf_used(evbuff->wbuf);
@@ -209,15 +220,19 @@ ssize_t fevbuff_read(fev_buff* evbuff, void* pbuf, size_t len)
     }
 
     ssize_t bytes = fev_read(evbuff->fd, fmbuf_tail(evbuff->rbuf), need_read_bytes);
-    if ( bytes >= 0 ) {
+    if (bytes >= 0) {
         fmbuf_tail_seek(evbuff->rbuf, (size_t)bytes, FMBUF_SEEK_RIGHT);
         size_t used = fmbuf_used(evbuff->rbuf);
         size_t copy_bytes = used > len ? len : used;
-        if( pbuf ) memcpy(pbuf, fmbuf_head(evbuff->rbuf), copy_bytes);
-        return (int)copy_bytes;
+
+        if (pbuf) {
+            memcpy(pbuf, fmbuf_head(evbuff->rbuf), copy_bytes);
+        }
+
+        return (int) copy_bytes;
     } else {
         //error
-        if( evbuff->error_cb )
+        if (evbuff->error_cb)
             evbuff->error_cb(evbuff->fstate, evbuff, evbuff->arg);
         return -1;
     }
@@ -226,7 +241,7 @@ ssize_t fevbuff_read(fev_buff* evbuff, void* pbuf, size_t len)
 static
 int     fevbuff_cache_data(fev_buff* evbuff, const void* pbuf, size_t len)
 {
-    if ( len == 0 ) return 0;
+    if (len == 0) return 0;
 
     size_t tail_free = fmbuf_tail_free(evbuff->wbuf);
     if (tail_free < len) {
@@ -252,10 +267,10 @@ ssize_t fevbuff_write(fev_buff* evbuff, const void* pbuf, size_t len)
     ssize_t bytes = 0;
     fmbuf* wbuf = evbuff->wbuf;
     size_t write_buf_len = fmbuf_used(wbuf);
-    if ( write_buf_len == 0 ) {
+    if (write_buf_len == 0) {
         // send immediately
         bytes = fev_write(evbuff->fd, pbuf, len);
-        if ( bytes < 0 ) {
+        if (bytes < 0) {
             if (evbuff->error_cb)
                 evbuff->error_cb(evbuff->fstate, evbuff, evbuff->arg);
             return -1;
@@ -274,7 +289,7 @@ ssize_t fevbuff_write(fev_buff* evbuff, const void* pbuf, size_t len)
 // this interface only operate read buf casue write buf is not visible for user
 size_t     fevbuff_pop(fev_buff* evbuff, size_t len)
 {
-    if ( len == 0 ) return 0;
+    if (len == 0) return 0;
 
     size_t buf_len = fmbuf_used(evbuff->rbuf);
     size_t pop_len = buf_len > len ? len : buf_len;
@@ -286,7 +301,7 @@ size_t     fevbuff_pop(fev_buff* evbuff, size_t len)
 // return readbuff head pointer
 void*   fevbuff_rawget(fev_buff* evbuff)
 {
-    if ( !evbuff ) return NULL;
+    if (!evbuff) return NULL;
 
     return fmbuf_head(evbuff->rbuf);
 }
