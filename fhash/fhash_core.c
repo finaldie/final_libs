@@ -138,7 +138,12 @@ void _hash_node_set_key(_fhash_node* node, const void* key, key_sz_t key_sz)
 {
     _hash_node_try_enlarge(node, key_sz, node->value_sz);
 
-    memcpy(node->data, key, (size_t)key_sz);
+    // Check if the key address is the same as the input key, we won't copy the
+    // data again
+    if (node->data != key) {
+        memcpy(node->data, key, (size_t)key_sz);
+    }
+
     *((char*)(node->data) + key_sz) = '\0';
     node->key_sz = key_sz;
 }

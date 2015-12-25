@@ -1244,7 +1244,7 @@ void test_hash_core()
             if (strcmp(data, value1) == 0) {
                 key1_exist = 1;
 
-                fhash_set(phash, key1, (key_sz_t)strlen(key1),
+                fhash_set(phash, iter.key, iter.key_sz,
                           value3, (value_sz_t)strlen(value3));
                 FCUNIT_ASSERT(phash->current->index_size == 10);
                 FCUNIT_ASSERT(phash->current->index_used == 2);
@@ -1252,7 +1252,7 @@ void test_hash_core()
             } else if (strcmp(data, value2) == 0) {
                 key2_exist = 1;
 
-                fhash_set(phash, key2, (key_sz_t)strlen(key2),
+                fhash_set(phash, iter.key, iter.key_sz,
                           value4, (value_sz_t)strlen(value4));
                 FCUNIT_ASSERT(phash->current->index_size == 10);
                 FCUNIT_ASSERT(phash->current->index_used == 2);
