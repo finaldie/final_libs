@@ -1,3 +1,5 @@
+* 2015-12-28 0.8.6
+   * **fhash:** Fix hash_node_set_key() memcpy overlap issue
 * 2015-12-26 0.8.5
    * **flist:** Correct the parameter type
    * Fix valgrind errors on ubuntu 14.04
