@@ -1,6 +1,3 @@
-//base info: create by hyz
-//effect: fifo list
-
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -40,13 +37,13 @@ void    flist_delete(flist* pmgr)
     free(pmgr);
 }
 
-int     flist_push(flist* pmgr, void* data)
+int     flist_push(flist* pmgr, const void* data)
 {
     if ( !data )
         return 1;
 
     pnode node = (pnode)calloc(1, sizeof(lnode));
-    node->data = data;
+    node->data = (void*)data;
     node->next = NULL;
     node->pre  = pmgr->tail;
     pmgr->tail->next = node;
@@ -72,54 +69,50 @@ int     flist_empty(flist* pmgr)
     return 0;
 }
 
-void*   flist_foreach(flist* pmgr, flist_each_cb pfunc)
+void   flist_foreach(flist* pmgr, flist_each_cb pfunc)
 {
-    if ( !pfunc ) return NULL;
-    if ( flist_empty(pmgr) ) return NULL;
+    if (!pfunc) return;
+    if (flist_empty(pmgr)) return;
 
     pnode node = LIST_HEAD(pmgr)->next;
-    while ( node ) {
-        if ( pfunc(node->data) )
+    while (node) {
+        if (pfunc(node->data))
             break;
 
         node = node->next;
     }
-
-    return NULL;
 }
 
 //insertion sort, sort list in increasing order
 int flist_sort(flist* pmgr, flist_compare pfunc)
 {
-    if ( !pfunc ) return 1;
-    if ( flist_empty(pmgr) ) return 1;
+    if (!pfunc) return 1;
+    if (flist_empty(pmgr)) return 1;
 
     //init node_i at 2nd data struct
     pnode node_i = LIST_HEAD(pmgr)->next->next;
     pnode node_j, temp;
 
     //insert node_i into sorted list each time
-    while(node_i)
-    {
+    while (node_i) {
         node_j = node_i->pre;
-        while(node_j != LIST_HEAD(pmgr))
-        {
+
+        while (node_j != LIST_HEAD(pmgr)) {
             //find 1st position which is le node_i
             if(pfunc(node_j->data, node_i->data) <= 0)
                 break;
             node_j = node_j->pre;
         }
 
-        if(node_j != node_i->pre)
-        {
+        if (node_j != node_i->pre) {
             //update tail ptr before delete node_i
-            if(node_i == LIST_TAIL(pmgr))
+            if (node_i == LIST_TAIL(pmgr))
                 LIST_TAIL(pmgr) = node_i->pre;
 
             //delete node_i
             temp = node_i;
             temp->pre->next = temp->next;
-            if(temp->next)
+            if (temp->next)
                 temp->next->pre = temp->pre;
 
             //insert temp after node_j
@@ -130,6 +123,7 @@ int flist_sort(flist* pmgr, flist_compare pfunc)
         }
         node_i = node_i->next;
     }
+
     return 0;
 }
 

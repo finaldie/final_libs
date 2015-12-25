@@ -17,18 +17,18 @@ typedef int (*flist_each_cb)(void* data);
 
 // return <=0 : swap the node
 // return > 0 : continue to scan
-typedef int (*flist_compare)(void* left, void* right);
+typedef int (*flist_compare)(const void* left, const void* right);
 
 flist*     flist_create();
 void       flist_delete(flist*);
 
-int        flist_push(flist*, void* data);
+int        flist_push(flist*, const void* data);
 void*      flist_pop(flist*);
 void*      flist_head(flist*);
 void*      flist_tail(flist*);
 int        flist_empty(flist*);
 
-void*      flist_foreach(flist*, flist_each_cb);
+void       flist_foreach(flist*, flist_each_cb);
 int        flist_sort(flist*, flist_compare);
 flist_iter flist_new_iter(flist*);
 void*      flist_each(flist_iter*);

@@ -63,7 +63,7 @@ int      fdlist_empty(fdlist* plist)
     }
 }
 
-fdlist_node_t* fdlist_make_node(void* data, size_t data_size)
+fdlist_node_t* fdlist_make_node(const void* data, size_t data_size)
 {
     if (!data || !data_size) {
         return NULL;
@@ -207,10 +207,11 @@ fdlist* fdlist_node_owner(fdlist_node_t* node)
     }
 }
 
-int      fdlist_set_nodedata(fdlist_node_t* node, void* data, size_t data_size)
+int      fdlist_set_nodedata(
+                    fdlist_node_t* node, const void* data, size_t data_size)
 {
     if ( !node || !data ) return 1;
-    node->data = data;
+    node->data = (void*)data;
     fdlist_update_node_size(node, data_size);
     return 0;
 }

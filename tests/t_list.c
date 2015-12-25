@@ -25,7 +25,7 @@ int test_list_foreach(void* data)
 }
 
 static
-int cmp(void *a, void *b)
+int cmp(const void *a, const void *b)
 {
     return *(int*)a - *(int*)b;
 }
