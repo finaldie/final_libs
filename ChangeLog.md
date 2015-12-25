@@ -1,3 +1,6 @@
+* 2015-12-26 0.8.5
+   * **flist:** Correct the parameter type
+   * Fix valgrind errors on ubuntu 14.04
 * 2015-12-21 0.8.4
    * **Fix:** `fev` -> when EPOLLHUP bit be filled, we should still trigger read callback
 * 2015-10-14 0.8.3
