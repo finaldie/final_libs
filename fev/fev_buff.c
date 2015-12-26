@@ -8,6 +8,14 @@
 #include "flibs/fev.h"
 #include "flibs/fev_buff.h"
 
+#if (EAGAIN != EWOULDBLOCK)
+# define NEED_RETRY \
+    EAGAIN: \
+    case EWOULDBLOCK
+#else
+# define NEED_RETRY EAGAIN
+#endif
+
 #define FEV_BUFF_DEFAULT_SIZE   (1024 * 4)
 
 struct fev_buff {
@@ -31,11 +39,12 @@ ssize_t fev_read(int fd, void* pbuf, size_t len)
         ssize_t read_size = read(fd, pbuf, len);
 
         if (read_size == -1) {
-            if (errno == EINTR) {
+            switch (errno) {
+            case EINTR:
                 continue;
-            } else if (errno == EAGAIN) {
-                return 0;   // we can ignore this and simply to return 0
-            } else {
+            case NEED_RETRY:
+                return 0;
+            default:
                 return -1;
             }
         } else if (read_size == 0) {
@@ -55,11 +64,12 @@ ssize_t fev_write(int fd, const char* pbuf, size_t len)
         if (bytes > 0) {
             return bytes;
         } else {
-            if (errno == EINTR) {
+            switch (errno) {
+            case EINTR:
                 continue;
-            } else if (errno == EAGAIN) {
+            case NEED_RETRY:
                 return 0;
-            } else {
+            default:
                 return -1;
             }
         }
@@ -102,7 +112,7 @@ void evbuff_write(fev_state* fev,
         ssize_t bytes = fev_write(evbuff->fd, fmbuf_head(evbuff->wbuf), buf_len);
         if (bytes > 0) {
             fmbuf_head_seek(evbuff->wbuf, (size_t)bytes, FMBUF_SEEK_RIGHT);
-        } else if (bytes == 0) { // EAGAIN
+        } else if (bytes == 0) { // EAGAIN or EWOULDBLOCK
             break;
         } else {
             if (evbuff->error_cb)

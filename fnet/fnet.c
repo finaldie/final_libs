@@ -16,6 +16,14 @@
 
 #include "flibs/fnet.h"
 
+#if (EAGAIN != EWOULDBLOCK)
+# define NEED_RETRY \
+    EAGAIN: \
+    case EWOULDBLOCK
+#else
+# define NEED_RETRY EAGAIN
+#endif
+
 #define STATIC_IP_LEN    32    // compatible ipv6
 
 // use it avoid gcc throw error 'break strict-aliasing rules'
@@ -160,8 +168,8 @@ cleanup:
     return -1;
 }
 
-// send data util data all send complete
-// when write return EAGAIN stop
+// send data util all data be sent completely
+// NOTES: stop when write return EAGAIN or EWOULDBLOCK
 ssize_t fnet_send_safe(int fd, const void* data, size_t len)
 {
     ssize_t totalnum = 0;
@@ -171,16 +179,18 @@ ssize_t fnet_send_safe(int fd, const void* data, size_t len)
         sendnum = send(fd, (char*)data + totalnum, len - (size_t)totalnum, MSG_NOSIGNAL);
         if (sendnum != -1) {
             totalnum += sendnum;
+
             if ((size_t)totalnum == len) {
                 return totalnum;
             }
         } else {
-            if (errno == EAGAIN) {
+            switch (errno) {
+            case NEED_RETRY:
                 return totalnum;
-            } else if (errno == EINTR || errno == EWOULDBLOCK) {
+            case EINTR:
                 continue;
-            } else {
-                return -1;    // send error | that receiver has closed
+            default:
+                return -1;
             }
         }
     }
@@ -197,12 +207,14 @@ ssize_t fnet_send(int fd, const void* data, size_t len)
         if ( send_num >= 0 )
             return send_num;
         else {
-            if ( errno == EINTR )
+            switch (errno) {
+            case EINTR:
                 continue;
-            else if ( errno == EAGAIN )
+            case NEED_RETRY:
                 return SOCKET_IDLE;
-            else
+            default:
                 return SOCKET_ERROR;
+            }
         }
     } while (1);
 }
@@ -214,14 +226,15 @@ ssize_t fnet_recv(int fd, void* data, size_t len)
         ssize_t recv_size = recv(fd, data, len, MSG_NOSIGNAL);
 
         if (recv_size == -1) {
-            if ( errno == EINTR ) {
+            switch (errno) {
+            case EINTR:
                 continue;
-            } else if ( errno == EAGAIN ) {
+            case NEED_RETRY:
                 return SOCKET_IDLE;
-            } else {
+            default:
                 return SOCKET_ERROR;
             }
-        } else if ( recv_size == 0 ) { // client quit
+        } else if ( recv_size == 0 ) { // peer quit
             return SOCKET_CLOSE;
         } else {
             return recv_size;
