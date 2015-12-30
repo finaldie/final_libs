@@ -1,3 +1,7 @@
+* 2015-12-30 0.8.7
+   * **flog:** Make it fully graceful shutdown and fix the pthread valgrind warning
+   * **fnet:** Correct read/write errno checking
+   * **fev_buff:** Correct read/write errno checking
 * 2015-12-28 0.8.6
    * **fhash:** Fix hash_node_set_key() memcpy overlap issue
 * 2015-12-26 0.8.5
