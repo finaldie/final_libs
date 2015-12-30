@@ -45,7 +45,7 @@ valgrind-check: $(TEST_TARGET)
 	@$(VALGRIND) ./tests/test_fhash
 	@$(VALGRIND) ./tests/test_fmbuf
 	@$(VALGRIND) ./tests/test_fconf
-	@$(VALGRIND_FLOG) ./tests/test_flog
+	@$(VALGRIND) ./tests/test_flog
 	@$(VALGRIND) ./tests/test_fcache
 	@$(VALGRIND) ./tests/test_ftime
 	@$(VALGRIND_FCO) ./tests/test_fco

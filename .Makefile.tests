@@ -16,6 +16,3 @@ VALGRIND_FCO = valgrind --tool=memcheck -v --leak-check=full \
 	    --suppressions=./tests/valgrind/fco.suppression \
 	    --gen-suppressions=all --error-exitcode=1
 
-VALGRIND_FLOG = valgrind --tool=memcheck -v --leak-check=full \
-	    --suppressions=./tests/valgrind/flog.suppression \
-	    --gen-suppressions=all --error-exitcode=1

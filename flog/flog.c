@@ -112,7 +112,9 @@ typedef struct _log_t {
     size_t          buffer_size; // buffer size per user thread
     time_t          flush_interval;
     pthread_t       b_tid;       // fetcher pthread id
-    int             is_fetcher_started;
+    uint32_t        is_fetcher_started :1;
+    uint32_t        is_fetcher_running :1;
+    uint32_t        _reserved          :30;
 
 #if __WORDSIZE == 64
     int             _padding;
@@ -728,39 +730,33 @@ static
 void* _log_fetcher(void* arg __attribute__((unused))){
     int nums, i;
     struct epoll_event events[1024];
+    g_log->is_fetcher_running = 1;
 
-    int rc = pthread_detach(g_log->b_tid);
-    if (rc) {
-        printError("detach fetcher thread failed");
-        exit(1);
-    }
-
-LOG_LOOP:
-    nums = epoll_wait(g_log->epfd, events, 1024, 1000);
-    if ( nums < 0 && errno == EINTR )
-        goto LOG_LOOP;
-
-    // timeout
-    if ( unlikely(nums == 0) ) {
-        pthread_mutex_lock(&g_log->lock);
-        fhash_str_foreach(g_log->phash, _log_process_timeout, NULL);
-        pthread_mutex_unlock(&g_log->lock);
-    }
-
-    for (i = 0; i < nums; i++) {
-        struct epoll_event* ee = &events[i];
-        thread_data_t* th_data = ee->data.ptr;
-        uint64_t process_num = 0;
-
-        if ( eventfd_read(th_data->efd, &process_num) ) {
-            printError("error in read eventfd value");
+    do {
+        nums = epoll_wait(g_log->epfd, events, 1024, 1000);
+        if ( nums < 0 && errno == EINTR )
             continue;
+
+        // timeout
+        if ( unlikely(nums == 0) ) {
+            pthread_mutex_lock(&g_log->lock);
+            fhash_str_foreach(g_log->phash, _log_process_timeout, NULL);
+            pthread_mutex_unlock(&g_log->lock);
         }
 
-        _log_async_process(th_data, process_num);
-    }
+        for (i = 0; i < nums; i++) {
+            struct epoll_event* ee = &events[i];
+            thread_data_t* th_data = ee->data.ptr;
+            uint64_t process_num = 0;
 
-    goto LOG_LOOP;
+            if ( eventfd_read(th_data->efd, &process_num) ) {
+                printError("error in read eventfd value");
+                continue;
+            }
+
+            _log_async_process(th_data, process_num);
+        }
+    } while (likely(g_log->is_fetcher_running));
 
     return NULL;
 }
@@ -802,10 +798,16 @@ void _user_thread_destroy(void* arg)
 static
 void _process_exit()
 {
+    // 1. wait fetcher quit
+    g_log->is_fetcher_running = 0;
+    pthread_join(g_log->b_tid, NULL);
+
+    // 2. Release loggers
     fhash_str_iter iter = fhash_str_iter_new(g_log->phash);
     flog_file_t* logger = NULL;
 
     while ((logger = fhash_str_next(&iter))) {
+        _log_flush_file(logger, 0);
         fclose(logger->pf);
         fhash_str_del(g_log->phash, logger->filename);
         free(logger);
