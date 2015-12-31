@@ -48,19 +48,14 @@
 
 // every file have only one log_file structure data
 struct flog_file_t {
-    FILE*  pf;
     size_t file_size;
     time_t last_flush_time;
     char   filename[LOG_MAX_FILE_NAME];
     char   poutput_filename[LOG_MAX_OUTPUT_NAME];
-    char   filebuf[LOG_BUFFER_SIZE_PER_FILE];
     size_t ref_count;
 
     flog_mode_t mode; // sync or async
-
-#if __WORDSIZE == 64
-    int         _padding;
-#endif
+    int    fd;
 };
 
 // internal log message protocol
@@ -206,10 +201,8 @@ int _log_set_nonblocking(int fd)
 static
 size_t _log_filesize(flog_file_t* f)
 {
-    int fd = fileno(f->pf);
-
     struct stat st;
-    if (fstat(fd, &st)) {
+    if (fstat(f->fd, &st)) {
         printError("cannot get metadata of log file");
         abort();
     }
@@ -221,25 +214,6 @@ static inline
 int _lopen(const char* filename)
 {
     return open(filename, O_CREAT | O_WRONLY | O_APPEND, LOG_OPEN_PERMISSION);
-}
-
-static inline
-FILE* _log_open(const char* filename, char* buf, size_t size)
-{
-    int fd = _lopen(filename);
-    if (fd < 0) {
-        printError("open file failed");
-        return NULL;
-    }
-
-    FILE* f = fdopen(fd, "a");
-    if ( NULL == f ) {
-        printError("open file failed: cannot convert fd to a FILE");
-        return NULL;
-    }
-
-    setbuffer(f, buf, size);
-    return f;
 }
 
 static inline
@@ -275,15 +249,11 @@ void _log_get_time(time_t tm_time, char* time_str)
              now.tm_hour, now.tm_min, now.tm_sec);
 }
 
+// flush kernel data to disk
 static
 void _log_flush_file(flog_file_t* lf, time_t now)
 {
-    if (fflush_unlocked(lf->pf)) {
-        printError("cannot flush file");
-        return;
-    }
-
-    if (fsync(fileno(lf->pf))) {
+    if (fsync(lf->fd)) {
         printError("cannot fsync file");
         return;
     }
@@ -300,42 +270,42 @@ void _log_roll_file(flog_file_t* lf)
         printError("rotate file failed: call rename failed");
         abort();
     }
-    fclose(lf->pf);
+    close(lf->fd);
 
     // 2. open
-    FILE* pf = _log_open(lf->filename, lf->filebuf,
-                         LOG_BUFFER_SIZE_PER_FILE);
-    if (!pf) {
+    int fd = _lopen(lf->filename);
+    if (fd < 0) {
         printError("open file failed");
         abort();
     }
 
-    lf->pf = pf;
+    lf->fd = fd;
     lf->file_size = _log_filesize(lf);
 }
 
 static inline
-size_t _log_write_to_disk(flog_file_t* lf, const char* log, size_t len)
+size_t _log_write_to_kernel(flog_file_t* lf, const char* log, size_t len)
 {
-    if ( !lf || !log || (len == 0) ) {
+    if (!lf || !log || (len == 0)) {
         printError("cannot log any msg");
         return 0;
     }
 
-    FILE* f = lf->pf;
     size_t remain_len = len;
 
     do {
-        size_t real_len = fwrite_unlocked(log, 1, len, f);
-        int err = ferror_unlocked(lf->pf);
-        if ( err ) {
-            printError("encounter error when writing logging message");
-            clearerr_unlocked(lf->pf);
-            return len - remain_len;
+        ssize_t real_len = write(lf->fd, log, len);
+        if (real_len < 0) {
+            if (errno == EINTR) {
+                continue;
+            } else {
+                printError("encounter error when writing logging message");
+                return len - remain_len;
+            }
         }
 
-        remain_len -= real_len;
-    } while( remain_len );
+        remain_len -= (size_t)real_len;
+    } while (remain_len);
 
     return len - remain_len;
 }
@@ -589,34 +559,38 @@ void _log_async_write_f(flog_file_t* f,
 }
 
 static
-size_t _log_write(flog_file_t* f, const char* log, size_t len)
+void _log_try_flush_and_rollfile(flog_file_t* f)
 {
-    size_t real_writen_len = _log_write_to_disk(f, log, len);
-
     int has_flush = 0;
-    f->file_size += real_writen_len;
     time_t now = time(NULL);
-    if ( now - f->last_flush_time >= g_log->flush_interval ) {
+
+    if (now - f->last_flush_time >= g_log->flush_interval) {
         _log_flush_file(f, now);
         has_flush = 1;
     }
 
-    if ( unlikely(f->file_size > g_log->roll_size) ) {
+    if (unlikely(f->file_size > g_log->roll_size)) {
         // if not flush, force to flush once
-        if ( !has_flush ) _log_flush_file(f, now);
+        if (!has_flush) _log_flush_file(f, now);
         _log_roll_file(f);
     }
+}
 
+static
+size_t _log_write(flog_file_t* f, const char* log, size_t len)
+{
+    size_t real_writen_len = _log_write_to_kernel(f, log, len);
+    f->file_size += real_writen_len;
+
+    _log_try_flush_and_rollfile(f);
     return real_writen_len;
 }
 
 static
-size_t _log_sync_write_to_disk(flog_file_t* f,
+size_t _log_sync_write_to_kernel(flog_file_t* f,
                              const char* header, size_t header_len,
                              const char* log, size_t len)
 {
-    // most of the fwrite is atomic api, but there are still some operating
-    // system's fwrite api not atomic, so using mutex to protect it
     size_t writen_len = 0;
     pthread_mutex_lock(&g_log->lock);
     {
@@ -644,7 +618,7 @@ size_t _log_sync_write(flog_file_t* f,
         _log_event_notice(FLOG_EVENT_TRUNCATED);
     }
 
-    return _log_sync_write_to_disk(f, header, header_len, log, len);
+    return _log_sync_write_to_kernel(f, header, header_len, log, len);
 }
 
 static
@@ -659,7 +633,7 @@ void _log_sync_write_f(flog_file_t* f,
         abort();
     }
 
-    _log_sync_write_to_disk(f, header, header_len, log, (size_t)len);
+    _log_sync_write_to_kernel(f, header, header_len, log, (size_t)len);
 }
 
 static inline
@@ -682,6 +656,7 @@ void _log_pto_fetch_msg(thread_data_t* th_data)
     }
 
     size_t writen_len = _log_write(header.f, tmsg, (size_t)header.len);
+
     if ( writen_len < (size_t)header.len) {
         _log_event_notice(FLOG_EVENT_ERROR_WRITE);
     }
@@ -756,7 +731,7 @@ void* _log_fetcher(void* arg __attribute__((unused))){
 
             _log_async_process(th_data, process_num);
         }
-    } while (likely(g_log->is_fetcher_running));
+    } while (likely(g_log->is_fetcher_running || nums));
 
     return NULL;
 }
@@ -808,7 +783,7 @@ void _process_exit()
 
     while ((logger = fhash_str_next(&iter))) {
         _log_flush_file(logger, 0);
-        fclose(logger->pf);
+        close(logger->fd);
         fhash_str_del(g_log->phash, logger->filename);
         free(logger);
     }
@@ -820,10 +795,6 @@ static
 void _log_init()
 {
     f_log* t_log = calloc(1, sizeof(f_log));
-    if (!t_log) {
-        printError("cannot alloc memory for global log data");
-        exit(1);
-    }
 
     int epfd = epoll_create(1024);
     if (epfd == -1) {
@@ -893,23 +864,21 @@ flog_file_t* flog_create(const char* filename, flog_mode_t mode)
 
         // the file struct is the first to create
         f = calloc(1, sizeof(flog_file_t));
-        if ( !f ) {
+        if (!f) {
             printError("cannot alloc memory for log_file_t");
             pthread_mutex_unlock(&g_log->lock);
             return NULL;
         }
 
         // init log_file data
-        FILE* pf = _log_open(filename, f->filebuf,
-                             LOG_BUFFER_SIZE_PER_FILE);
-        if ( !pf ) {
+        f->fd = _lopen(filename);
+        if (f->fd < 0) {
             printError("open file failed");
             free(f);
             pthread_mutex_unlock(&g_log->lock);
             return NULL;
         }
 
-        f->pf = pf;
         // set the file size according to the file's metadata, since we may
         // reopen it before it be rolled to another file
         f->file_size = _log_filesize(f);
@@ -940,7 +909,7 @@ void flog_destroy(flog_file_t* lf)
             _log_flush_file(lf, 0);  // force to flush buffer to disk
 
             if (lf->mode == FLOG_SYNC_MODE) {
-                fclose(lf->pf);
+                close(lf->fd);
                 fhash_str_del(g_log->phash, lf->filename);
                 free(lf);
             }
@@ -954,7 +923,7 @@ void flog_destroy(flog_file_t* lf)
  * 1. synchronization writing mode
  * 2. asynchronization writing mode
  *
- * @ When we use synchronization mode, it will call fwrite directly without
+ * @ When we use synchronization mode, it will call write directly without
  * buffer-queue
  * @ When we use asynchronization mode, it will push log message into thread
  * buffer, and notice the fetcher thread to fetch it
