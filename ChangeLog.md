@@ -1,3 +1,5 @@
+* 2015-12-30 0.8.8
+   * **flog:** Use low-level write instead of fwrite, to fix log content lost during the shutdown phase
 * 2015-12-30 0.8.7
    * **flog:** Make it fully graceful shutdown and fix the pthread valgrind warning
    * **fnet:** Correct read/write errno checking
