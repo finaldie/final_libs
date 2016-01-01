@@ -28,7 +28,7 @@ void   fhash_u64_delete(fhash* phash)
     fhash_delete(phash);
 }
 
-void   fhash_u64_set(fhash* phash, uint64_t key, void* value)
+void   fhash_u64_set(fhash* phash, uint64_t key, const void* value)
 {
     if (!value) {
         return;

@@ -30,7 +30,7 @@ void fhash_int_delete(fhash* phash)
     fhash_delete(phash);
 }
 
-void fhash_int_set(fhash* phash, int key, void* value)
+void fhash_int_set(fhash* phash, int key, const void* value)
 {
     if (!value) {
         return;

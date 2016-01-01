@@ -59,7 +59,7 @@ void           fhash_u64_delete(fhash* table);
  *
  * @return          void
  */
-void           fhash_u64_set(fhash* table, uint64_t key, void* value);
+void           fhash_u64_set(fhash* table, uint64_t key, const void* value);
 
 /**
  * @brief get the value of the key

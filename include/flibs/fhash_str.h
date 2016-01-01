@@ -59,7 +59,7 @@ void           fhash_str_delete(fhash* table);
  *
  * @return          void
  */
-void           fhash_str_set(fhash* table, const char* key, void* value);
+void           fhash_str_set(fhash* table, const char* key, const void* value);
 
 /**
  * @brief get the value of the key

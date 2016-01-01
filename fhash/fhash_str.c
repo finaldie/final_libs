@@ -32,7 +32,7 @@ void   fhash_str_delete(fhash* phash)
     fhash_delete(phash);
 }
 
-void   fhash_str_set(fhash* phash, const char* key, void* value)
+void   fhash_str_set(fhash* phash, const char* key, const void* value)
 {
     if (!key || !value) {
         return;

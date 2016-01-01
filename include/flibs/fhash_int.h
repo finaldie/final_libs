@@ -31,7 +31,7 @@ typedef struct {
  *                  - **0**: continue iterate
  *                  - **non-zero**: stop iterating
  */
-typedef int (*fhash_int_each_cb)(void* ud, int key, void* value);
+typedef int (*fhash_int_each_cb) (void* ud, int key, void* value);
 
 /**
  * create fhash table
@@ -63,7 +63,7 @@ void           fhash_int_delete(fhash* table);
  *
  * @return          void
  */
-void           fhash_int_set(fhash* table, int key, void* value);
+void           fhash_int_set(fhash* table, int key, const void* value);
 
 /**
  * @brief get the value of the key
