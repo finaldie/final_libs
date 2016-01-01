@@ -1,3 +1,5 @@
+* 2016-01-03 0.8.9
+   * **fhash:** Make fhash set api more user friendly
 * 2015-12-30 0.8.8
    * **flog:** Use low-level write instead of fwrite, to fix log content lost during the shutdown phase
 * 2015-12-30 0.8.7
