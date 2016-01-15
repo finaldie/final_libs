@@ -51,6 +51,7 @@ fdlist* fdlist_create()
 
 void     fdlist_destroy(fdlist* plist)
 {
+    if (!plist) return;
     free(plist);
 }
 
@@ -222,7 +223,7 @@ void*    fdlist_get_nodedata(fdlist_node_t* node)
     return node->data;
 }
 
-fdlist_node_t* fdlist_foreach(fdlist* plist, fdlist_each_cb each_cb)
+fdlist_node_t* fdlist_foreach(fdlist* plist, fdlist_each_cb each_cb, void* ud)
 {
     if( !plist || !each_cb ) {
         return NULL;
@@ -234,7 +235,7 @@ fdlist_node_t* fdlist_foreach(fdlist* plist, fdlist_each_cb each_cb)
 
     fdlist_orig_node_t* iter_node = plist->head;
     while( !iter_node ) {
-        if( each_cb(&iter_node->node) ) {
+        if( each_cb(&iter_node->node, ud) ) {
             return &iter_node->node;
         }
 
