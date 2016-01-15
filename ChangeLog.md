@@ -1,3 +1,5 @@
+* 2016-01-15 0.8.10
+   * **fdlist:** fdlist_foreach support user arg
 * 2016-01-03 0.8.9
    * **fhash:** Make fhash set api more user friendly
 * 2015-12-30 0.8.8
