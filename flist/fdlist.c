@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include "flibs/fdlist.h"
 
 #define FO_PREV(orig_node)     ((orig_node)->priv.prev)
@@ -225,17 +226,17 @@ void*    fdlist_get_nodedata(fdlist_node_t* node)
 
 fdlist_node_t* fdlist_foreach(fdlist* plist, fdlist_each_cb each_cb, void* ud)
 {
-    if( !plist || !each_cb ) {
+    if (!plist || !each_cb) {
         return NULL;
     }
 
-    if ( fdlist_empty(plist) ) {
+    if (fdlist_empty(plist)) {
         return NULL;
     }
 
     fdlist_orig_node_t* iter_node = plist->head;
-    while( !iter_node ) {
-        if( each_cb(&iter_node->node, ud) ) {
+    while (iter_node) {
+        if (each_cb(&iter_node->node, ud)) {
             return &iter_node->node;
         }
 
