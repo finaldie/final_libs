@@ -1,3 +1,5 @@
+* 2016-01-18 0.8.11
+   * **fdlist:** Fix fdlist_foreach bug
 * 2016-01-15 0.8.10
    * **fdlist:** fdlist_foreach support user arg
 * 2016-01-03 0.8.9
