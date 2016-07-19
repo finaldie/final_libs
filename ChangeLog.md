@@ -1,3 +1,8 @@
+* 2016-07-19 0.8.12
+   * **fev:** Fix the write event cannot be triggered in some OS releases
+   * **fhash:** Fix compiling issue on lower version of gcc
+   * **fcache:** Fix compiling issue on lower version of gcc
+   * **fnet:** Fix compiling issue on lower version of gcc
 * 2016-01-18 0.8.11
    * **fdlist:** Fix fdlist_foreach bug
 * 2016-01-15 0.8.10

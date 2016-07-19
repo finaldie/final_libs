@@ -114,18 +114,27 @@ int fev_state_poll(fev_state* fev, int event_num, int timeout)
         int mask = FEV_NIL;
         if (ee->events & EPOLLIN) mask |= FEV_READ;
         if (ee->events & EPOLLOUT) mask |= FEV_WRITE;
-        if (ee->events & (EPOLLHUP | EPOLLERR)) mask |= FEV_ERROR;     // FEV_ERROR only used by framework
+        if (ee->events & (EPOLLHUP | EPOLLERR)) mask |= FEV_ERROR;
 
+        // Some OS releases emit the error with the EPOLLIN or EPOLLOUT together,
+        //  but some of them not, which only emit the EPOLLHUP or EPOLLERR.
+        // So to trigger the read/write callback correct if there is error occurred,
+        //  here fev will try to trigger read callback if possible, if it's done,
+        //  then no need to trigger write callback; If no read callback can be
+        //  triggered, then fev will trigger write callback directly. In any of
+        //  cases, user can handle the error either in read or write callback
+        //  only once.
         if (fev->fevents[fd].pread &&
             ((fev->fevents[fd].mask & mask & FEV_READ) || (mask & FEV_ERROR))) {
             fev->fevents[fd].pread(fev, fd, mask, fev->fevents[fd].arg);
+
+            if (mask & FEV_ERROR) continue;
         }
 
         if (fev->fevents[fd].pwrite &&
-            (fev->fevents[fd].mask & mask & FEV_WRITE)) {
+            ((fev->fevents[fd].mask & mask & FEV_WRITE) || (mask & FEV_ERROR))) {
             fev->fevents[fd].pwrite(fev, fd, mask, fev->fevents[fd].arg);
         }
-
 
         process++;
     }
