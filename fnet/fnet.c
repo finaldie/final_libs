@@ -85,7 +85,6 @@ int    fnet_set_reuse_port(int fd)
 #endif
 }
 
-inline
 int     fnet_set_nonblocking(int fd)
 {
     return fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, 0) | O_NONBLOCK);

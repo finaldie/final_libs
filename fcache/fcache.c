@@ -133,7 +133,7 @@ int       _fcache_move_node(fcache_t* pcache, fcache_node_t* node)
     }
 }
 
-static inline
+static
 int       _fcache_balance_nodes(fcache_t* pcache)
 {
     size_t inactive_nodes_count = fcache_list_size(pcache->pinactive_list);

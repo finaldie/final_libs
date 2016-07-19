@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "flibs/fhash_int.h"
 
@@ -60,6 +61,7 @@ void* fhash_int_del(fhash* phash, int key)
 fhash_int_iter fhash_int_iter_new(fhash* phash)
 {
     fhash_int_iter iter;
+    memset(&iter, 0, sizeof(iter));
     iter.iter = fhash_iter_new(phash);
     iter.key = 0;
     iter.value = NULL;
