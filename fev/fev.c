@@ -82,7 +82,7 @@ fev_state*    fev_create(int max_ev_size)
     if( max_ev_size <= 0 ) {
         // get the current open file limitation (soft)
         struct rlimit limit;
-        int ret = getrlimit(RLIMIT_FSIZE, &limit);
+        int ret = getrlimit(RLIMIT_NOFILE, &limit);
         if (ret) {
             perror("fev getrlimit failed");
             return NULL;
