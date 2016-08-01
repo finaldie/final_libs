@@ -21,11 +21,11 @@
 
 // BASE DEFINE
 #define LOG_OPEN_PERMISSION           0644
-#define LOG_MAX_FILE_NAME             (64)
-#define LOG_MAX_OUTPUT_NAME           (128)
+#define LOG_MAX_FILE_NAME             (256)
+#define LOG_MAX_OUTPUT_NAME           (512)
 #define LOG_COOKIE_MAX_LEN            (256)
 #define LOG_BUFFER_SIZE_PER_FILE      (1024 * 128)
-#define LOG_DEFAULT_ROLL_SIZE         (1024lu * 1024lu * 1024lu * 2lu)
+#define LOG_DEFAULT_ROLL_SIZE         (1024lu * 1024lu * 1024lu * 1lu)
 #define LOG_DEFAULT_LOCAL_BUFFER_SIZE (1024 * 1024 * 10)
 #define LOG_DEFAULT_FLUSH_INTERVAL    (0)
 #define LOG_MAX_LEN_PER_MSG           (4096)
