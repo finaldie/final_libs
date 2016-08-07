@@ -73,7 +73,7 @@ void timer_svc_callback(fev_state* fev, void* arg)
     svc->opt->loopcb(fev, svc->mod_data, &now);
 }
 
-fev_timer_svc* fev_create_timer_service(
+fev_timer_svc* fev_tmsvc_create(
                 fev_state* fev,
                 uint32_t interval,      // unit millisecond
                 fev_tmsvc_model_t type
@@ -117,7 +117,7 @@ done:
     return timer_svc;
 }
 
-void fev_delete_timer_service(fev_timer_svc* svc)
+void fev_tmsvc_destroy(fev_timer_svc* svc)
 {
     if (!svc) {
         return;
@@ -132,13 +132,13 @@ void fev_delete_timer_service(fev_timer_svc* svc)
     return;
 }
 
-ftimer_node* fev_tmsvc_add_timer(
+ftimer_node* fev_tmsvc_timer_add(
                 fev_timer_svc* svc,
-                uint32_t expire, /* unit ms */
+                uint32_t expiration, /* unit ms */
                 ftimer_cb timer_cb,
                 void* arg)
 {
-    if (!svc || !expire || !timer_cb) {
+    if (!svc || !expiration || !timer_cb) {
         return NULL;
     }
 
@@ -152,7 +152,7 @@ ftimer_node* fev_tmsvc_add_timer(
     node->cb = timer_cb;
     node->arg = arg;
     node->owner = svc;
-    node->expire = expire;
+    node->expiration = expiration;
     node->isvalid = 1;
     if (!node->owner) {
         free(node);
@@ -167,7 +167,7 @@ ftimer_node* fev_tmsvc_add_timer(
     return node;
 }
 
-int  fev_tmsvc_del_timer(ftimer_node* node)
+int  fev_tmsvc_timer_del(ftimer_node* node)
 {
     if (!node || !node->owner) {
         return 1;
@@ -185,7 +185,7 @@ int  fev_tmsvc_del_timer(ftimer_node* node)
     return 0;
 }
 
-int fev_tmsvc_reset_timer(ftimer_node* node)
+int fev_tmsvc_timer_reset(ftimer_node* node)
 {
     if (!node || !node->owner) {
         return 1;
@@ -198,7 +198,28 @@ int fev_tmsvc_reset_timer(ftimer_node* node)
 
     // run private reset method
     if (svc->opt->reset) {
-        return svc->opt->reset(node, svc->mod_data);
+        return svc->opt->reset(node, svc->mod_data, node->expiration);
+    }
+
+    return 0;
+}
+
+int fev_tmsvc_timer_resetn(ftimer_node* node, uint32_t expiration)
+{
+    if (!node || !node->owner) {
+        return 1;
+    }
+
+    fev_timer_svc* svc = node->owner;
+    if (clock_gettime(svc->clockid, &node->start)) {
+        return 1;
+    }
+
+    node->expiration = expiration;
+
+    // run private reset method
+    if (svc->opt->reset) {
+        return svc->opt->reset(node, svc->mod_data, node->expiration);
     }
 
     return 0;

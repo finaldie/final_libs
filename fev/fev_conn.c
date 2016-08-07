@@ -91,7 +91,7 @@ int    fev_conn(fev_state* fev,
         conn_info->fd = sockfd;
         fev_timer_svc* timer_svc = (fev_timer_svc*)fev_get_module_data(fev,
                                         FEV_CONN_MODULE_NAME);
-        conn_info->timer = fev_tmsvc_add_timer(timer_svc, (uint32_t)timeout,
+        conn_info->timer = fev_tmsvc_timer_add(timer_svc, (uint32_t)timeout,
                                                 on_timer, conn_info);
         if (!conn_info->timer) {
             close(sockfd);
@@ -105,7 +105,7 @@ int    fev_conn(fev_state* fev,
         int ret = fev_reg_event(fev, sockfd, FEV_WRITE, NULL,
                                 on_connect, conn_info);
         if (ret != 0) {
-            fev_tmsvc_del_timer(conn_info->timer);
+            fev_tmsvc_timer_del(conn_info->timer);
             close(sockfd);
             free(conn_info);
             return -1;
@@ -119,7 +119,7 @@ void fev_conn_module_unload(fev_state* fev __attribute__((unused)),
                             void* ud)
 {
     fev_timer_svc* svc = (fev_timer_svc*)ud;
-    fev_delete_timer_service(svc);
+    fev_tmsvc_destroy(svc);
 }
 
 int fev_conn_module_init(fev_state* fev)
@@ -129,8 +129,8 @@ int fev_conn_module_init(fev_state* fev)
     fev_module_t module;
     module.name = FEV_CONN_MODULE_NAME;
     module.fev_module_unload = fev_conn_module_unload;
-    module.ud = fev_create_timer_service(fev, FEV_CONN_TIME_SERVICE_INTERVAL,
-                                         FEV_TMSVC_SINGLE_LINKED);
+    module.ud = fev_tmsvc_create(fev, FEV_CONN_TIME_SERVICE_INTERVAL,
+                                 FEV_TMSVC_SINGLE_LINKED);
     if( !module.ud ) {
         return 1;
     }

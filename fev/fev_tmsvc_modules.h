@@ -1,10 +1,9 @@
+#ifndef _FEV_TIMER_SERVICE_MODULES_H_
+#define _FEV_TIMER_SERVICE_MODULES_H_
 /**
  *  This header file is the sdk header for module developers
  *  Note: This header dosen't expose to the users
  */
-
-#ifndef _FEV_TIMER_SERVICE_MODULES_H_
-#define _FEV_TIMER_SERVICE_MODULES_H_
 
 #include <stdint.h>
 #include <time.h>
@@ -18,7 +17,7 @@ struct _ftimer_node {
     ftimer_cb       cb;
     void*           arg;
     fev_timer_svc*  owner;
-    uint32_t        expire;
+    uint32_t        expiration;
     int             isvalid;
 };
 
@@ -30,7 +29,7 @@ typedef struct fev_timer_svc_opt {
     void (*loopcb)(fev_state*, void* mod_data, struct timespec* now);
     int  (*add)(ftimer_node*, void* mod_data);
     int  (*del)(ftimer_node*, void* mod_data);
-    int  (*reset)(ftimer_node*, void* mod_data);
+    int  (*reset)(ftimer_node*, void* mod_data, uint32_t expiration);
 } fev_tmsvc_opt;
 
 // @desc: if 'now' >= 'start + expire', means timeout
@@ -40,8 +39,8 @@ typedef struct fev_timer_svc_opt {
 // @return 1, means already timeout
 // @return 0, means doesn't timeout
 int fev_tmmod_timeout(struct timespec* start,
-                        struct timespec* now,
-                        uint32_t expire);
+                      struct timespec* now,
+                      uint32_t expiration);
 
 extern fev_tmsvc_opt* tmsvc_opt_tbl[];
 

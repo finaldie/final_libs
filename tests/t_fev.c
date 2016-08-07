@@ -413,20 +413,20 @@ void test_timer_service()
     g_fev = fev_create(1024);
     FCUNIT_ASSERT(g_fev);
 
-    fev_timer_svc* svc = fev_create_timer_service(g_fev, 1000, /*million second*/
+    fev_timer_svc* svc = fev_tmsvc_create(g_fev, 1000, /*million second*/
                                                   FEV_TMSVC_SINGLE_LINKED);
     FCUNIT_ASSERT(svc);
 
     time_t now = time(NULL);
     start = 1;
-    ftimer_node* tn = fev_tmsvc_add_timer(svc, 2000, _timeout, &now);
+    ftimer_node* tn = fev_tmsvc_timer_add(svc, 2000, _timeout, &now);
     FCUNIT_ASSERT(tn);
 
     while (start) {
         fev_poll(g_fev, 500);
     }
 
-    fev_delete_timer_service(svc);
+    fev_tmsvc_destroy(svc);
 }
 
 int main(int argc, char** argv)

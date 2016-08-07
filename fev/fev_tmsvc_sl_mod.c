@@ -66,7 +66,7 @@ void fev_tmmod_single_linked_loopcb(fev_state* fev, void* mod_data,
         ftimer_node* node = (ftimer_node*)fdlist_get_nodedata(timer_node);
 
         if (node && node->isvalid && node->cb) {
-            if (fev_tmmod_timeout(&node->start, now, node->expire)) {
+            if (fev_tmmod_timeout(&node->start, now, node->expiration)) {
                 node->cb(fev, node->arg);
                 _destroy_timer(timer_node);
             } else {
@@ -106,7 +106,8 @@ int fev_tmmod_single_linked_del(ftimer_node* node __attribute__((unused)),
 
 static
 int fev_tmmod_single_linked_reset(ftimer_node* node __attribute__((unused)),
-                                  void* mod_data    __attribute__((unused)))
+                                  void* mod_data    __attribute__((unused)),
+                                  uint32_t expiration)
 {
     return 0;
 }
