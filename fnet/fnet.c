@@ -109,7 +109,6 @@ int     fnet_set_nodely(int fd){
     return setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (char*)&flag, sizeof(flag));
 }
 
-inline
 int     fnet_set_recv_timeout(int fd, int timeout)
 {
     return setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout));
@@ -137,7 +136,7 @@ int     fnet_listen(const char* ip, in_port_t port, int max_link, int isblock)
     else
         addr.sin_addr.s_addr = htons(INADDR_ANY);
 
-    listen_fd = socket(AF_INET, SOCK_STREAM, 0);
+    listen_fd = socket(AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0);
     if (0 > listen_fd) return -1;
 
     if (fnet_set_reuse_addr(listen_fd)) {
@@ -262,16 +261,16 @@ int     fnet_accept(int listen_fd)
         sock_fd = accept(listen_fd, (struct sockaddr *)&addr, &addrlen);
 
         if (sock_fd == -1) {
-            if ( errno == EINTR )
+            switch (errno) {
+            case EINTR:
                 continue;
-            else if ( errno == EAGAIN )
+            case NEED_RETRY:
                 return SOCKET_IDLE;
-            else
+            default:
                 return SOCKET_ERROR;
+            }
         } else break;
-    } while (0);
-
-    fnet_set_recv_timeout(sock_fd, 2);
+    } while (1);
 
     return sock_fd;
 }
@@ -283,7 +282,7 @@ int     fnet_conn(const char* ip, in_port_t port, int isblock)
     int sockfd;
     struct sockaddr_in server_addr;
 
-    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+    if ((sockfd = socket(AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0)) == -1) {
         return -1;
     }
 
@@ -313,7 +312,7 @@ int     fnet_conn_async(const char* ip, in_port_t port, int* outfd)
     int sockfd;
     struct sockaddr_in server_addr;
 
-    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+    if ((sockfd = socket(AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0)) == -1) {
         return -1;
     }
 
