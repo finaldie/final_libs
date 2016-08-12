@@ -1,3 +1,7 @@
+* 2016-08-12 0.8.13
+   * **fnet:** Enhance fnet_accept
+   * **fev:** Add fev_tmsvc_resetn api and fix calling getrlimit with wrong type
+   * **flog:** Increase default file name max length
 * 2016-07-19 0.8.12
    * **fev:** Fix the write event cannot be triggered in some OS releases
    * **fhash:** Fix compiling issue on lower version of gcc
