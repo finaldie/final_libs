@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "flibs/compiler.h"
 #include "flibs/flist.h"
 
 #define LIST_HEAD(pmgr) (pmgr->head)
@@ -23,7 +24,7 @@ flist*  flist_create()
 {
     flist* pmgr = (flist*)calloc(1, sizeof(lmgr));
     pnode  node = (pnode)calloc(1, sizeof(lnode));
-    node->pre = node->next = NULL;
+    node->pre  = node->next = NULL;
     pmgr->head = pmgr->tail = node;
 
     return pmgr;
@@ -47,6 +48,8 @@ int     flist_push(flist* pmgr, const void* data)
     node->next = NULL;
     node->pre  = pmgr->tail;
     pmgr->tail->next = node;
+
+    FMEM_BARRIER();
     pmgr->tail = node;
 
     return 0;

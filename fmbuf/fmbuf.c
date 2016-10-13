@@ -67,6 +67,8 @@ int     fmbuf_push(fmbuf* pbuf, const void* data, size_t size)
             memcpy(MBUF_TAIL(pbuf), data, tail_free);
             size_t left = size - tail_free;
             memcpy(MBUF_START(pbuf), (const char*)data + tail_free, left);
+
+            FMEM_BARRIER();
             MBUF_TAIL(pbuf) = MBUF_START(pbuf) + left;
         }
 
@@ -96,6 +98,7 @@ int        fmbuf_pop(fmbuf* pbuf, void* data, size_t size)
                 MBUF_COPY((char*)data + tail_use, MBUF_START(pbuf), left);
             }
 
+            FMEM_BARRIER();
             MBUF_HEAD(pbuf) = MBUF_START(pbuf) + left;
         }
 
@@ -121,6 +124,8 @@ void*    fmbuf_vpop(fmbuf* pbuf, void* data, size_t size)
             memcpy(data, MBUF_HEAD(pbuf), tail_use);
             size_t left = size - tail_use;
             memcpy((char*)data + tail_use, MBUF_START(pbuf), left);
+
+            FMEM_BARRIER();
             MBUF_HEAD(pbuf) = MBUF_START(pbuf) + left;
         }
 

@@ -10,7 +10,8 @@ EXTRA += -Wno-unused-function -Wfloat-equal -Winline -Wdisabled-optimization
 EXTRA += -Wconversion
 OTHER = -pipe -g -ggdb3
 CC_SHARED = -fPIC
-MACRO = -D_POSIX_C_SOURCE=200809L -D_BSD_SOURCE
+#MACRO = -D_POSIX_C_SOURCE=200809L -D_BSD_SOURCE
+MACRO = -D_POSIX_C_SOURCE=200809L
 INC = \
     -I./include \
     -I./3rds/fcunit

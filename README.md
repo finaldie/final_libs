@@ -90,6 +90,11 @@ make SHARED=true prefix=$(other_location) -j4
 make prefix=$(other_location) install
 ```
 
+* Use _flibs_ in your project
+  * Include the headers from your source file
+  * Link the statis/dynamic lib from your _Makefile_
+  * Add `-D_POSIX_C_SOURCE=200809L` in your compiling options
+
 [1]: https://github.com/finaldie/final_libs/wiki
 [2]: https://github.com/finaldie/skull-malloc
 [3]: https://github.com/finaldie/fpcap
