@@ -1,3 +1,6 @@
+* 2016-10-14 0.9.1
+   * **flist:** Add memory barrier to prevent complier/runtime reordering
+   * **fmbuf:** Add memory barrier to prevent complier/runtime reordering
 * 2016-08-12 0.8.13
    * **fnet:** Enhance fnet_accept
    * **fev:** Add fev_tmsvc_resetn api and fix calling getrlimit with wrong type
