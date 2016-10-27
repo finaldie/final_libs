@@ -1,3 +1,6 @@
+* 2016-10-27 0.9.2
+   * **MISC:** Provide all-in-one library `libflibs.(a|so)` for users
+   * **MISC:** Refine README
 * 2016-10-14 0.9.1
    * **flist:** Add memory barrier to prevent complier/runtime reordering
    * **fmbuf:** Add memory barrier to prevent complier/runtime reordering
