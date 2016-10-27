@@ -48,3 +48,18 @@ FEV_OBJS = \
     fev/fev_timer_service.o \
     fev/fev_tmsvc_modules.o \
     fev/fev_tmsvc_sl_mod.o
+
+FLIBS_OBJS = \
+    $(FLIST_OBJS) \
+    $(FCACHE_OBJS) \
+    $(FHASH_OBJS) \
+    $(FMBUF_OBJS) \
+    $(FCO_OBJS) \
+    $(FNET_OBJS) \
+    $(FTIME_OBJS) \
+    $(FLOCK_OBJS) \
+    $(FTHPOOL_OBJS) \
+    $(FCONF_OBJS) \
+    $(FLOG_OBJS) \
+    $(FEV_OBJS)
+

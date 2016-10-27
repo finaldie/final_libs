@@ -153,6 +153,17 @@ clean-fev:
 
 .PHONY: clean-fev
 
+$(FLIBS_STATIC): $(FLIBS_OBJS)
+	ar -rcs $@ $^
+
+$(FLIBS_DYNAMIC): $(FLIBS_OBJS)
+	$(FL_LD) -o $@ $^ $(FLIBS_DEP_LIBS)
+
+clean-flibs:
+	rm -f $(FLIBS_STATIC) $(FLIBS_DYNAMIC)
+
+.PHONY: clean-flibs
+
 # tests
 $(TEST_TARGETS): $(TARGET_LIBS)
 

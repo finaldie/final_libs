@@ -53,7 +53,7 @@ valgrind-check: $(TEST_TARGET)
 
 clean: clean-flist clean-fcache clean-fhash clean-fmbuf clean-fco clean-fnet
 clean: clean-ftime clean-flock clean-fthpool clean-fconf clean-flog clean-fev
-clean: clean-tests
+clean: clean-tests clean-flibs
 	@rm -rf lib
 	@echo "clean complete"
 
