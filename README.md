@@ -90,10 +90,52 @@ make SHARED=true prefix=$(other_location) -j4
 make prefix=$(other_location) install
 ```
 
-* Use _flibs_ in your project
-  * Include the headers from your source file
-  * Link the statis/dynamic lib from your _Makefile_
-  * Add `-D_POSIX_C_SOURCE=200809L` in your compiling options
+## Use _flibs_ in a Project
+After installing _flibs_ into system, basically we need few steps to use it:
+ * Include the headers from your source file
+ * Link the statis/dynamic lib from your _Makefile_
+ * Add `-D_POSIX_C_SOURCE=200809L` in your compiling options
+
+Let's see an example _Source file_ and _Makefile_, e.g. use _fhash_:
+```c
+// main.c
+#include <stdlib.h>
+#include <stdio.h>
+#include <flibs/fhash.h>
+
+int main(int argc, char** argv)
+{
+    // 1. Create string hash table
+    fhash* tbl = fhash_str_create(0, FHASH_MASK_AUTO_REHASH);
+
+    // 2. Set a key-value into table
+    const char* key = "hello";
+    fhash_str_set(tbl, key, "world");
+
+    // 3. Get the value from table
+    const char* value = fhash_str_get(tbl, key);
+    printf("Key: %s, value: %s\n", key, value);
+
+    // 4. Destroy the hash table
+    fhash_str_delete(tbl);
+    return 0;
+}
+```
+```makefile
+# Makefile
+all:
+       	gcc -Wall -g -O2 -D_POSIX_C_SOURCE=200809L -o demo main.c -lflibs
+```
+
+Then Build and Run it:
+```console
+final@ubuntu1404: ~/code/github/flibs/demo>make
+gcc -Wall -g -O2 -D_POSIX_C_SOURCE=200809L -o demo main.c -lflibs
+final@ubuntu1404: ~/code/github/flibs/demo>./demo
+Key: hello, value: world
+```
+
+Have fun :)
 
 [1]: https://github.com/finaldie/final_libs/wiki
 [2]: https://github.com/finaldie/skull-malloc
