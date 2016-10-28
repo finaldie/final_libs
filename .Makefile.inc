@@ -7,7 +7,7 @@ STD = -std=c99
 WARN = -Wall
 EXTRA = -pedantic -Wpadded -Werror -Wextra -Wno-unused-parameter
 EXTRA += -Wno-unused-function -Wfloat-equal -Winline -Wdisabled-optimization
-EXTRA += -Wconversion
+EXTRA += -Wconversion -fno-omit-frame-pointer
 OTHER = -pipe -g -ggdb3
 CC_SHARED = -fPIC
 #MACRO = -D_POSIX_C_SOURCE=200809L -D_BSD_SOURCE

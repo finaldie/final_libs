@@ -49,7 +49,7 @@ valgrind-check: $(TEST_TARGET)
 	@$(VALGRIND) ./tests/test_fcache
 	@$(VALGRIND) ./tests/test_ftime
 	@$(VALGRIND_FCO) ./tests/test_fco
-	@$(VALGRIND) ./tests/test_fev
+	@$(VALGRIND_FEV) ./tests/test_fev
 
 clean: clean-flist clean-fcache clean-fhash clean-fmbuf clean-fco clean-fnet
 clean: clean-ftime clean-flock clean-fthpool clean-fconf clean-flog clean-fev

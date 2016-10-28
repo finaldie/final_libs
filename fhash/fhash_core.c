@@ -6,7 +6,7 @@
 
 #include "flibs/fhash_core.h"
 
-typedef uint64_t data_sz_t;
+typedef size_t data_sz_t;
 
 #define DEFAULT_TABLE_SIZE  10
 #define DEFAULT_LIST_SIZE   4

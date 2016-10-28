@@ -396,3 +396,85 @@
    fun:co_main
    obj:*
 }
+
+########## Raspberry Pi ############
+{
+   <fco_resume jump condition>
+   Memcheck:Cond
+   fun:__startcontext
+   fun:fco_resume
+   fun:test_fco
+   fun:main
+}
+
+{
+   <_fco_call_plugin: Use of uninitialised value of size 4>
+   Memcheck:Value4
+   fun:_fco_call_plugin
+   fun:fco_resume
+   fun:test
+   fun:co_main
+   obj:*
+}
+
+{
+   <__startcontext: Use of uninitialised value of size 4>
+   Memcheck:Value4
+   fun:__startcontext
+   fun:fco_resume
+   fun:test_fco
+   fun:main
+}
+
+{
+   <libc: Use of uninitialised value of size 4>
+   Memcheck:Value4
+   obj:*
+   fun:fco_resume
+   fun:test_fco
+   fun:main
+}
+
+{
+   <sigprocmask: Conditional jump on uninitialised value>
+   Memcheck:Cond
+   fun:sigprocmask
+   obj:*
+}
+
+{
+   <sigprocmask: Use of uninitialised value of size 4>
+   Memcheck:Value4
+   fun:sigprocmask
+   obj:*
+}
+
+{
+   <Syscall param rt_sigprocmask(set) contains uninitialised byte(s)>
+   Memcheck:Param
+   rt_sigprocmask(set)
+   fun:sigprocmask
+   obj:*
+}
+
+{
+   <libc: Invalid read of size 4>
+   Memcheck:Addr4
+   obj:/lib/arm-linux-gnueabihf/libc-2.13.so
+   obj:*
+}
+
+{
+   <libc: Use of uninitialised value of size 4>
+   Memcheck:Value4
+   obj:/lib/arm-linux-gnueabihf/libc-2.13.so
+   obj:*
+}
+
+{
+   <fco_resume: Conditional jump on uninitialised value>
+   Memcheck:Cond
+   fun:fco_resume
+   fun:test_fco
+   fun:main
+}

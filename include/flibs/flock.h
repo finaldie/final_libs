@@ -9,6 +9,11 @@ extern "C" {
 
 typedef struct flock_cond_t {
     unsigned long   _count;
+
+#if __WORDSIZE == 32
+    int             _padding;
+#endif
+
     pthread_mutex_t _mutex;
     pthread_cond_t  _cond;
 } flock_cond_t;

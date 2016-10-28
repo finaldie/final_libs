@@ -46,17 +46,6 @@ typedef struct fake_fev_state{
     int             reserved;       // unused
 } fake_fev_state;
 
-typedef struct fake_fev_conn_info {
-    int         fd;
-#if __WORDSIZE == 64
-    int         padding;
-#endif
-
-    fev_timer*  timer;
-    fev_conn_cb conn_cb;
-    conn_arg_t  arg;
-} fake_fev_conn_info;
-
 void _test_fev_read(fev_state* fev, int fd, int mask, void* arg)
 {
     (void)mask;
@@ -333,7 +322,7 @@ static void fake_accept1(fev_state* fev, int fd, void* ud)
     //close(fd);
 }
 
-static void _test_for_conn(int fd, conn_arg_t arg)
+static void _test_for_conn(int fd, fev_conn_arg_t arg)
 {
     (void)arg;
     //printf("tid=%lu, in async connection callback, time=%ld\n", pthread_self(), time(NULL));
@@ -359,7 +348,7 @@ static void* fake_listener1(void* arg)
     //printf("wait for poll\n");
     start = 1;
 
-    conn_arg_t carg;
+    fev_conn_arg_t carg;
     //printf("before start async conn, time=%ld\n", time(NULL));
     int ret = fev_conn(g_fev, "127.0.0.1", 17759, 5000, _test_for_conn, carg);
     FCUNIT_ASSERT(0 == ret);

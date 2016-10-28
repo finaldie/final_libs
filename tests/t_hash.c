@@ -9,7 +9,7 @@
 #include "flibs/fhash_int.h"
 
 //=====================FAKE STRUCTURE===========================================
-typedef uint64_t data_sz_t;
+typedef size_t data_sz_t;
 
 typedef struct _fhash_node {
     data_sz_t  real_sz;   // size of real memory space

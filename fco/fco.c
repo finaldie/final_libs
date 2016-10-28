@@ -23,6 +23,11 @@ typedef struct plugin_meta {
 
 struct _fco {
     ucontext_t   ctx;
+
+#if __WORDSIZE == 32
+    int _padding;
+#endif
+
     ucontext_t*  prev_ctx;
     fco_sched*   root;
     fco_sched*   owner;

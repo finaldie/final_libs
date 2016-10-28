@@ -7,6 +7,7 @@
 
 typedef struct state {
     int epfd;
+    int _padding;
     struct epoll_event events[1];
 } state;
 

@@ -12,14 +12,11 @@
 #define FEV_CONN_TIME_SERVICE_INTERVAL 1
 
 typedef struct fev_conn_info {
-    int          fd;
-#if __WORDSIZE == 64
-    int          padding;
-#endif
-
-    ftimer_node* timer;
-    fev_conn_cb  conn_cb;
-    conn_arg_t   arg;
+    ftimer_node*   timer;
+    fev_conn_cb    conn_cb;
+    int            fd;
+    int            _padding;
+    fev_conn_arg_t arg;
 } fev_conn_info;
 
 static
@@ -70,11 +67,11 @@ void    on_timer(fev_state* fev, void* arg)
 }
 
 int    fev_conn(fev_state* fev,
-            const char* ip,
-            in_port_t port,
-            int timeout, /* unit ms */
-            fev_conn_cb pfunc,
-            conn_arg_t arg)
+                const char* ip,
+                in_port_t port,
+                int timeout, /* unit ms */
+                fev_conn_cb pfunc,
+                fev_conn_arg_t arg)
 {
     int sockfd = -1;
     int s = fnet_conn_async(ip, port, &sockfd);

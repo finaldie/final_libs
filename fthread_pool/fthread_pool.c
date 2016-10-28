@@ -17,13 +17,11 @@ typedef enum {
 
 typedef struct {
     flock_cond_t  cond;
-    fmbuf*   pbuf;
-    void*    parg;
-    int tid;
+    fmbuf* pbuf;
+    void*  parg;
+    int    tid;
 
-#if __WORDSIZE == 64
-    int      padding;
-#endif
+    int    _padding;
 } thread_data;
 
 #pragma pack(4)

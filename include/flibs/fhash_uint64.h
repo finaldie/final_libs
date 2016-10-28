@@ -12,8 +12,12 @@ typedef struct {
     fhash_iter iter;
 
     // read only
-    uint64_t key;
-    void* value;
+    uint64_t   key;
+    void*      value;
+
+#if __WORDSIZE == 32
+    int        _padding;
+#endif
 } fhash_u64_iter;
 
 /**

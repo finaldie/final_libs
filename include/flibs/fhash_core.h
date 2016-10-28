@@ -13,7 +13,7 @@ extern "C" {
 #define FHASH_MASK_AUTO_REHASH  0x1
 
 typedef int32_t key_sz_t;
-typedef int64_t value_sz_t;
+typedef size_t  value_sz_t;
 
 typedef struct fhash fhash;
 

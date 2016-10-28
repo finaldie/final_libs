@@ -347,6 +347,7 @@ thread_data_t* _log_create_thread_data()
     th_data->efd = efd;
 
     struct epoll_event ee;
+    memset(&ee, 0, sizeof(ee));
     ee.data.u64 = 0;
     ee.data.fd = 0;
     ee.data.ptr = th_data;
