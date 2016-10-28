@@ -1,3 +1,6 @@
+* 2016-10-29 0.9.3
+   * Fix padding issue in 32bit mode
+   * Compatible with Raspberry PI
 * 2016-10-27 0.9.2
    * **MISC:** Provide all-in-one library `libflibs.(a|so)` for users
    * **MISC:** Refine README
