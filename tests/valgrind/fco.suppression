@@ -344,6 +344,17 @@
 }
 
 {
+   <Use of uninitialised value of size 4>
+   Memcheck:Value4
+   obj:*
+   fun:test
+   fun:co_main
+   fun:makecontext
+   fun:test_fco
+   fun:main
+}
+
+{
    <insert_a_suppression_name_here>
    Memcheck:Value4
    obj:*
