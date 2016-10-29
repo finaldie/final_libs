@@ -9,6 +9,9 @@
 #include "flibs/fhash_int.h"
 
 //=====================FAKE STRUCTURE===========================================
+#define FHASH_KEY_REALSZ(key_sz) \
+    (((data_sz_t)key_sz / 4 + 1) * sizeof(void*))
+
 typedef size_t data_sz_t;
 
 typedef struct _fhash_node {
@@ -943,7 +946,7 @@ void test_hash_core()
         FCUNIT_ASSERT(phash->current->node_mgr[0].size == 1);
         FCUNIT_ASSERT(phash->current->node_mgr[0].used == 1);
         FCUNIT_ASSERT(phash->current->node_mgr[0].node_list[0].real_sz ==
-                   (strlen(key1) + strlen(value1) + 2));
+                   (FHASH_KEY_REALSZ(strlen(key1)) + strlen(value1) + 1));
         FCUNIT_ASSERT(phash->current->node_mgr[0].node_list[0].valid == 1);
         FCUNIT_ASSERT(phash->current->node_mgr[0].node_list[0].key_sz ==
                    (key_sz_t)strlen(key1));
@@ -960,7 +963,7 @@ void test_hash_core()
         FCUNIT_ASSERT(phash->current->index_used == 1);
         FCUNIT_ASSERT(phash->current->slots_used == 2);
         FCUNIT_ASSERT(phash->current->node_mgr[0].node_list[1].real_sz ==
-                   (strlen(key2) + strlen(value2) + 2));
+                   (FHASH_KEY_REALSZ(strlen(key2)) + strlen(value2) + 1));
         FCUNIT_ASSERT(phash->current->node_mgr[0].node_list[1].valid == 1);
         FCUNIT_ASSERT(phash->current->node_mgr[0].node_list[1].key_sz ==
                    (key_sz_t)strlen(key2));
@@ -977,7 +980,7 @@ void test_hash_core()
         FCUNIT_ASSERT(phash->current->index_used == 1);
         FCUNIT_ASSERT(phash->current->slots_used == 3);
         FCUNIT_ASSERT(phash->current->node_mgr[0].node_list[2].real_sz ==
-                   (strlen(key3) + strlen(value3) + 2));
+                   (FHASH_KEY_REALSZ(strlen(key3)) + strlen(value3) + 1));
         FCUNIT_ASSERT(phash->current->node_mgr[0].node_list[2].valid == 1);
         FCUNIT_ASSERT(phash->current->node_mgr[0].node_list[2].key_sz ==
                    (key_sz_t)strlen(key3));
@@ -994,7 +997,7 @@ void test_hash_core()
         FCUNIT_ASSERT(phash->current->index_used == 1);
         FCUNIT_ASSERT(phash->current->slots_used == 4);
         FCUNIT_ASSERT(phash->current->node_mgr[0].node_list[3].real_sz ==
-                   (strlen(key4) + strlen(value4) + 2));
+                   (FHASH_KEY_REALSZ(strlen(key4)) + strlen(value4) + 1));
         FCUNIT_ASSERT(phash->current->node_mgr[0].node_list[3].valid == 1);
         FCUNIT_ASSERT(phash->current->node_mgr[0].node_list[3].key_sz ==
                    (key_sz_t)strlen(key4));

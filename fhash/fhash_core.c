@@ -19,8 +19,15 @@ typedef size_t data_sz_t;
 #define AUTO_REHASH_THRESHOLD 4
 
 //==========================internal macro functions============================
+#define FHASH_ALIGNMENT_SZ (4)
+
+// The key size should be align on a void* pointer size, and keep at least there
+//  is one additional byte after Key
+#define FHASH_KEY_REALSZ(key_sz) \
+    (((data_sz_t)key_sz / FHASH_ALIGNMENT_SZ + 1) * sizeof(void*))
+
 #define FHASH_DATASZ(key_sz, value_sz) \
-    ((data_sz_t)key_sz + 1 + (data_sz_t)value_sz + 1)
+    (FHASH_KEY_REALSZ(key_sz) + (data_sz_t)value_sz + 1)
 
 #define FHASH_REHASH_SIZE(table) \
     ((table->index_size) <= UINT32_MAX / 2 \
@@ -32,13 +39,12 @@ typedef size_t data_sz_t;
 typedef struct _fhash_node {
     data_sz_t  real_sz;   // size of real memory space
 
-    uint32_t valid:1;
-    uint32_t padding:31;  // reserved
+    uint32_t   valid:1;
+    uint32_t   padding:31;  // reserved
 
     key_sz_t   key_sz;
     value_sz_t value_sz;
     void*      data;
-
 } _fhash_node;
 
 typedef struct {
@@ -151,7 +157,7 @@ void _hash_node_set_key(_fhash_node* node, const void* key, key_sz_t key_sz)
 static inline
 void* _hash_node_value(_fhash_node* node)
 {
-    return (char*)node->data + node->key_sz + 1;
+    return (char*)node->data + FHASH_KEY_REALSZ(node->key_sz);
 }
 
 static inline
@@ -167,7 +173,7 @@ void _hash_node_set_value(_fhash_node* node,
     _hash_node_try_enlarge(node, node->key_sz, value_sz);
 
     memcpy(_hash_node_value(node), value, (size_t)value_sz);
-    *((char*)(node->data) + node->key_sz + 1 + value_sz) = '\0';
+    *((char*)(node->data) + FHASH_KEY_REALSZ(node->key_sz) + value_sz) = '\0';
     node->value_sz = value_sz;
 }
 
