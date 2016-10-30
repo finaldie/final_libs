@@ -1,0 +1,5 @@
+This is the UTs for flibs
+1. ftu_inc.h ftu_inc.c : The two fils is the test framework files , you can include them to test your programe :)
+2. main.c and all other files are the UT files
+
+have fun :)

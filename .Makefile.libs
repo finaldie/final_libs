@@ -1,0 +1,101 @@
+# flist
+FLIST_DEP_LIBS =
+FLIST_STATIC_LIB = flist/libflist.a
+FLIST_DYNAMIC_LIB = flist/libflist.so
+
+# fcache
+FCACHE_DEP_LIBS = -lfhash
+FCACHE_STATIC_LIB = fcache/libfcache.a
+FCACHE_DYNAMIC_LIB = fcache/libfcache.so
+
+# fhash
+FHASH_DEP_LIBS =
+FHASH_STATIC_LIB = fhash/libfhash.a
+FHASH_DYNAMIC_LIB = fhash/libfhash.so
+
+# fmbuf
+FMBUF_DEP_LIBS =
+FMBUF_STATIC_LIB = fmbuf/libfmbuf.a
+FMBUF_DYNAMIC_LIB = fmbuf/libfmbuf.so
+
+# fco
+FCO_DEP_LIBS =
+FCO_STATIC_LIB = fco/libfco.a
+FCO_DYNAMIC_LIB = fco/libfco.so
+
+# fnet
+FNET_DEP_LIBS =
+FNET_STATIC_LIB = fnet/libfnet.a
+FNET_DYNAMIC_LIB = fnet/libfnet.so
+
+# ftime
+FTIME_DEP_LIBS = -pthread -lrt
+FTIME_STATIC_LIB = ftime/libftime.a
+FTIME_DYNAMIC_LIB = ftime/libftime.so
+
+# flock
+FLOCK_DEP_LIBS = -pthread
+FLOCK_STATIC_LIB = flock/libflock.a
+FLOCK_DYNAMIC_LIB = flock/libflock.so
+
+# fthread_pool
+FTHPOOL_DEP_LIBS = -pthread -lfmbuf -lfhash -lflock
+FTHPOOL_STATIC_LIB = fthread_pool/libfthread-pool.a
+FTHPOOL_DYNAMIC_LIB = fthread_pool/libfthread-pool.so
+
+# fconf
+FCONF_DEP_LIBS =
+FCONF_STATIC_LIB = fconf/libfconf.a
+FCONF_DYNAMIC_LIB = fconf/libfconf.so
+
+# flog
+FLOG_DEP_LIBS = -pthread -lfmbuf -lfhash
+FLOG_STATIC_LIB = flog/libflog.a
+FLOG_DYNAMIC_LIB = flog/libflog.so
+
+# fev
+FEV_DEP_LIBS = -lfmbuf -lfhash -lflist -lftime -lfnet
+FEV_STATIC_LIB = fev/libfev.a
+FEV_DYNAMIC_LIB = fev/libfev.so
+
+# flibs
+FLIBS_DEP_LIBS := -pthread -lrt
+FLIBS_STATIC := ./libflibs.a
+FLIBS_DYNAMIC := ./libflibs.so
+
+################################################################################
+STATIC_LIBS = \
+    $(FLIST_STATIC_LIB) \
+    $(FCACHE_STATIC_LIB) \
+    $(FHASH_STATIC_LIB) \
+    $(FMBUF_STATIC_LIB) \
+    $(FCO_STATIC_LIB) \
+    $(FNET_STATIC_LIB) \
+    $(FTIME_STATIC_LIB) \
+    $(FLOCK_STATIC_LIB) \
+    $(FTHPOOL_STATIC_LIB) \
+    $(FCONF_STATIC_LIB) \
+    $(FLOG_STATIC_LIB) \
+    $(FEV_STATIC_LIB) \
+    $(FLIBS_STATIC)
+
+DYNAMIC_LIBS = \
+    $(FLIST_DYNAMIC_LIB) \
+    $(FCACHE_DYNAMIC_LIB) \
+    $(FHASH_DYNAMIC_LIB) \
+    $(FMBUF_DYNAMIC_LIB) \
+    $(FCO_DYNAMIC_LIB) \
+    $(FNET_DYNAMIC_LIB) \
+    $(FTIME_DYNAMIC_LIB) \
+    $(FLOCK_DYNAMIC_LIB) \
+    $(FTHPOOL_DYNAMIC_LIB) \
+    $(FCONF_DYNAMIC_LIB) \
+    $(FLOG_DYNAMIC_LIB) \
+    $(FEV_DYNAMIC_LIB) \
+    $(FLIBS_DYNAMIC)
+
+ifeq ($(SHARED), true)
+    TARGET_LIBS = $(DYNAMIC_LIBS)
+else
+    TARGET_LIBS = $(STATIC_LIBS)
+endif

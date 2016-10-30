@@ -1,0 +1,247 @@
+# flist
+$(FLIST_STATIC_LIB): $(FLIST_OBJS)
+	ar -rcs $@ $^
+
+$(FLIST_DYNAMIC_LIB): $(FLIST_OBJS)
+	$(FL_LD) -o $@ $^ $(FLIST_DEP_LIBS)
+
+clean-flist:
+	rm -f $(FLIST_STATIC_LIB) $(FLIST_DYNAMIC_LIB) $(FLIST_OBJS)
+
+.PHONY: clean-flist
+
+# fcache
+$(FCACHE_STATIC_LIB): $(FCACHE_OBJS)
+	ar -rcs $@ $^
+
+$(FCACHE_DYNAMIC_LIB): $(FHASH_DYNAMIC_LIB)
+$(FCACHE_DYNAMIC_LIB): $(FCACHE_OBJS)
+	$(FL_LD) -o $@ $(FCACHE_OBJS) $(FCACHE_DEP_LIBS)
+
+clean-fcache:
+	rm -f $(FCACHE_STATIC_LIB) $(FCACHE_DYNAMIC_LIB) $(FCACHE_OBJS)
+
+.PHONY: clean-fcache
+
+# fhash
+$(FHASH_STATIC_LIB): $(FHASH_OBJS)
+	ar -rcs $@ $^
+
+$(FHASH_DYNAMIC_LIB): $(FHASH_OBJS)
+	$(FL_LD) -o $@ $^ $(FHASH_DEP_LIBS)
+
+clean-fhash:
+	rm -f $(FHASH_STATIC_LIB) $(FHASH_DYNAMIC_LIB) $(FHASH_OBJS)
+
+.PHONY: clean-fhash
+
+# fmbuf
+$(FMBUF_STATIC_LIB): $(FMBUF_OBJS)
+	ar -rcs $@ $^
+
+$(FMBUF_DYNAMIC_LIB): $(FMBUF_OBJS)
+	$(FL_LD) -o $@ $^ $(FMBUF_DEP_LIBS)
+
+clean-fmbuf:
+	rm -f $(FMBUF_STATIC_LIB) $(FMBUF_DYNAMIC_LIB) $(FMBUF_OBJS)
+
+.PHONY: clean-fmbuf
+
+# fco
+$(FCO_STATIC_LIB): $(FCO_OBJS)
+	ar -rcs $@ $^
+
+$(FCO_DYNAMIC_LIB): $(FCO_OBJS)
+	$(FL_LD) -o $@ $^ $(FCO_DEP_LIBS)
+
+clean-fco:
+	rm -f $(FCO_STATIC_LIB) $(FCO_DYNAMIC_LIB) $(FCO_OBJS)
+
+.PHONY: clean-fco
+
+# fnet
+$(FNET_STATIC_LIB): $(FNET_OBJS)
+	ar -rcs $@ $^
+
+$(FNET_DYNAMIC_LIB): $(FNET_OBJS)
+	$(FL_LD) -o $@ $^ $(FNET_DEP_LIBS)
+
+clean-fnet:
+	rm -f $(FNET_STATIC_LIB) $(FNET_DYNAMIC_LIB) $(FNET_OBJS)
+
+.PHONY: clean-fnet
+
+# ftime
+$(FTIME_STATIC_LIB): $(FTIME_OBJS)
+	ar -rcs $@ $^
+
+$(FTIME_DYNAMIC_LIB): $(FTIME_OBJS)
+	$(FL_LD) -o $@ $^ $(FTIME_DEP_LIBS)
+
+clean-ftime:
+	rm -f $(FTIME_STATIC_LIB) $(FTIME_DYNAMIC_LIB) $(FTIME_OBJS)
+
+.PHONY: clean-ftime
+
+# flock
+$(FLOCK_STATIC_LIB): $(FLOCK_OBJS)
+	ar -rcs $@ $^
+
+$(FLOCK_DYNAMIC_LIB): $(FLOCK_OBJS)
+	$(FL_LD) -o $@ $^ $(FLOCK_DEP_LIBS)
+
+clean-flock:
+	rm -f $(FLOCK_STATIC_LIB) $(FLOCK_DYNAMIC_LIB) $(FLOCK_OBJS)
+
+.PHONY: clean-flock
+
+# fthread_pool
+$(FTHPOOL_STATIC_LIB): $(FTHPOOL_OBJS)
+	ar -rcs $@ $^
+
+$(FTHPOOL_DYNAMIC_LIB): $(FMBUF_DYNAMIC_LIB)
+$(FTHPOOL_DYNAMIC_LIB): $(FHASH_DYNAMIC_LIB)
+$(FTHPOOL_DYNAMIC_LIB): $(FLOCK_DYNAMIC_LIB)
+$(FTHPOOL_DYNAMIC_LIB): $(FTHPOOL_OBJS)
+	$(FL_LD) -o $@ $(FTHPOOL_OBJS) $(FTHPOOL_DEP_LIBS)
+
+clean-fthpool:
+	rm -f $(FTHPOOL_STATIC_LIB) $(FTHPOOL_DYNAMIC_LIB) $(FTHPOOL_OBJS)
+
+.PHONY: clean-fthpool
+
+# fconf
+$(FCONF_STATIC_LIB): $(FCONF_OBJS)
+	ar -rcs $@ $^
+
+$(FCONF_DYNAMIC_LIB): $(FCONF_OBJS)
+	$(FL_LD) -o $@ $^ $(FCONF_DEP_LIBS)
+
+clean-fconf:
+	rm -f $(FCONF_STATIC_LIB) $(FCONF_DYNAMIC_LIB) $(FCONF_OBJS)
+
+.PHONY: clean-fconf
+
+# flog
+$(FLOG_STATIC_LIB): $(FLOG_OBJS)
+	ar -rcs $@ $^
+
+$(FLOG_DYNAMIC_LIB): $(FHASH_DYNAMIC_LIB)
+$(FLOG_DYNAMIC_LIB): $(FMBUF_DYNAMIC_LIB)
+$(FLOG_DYNAMIC_LIB): $(FLOG_OBJS)
+	$(FL_LD) -o $@ $(FLOG_OBJS) $(FLOG_DEP_LIBS)
+
+clean-flog:
+	rm -f $(FLOG_STATIC_LIB) $(FLOG_DYNAMIC_LIB) $(FLOG_OBJS)
+
+.PHONY: clean-flog
+
+# fev
+$(FEV_STATIC_LIB): $(FEV_OBJS)
+	ar -rcs $@ $^
+
+$(FEV_DYNAMIC_LIB): $(FMBUF_DYNAMIC_LIB)
+$(FEV_DYNAMIC_LIB): $(FHASH_DYNAMIC_LIB)
+$(FEV_DYNAMIC_LIB): $(FLIST_DYNAMIC_LIB)
+$(FEV_DYNAMIC_LIB): $(FTIME_DYNAMIC_LIB)
+$(FEV_DYNAMIC_LIB): $(FNET_DYNAMIC_LIB)
+$(FEV_DYNAMIC_LIB): $(FEV_OBJS)
+	$(FL_LD) -o $@ $(FEV_OBJS) $(FEV_DEP_LIBS)
+
+clean-fev:
+	rm -f $(FEV_STATIC_LIB) $(FEV_DYNAMIC_LIB) $(FEV_OBJS)
+
+.PHONY: clean-fev
+
+$(FLIBS_STATIC): $(FLIBS_OBJS)
+	ar -rcs $@ $^
+
+$(FLIBS_DYNAMIC): $(FLIBS_OBJS)
+	$(FL_LD) -o $@ $^ $(FLIBS_DEP_LIBS)
+
+clean-flibs:
+	rm -f $(FLIBS_STATIC) $(FLIBS_DYNAMIC)
+
+.PHONY: clean-flibs
+
+# tests
+$(TEST_TARGETS): $(TARGET_LIBS)
+
+tests/test_flist: tests/t_list.o
+	$(FL_BIN_LD) -o $@ $< -lflist
+
+tests/test_fhash: tests/t_hash.o
+	$(FL_BIN_LD) -o $@ $< -lfhash
+
+tests/test_fmbuf: tests/t_mbuf.o
+	$(FL_BIN_LD) -o $@ $< -lfmbuf
+
+tests/test_fconf: tests/t_conf.o
+	$(FL_BIN_LD) -o $@ $< -lfconf
+
+tests/test_flog: tests/t_log.o
+	$(FL_BIN_LD) -o $@ $< -lflog -lfmbuf -lfhash -pthread
+
+tests/test_fcache: tests/t_fcache.o
+	$(FL_BIN_LD) -o $@ $< -lfcache -lflist -lfhash
+
+tests/test_ftime: tests/t_ftime.o
+	$(FL_BIN_LD) -o $@ $< -lftime -pthread -lrt
+
+tests/test_fco: tests/t_fco.o
+	$(FL_BIN_LD) -o $@ $< -lfco
+
+tests/test_fev: tests/t_fev.o
+	$(FL_BIN_LD) -o $@ $< -lfev -lflist -lfmbuf -lfnet -lfhash -lftime \
+	    -lrt -pthread
+
+clean-tests:
+	rm -rf tests/logs $(TEST_TARGETS) \
+	    tests/t_list.o tests/t_hash.o tests/t_mbuf.o tests/t_conf.o \
+	    tests/t_log.o tests/t_fcache.o tests/t_ftime.o tests/t_fco.o \
+	    tests/t_fev.o
+
+.PHONY: clean-tests
+
+# benchmark
+## bench fhash
+$(BENCH_FHASH_TARGET): $(TARGET_LIBS)
+$(BENCH_FHASH_TARGET): $(BENCH_FHASH_OBJS)
+	$(FL_BIN_LD) -o $@ $(BENCH_FHASH_OBJS) $(BENCH_FHASH_DEP_LIBS)
+
+bench-fhash:
+	@echo "=============== Running benchmark for fhash ==============="
+	@echo "generate random key/values..."
+	test -f /tmp/fhash_kv.txt || ./benchmark/fhash/random_string_gen.sh > /tmp/fhash_kv.txt
+	@echo "generate random key/values done"
+	./$(BENCH_FHASH_TARGET)
+
+clean-bench-fhash:
+	rm -f $(BENCH_FHASH_TARGET) $(BENCH_FHASH_OBJS)
+
+.PHONY: bench-fhash clean-bench-fhash
+
+## bench flog
+$(BENCH_FLOG_TARGET): $(TARGET_LIBS)
+$(BENCH_FLOG_TARGET): $(BENCH_FLOG_OBJS)
+	$(FL_BIN_LD) -o $@ $(BENCH_FLOG_OBJS) $(BENCH_FLOG_DEP_LIBS)
+
+bench-flog:
+	@echo "=============== Running benchmark for flog ==============="
+	rm -rf benchmark/flog/logs
+	mkdir -p benchmark/flog/logs
+	./$(BENCH_FLOG_TARGET) 1000000 2 4
+
+clean-bench-flog:
+	rm -rf $(BENCH_FLOG_TARGET) $(BENCH_FLOG_OBJS) benchmark/flog/logs
+
+.PHONY: bench-flog clean-bench-flog
+
+# clean benchmarks
+clean-bench: clean-bench-fhash clean-bench-flog
+
+.PHONY: clean-bench
+
+# all objs
+%.o: %.c
+	$(FL_CC) -c $< -o $@

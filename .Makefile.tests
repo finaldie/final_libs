@@ -1,0 +1,21 @@
+TEST_TARGETS = \
+    tests/test_flist \
+    tests/test_fhash \
+    tests/test_fmbuf \
+    tests/test_fconf \
+    tests/test_flog \
+    tests/test_fcache \
+    tests/test_ftime \
+    tests/test_fco \
+    tests/test_fev
+
+VALGRIND = valgrind --tool=memcheck -v --leak-check=full \
+	    --gen-suppressions=all --error-exitcode=1
+
+VALGRIND_FCO = valgrind --tool=memcheck -v --leak-check=full \
+	    --suppressions=./tests/valgrind/fco.suppression \
+	    --gen-suppressions=all --error-exitcode=1
+
+VALGRIND_FEV = valgrind --tool=memcheck -v --leak-check=full \
+	    --suppressions=./tests/valgrind/fev.suppression \
+	    --gen-suppressions=all --error-exitcode=1

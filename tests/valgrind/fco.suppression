@@ -1,0 +1,491 @@
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Addr8
+    fun:swapcontext
+    obj:*
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Addr8
+    fun:co_main
+    obj:*
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Addr4
+    fun:co_main
+    obj:*
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Value8
+    fun:_fco_do_swap
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Value8
+    fun:_fco_call_plugin
+    fun:fco_resume
+    fun:test
+    fun:co_main
+    obj:*
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Value8
+    fun:fco_resume
+    fun:test
+    fun:co_main
+    obj:*
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Cond
+    fun:fco_resume
+    fun:test
+    fun:co_main
+    obj:*
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Cond
+    fun:free
+    fun:fco_resume
+    fun:test
+    fun:co_main
+    obj:*
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Value8
+    fun:fco_resume
+    obj:*
+    obj:*
+    fun:co_main
+    obj:*
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   fun:free
+   fun:fco_resume
+   fun:test
+   fun:(below main)
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   fun:free
+   fun:fco_resume
+   fun:test
+   fun:(below main)
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Value8
+    fun:test
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Value8
+    fun:co_main
+    obj:*
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Value8
+    fun:co_main
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Value8
+    fun:fco_resume
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Value8
+    fun:setcontext
+    fun:__start_context
+    ...
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Value8
+    fun:__start_context
+    obj:*
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Cond
+    fun:__start_context
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Param
+    rt_sigprocmask(set)
+    fun:setcontext
+    fun:__start_context
+    ...
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Addr4
+    fun:swapcontext
+    obj:*
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Value4
+    fun:_fco_do_swap
+    fun:test
+    fun:co_main
+    fun:makecontext
+    fun:test_fco
+    fun:main
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Value4
+    fun:_fco_call_plugin
+    fun:fco_resume
+    fun:test
+    fun:co_main
+    fun:makecontext
+    fun:test_fco
+    fun:main
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Value4
+    fun:fco_resume
+    fun:test
+    fun:co_main
+    fun:makecontext
+    fun:test_fco
+    fun:main
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Value4
+    fun:fco_resume
+    fun:co_main
+    fun:makecontext
+    fun:test_fco
+    fun:main
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Value4
+    fun:test
+    fun:makecontext
+    fun:test_fco
+    fun:main
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Value4
+    fun:co_main
+    fun:makecontext
+    fun:test_fco
+    fun:main
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Value4
+    fun:co_main
+    fun:test_fco
+    fun:main
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Value4
+    fun:makecontext
+    fun:test_fco
+    fun:main
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Cond
+    fun:makecontext
+    fun:test_fco
+    fun:main
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Param
+    sigprocmask(set)
+    fun:setcontext
+    fun:test_fco
+    fun:main
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Param
+   sigprocmask(set)
+   fun:setcontext
+   fun:makecontext
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Param
+   sigprocmask(set)
+   fun:setcontext
+}
+
+{
+    <insert_a_suppression_name_here>
+    Memcheck:Value4
+    fun:setcontext
+    fun:test_fco
+    fun:main
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value4
+   fun:setcontext
+   fun:makecontext
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value4
+   fun:setcontext
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value4
+   fun:makecontext
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value4
+   fun:co_main
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   fun:makecontext
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value4
+   fun:test
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value4
+   fun:fco_resume
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value4
+   fun:_fco_do_swap
+   obj:*
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value4
+   fun:_fco_call_plugin
+   fun:fco_resume
+   fun:test
+   fun:co_main
+   fun:makecontext
+   obj:*
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value4
+   obj:*
+   fun:fco_resume
+   fun:test
+   fun:co_main
+   fun:makecontext
+   obj:*
+}
+
+{
+   <Use of uninitialised value of size 4>
+   Memcheck:Value4
+   obj:*
+   fun:test
+   fun:co_main
+   fun:makecontext
+   fun:test_fco
+   fun:main
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value4
+   obj:*
+   fun:fco_resume
+   fun:test
+   fun:(below main)
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   fun:fco_resume
+   fun:test
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value4
+   fun:_fco_call_plugin
+   fun:(below main)
+}
+
+{
+   <known issue, ubuntu 14.04>
+   Memcheck:Cond
+   fun:_fco_delete
+   fun:fco_resume
+   fun:test
+   fun:co_main
+   obj:*
+}
+
+{
+   <known issue, ubuntu 14.04>
+   Memcheck:Value8
+   fun:_fco_delete
+   fun:fco_resume
+   fun:test
+   fun:co_main
+   obj:*
+}
+
+{
+   <known issue, ubuntu 14.04>
+   Memcheck:Cond
+   fun:free
+   fun:_fco_delete
+   fun:fco_resume
+   fun:test
+   fun:co_main
+   obj:*
+}
+
+########## Raspberry Pi ############
+{
+   <fco_resume jump condition>
+   Memcheck:Cond
+   fun:__startcontext
+   fun:fco_resume
+   fun:test_fco
+   fun:main
+}
+
+{
+   <_fco_call_plugin: Use of uninitialised value of size 4>
+   Memcheck:Value4
+   fun:_fco_call_plugin
+   fun:fco_resume
+   fun:test
+   fun:co_main
+   obj:*
+}
+
+{
+   <__startcontext: Use of uninitialised value of size 4>
+   Memcheck:Value4
+   fun:__startcontext
+   fun:fco_resume
+   fun:test_fco
+   fun:main
+}
+
+{
+   <libc: Use of uninitialised value of size 4>
+   Memcheck:Value4
+   obj:*
+   fun:fco_resume
+   fun:test_fco
+   fun:main
+}
+
+{
+   <sigprocmask: Conditional jump on uninitialised value>
+   Memcheck:Cond
+   fun:sigprocmask
+   obj:*
+}
+
+{
+   <sigprocmask: Use of uninitialised value of size 4>
+   Memcheck:Value4
+   fun:sigprocmask
+   obj:*
+}
+
+{
+   <Syscall param rt_sigprocmask(set) contains uninitialised byte(s)>
+   Memcheck:Param
+   rt_sigprocmask(set)
+   fun:sigprocmask
+   obj:*
+}
+
+{
+   <libc: Invalid read of size 4>
+   Memcheck:Addr4
+   obj:/lib/arm-linux-gnueabihf/libc-2.13.so
+   obj:*
+}
+
+{
+   <libc: Use of uninitialised value of size 4>
+   Memcheck:Value4
+   obj:/lib/arm-linux-gnueabihf/libc-2.13.so
+   obj:*
+}
+
+{
+   <fco_resume: Conditional jump on uninitialised value>
+   Memcheck:Cond
+   fun:fco_resume
+   fun:test_fco
+   fun:main
+}

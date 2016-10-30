@@ -1,0 +1,65 @@
+# Objs
+FLIST_OBJS = \
+    flist/flist.o \
+    flist/fdlist.o
+
+FCACHE_OBJS = \
+    fcache/fcache.o \
+    fcache/fcache_list.o
+
+FHASH_OBJS = \
+    fhash/fhash_core.o \
+    fhash/fhash_int.o \
+    fhash/fhash_str.o \
+    fhash/fhash_uint64.o
+
+FMBUF_OBJS = \
+    fmbuf/fmbuf.o
+
+FCO_OBJS = \
+    fco/fco.o
+
+FNET_OBJS = \
+    fnet/fnet.o
+
+FTIME_OBJS = \
+    ftime/ftime.o
+
+FLOCK_OBJS = \
+    flock/flock.o
+
+FTHPOOL_OBJS = \
+    fthread_pool/fthread_pool.o
+
+FCONF_OBJS = \
+    fconf/fconf_core.o \
+    fconf/fconf.o
+
+FLOG_OBJS = \
+    flog/flog.o \
+    flog/flog_level.o
+
+FEV_OBJS = \
+    fev/fev.o \
+    fev/fev_buff.o \
+    fev/fev_conn.o \
+    fev/fev_listener.o \
+    fev/fev_timer.o \
+    fev/fev_timer_service.o \
+    fev/fev_tmsvc_modules.o \
+    fev/fev_tmsvc_sl_mod.o
+
+FLIBS_OBJS = \
+    $(FLIST_OBJS) \
+    $(FCACHE_OBJS) \
+    $(FHASH_OBJS) \
+    $(FMBUF_OBJS) \
+    $(FCO_OBJS) \
+    $(FNET_OBJS) \
+    $(FTIME_OBJS) \
+    $(FLOCK_OBJS) \
+    $(FTHPOOL_OBJS) \
+    $(FCONF_OBJS) \
+    $(FLOG_OBJS) \
+    $(FEV_OBJS)
+
