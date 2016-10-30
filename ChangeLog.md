@@ -1,3 +1,5 @@
+* 2016-10-30 0.9.4
+   * **fhash:** Data address must be 32 bit-aligned
 * 2016-10-29 0.9.3
    * Fix padding issue in 32bit mode
    * Compatible with Raspberry PI
