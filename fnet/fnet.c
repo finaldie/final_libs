@@ -24,15 +24,39 @@
 # define NEED_RETRY EAGAIN
 #endif
 
-#define STATIC_IP_LEN    32    // compatible ipv6
+int fnet_socket(const char* ip, in_port_t port, int type, fnet_sockaddr_t* addr,
+                socklen_t* len) {
+    if (!ip) return -1;
 
-// use it avoid gcc throw error 'break strict-aliasing rules'
-typedef union {
-    struct sockaddr_storage storage;
-    struct sockaddr_in      in;
-    struct sockaddr_in6     in6;
-    struct sockaddr         sa;
-} sockaddr_u_t;
+    int sockfd, rc, af;
+    memset(addr, 0, sizeof(*addr));
+
+    if (!strchr(ip, ':')) {
+        // IPv4 address
+        af = AF_INET;
+        addr->in.sin_family = (unsigned short)af;
+        addr->in.sin_port   = htons(port);
+        rc = inet_pton(af, ip, &addr->in.sin_addr);
+        if (len) *len = sizeof(addr->in);
+    } else {
+        // IPv6 address
+        af = AF_INET6;
+        addr->in6.sin6_family = (unsigned short)af;
+        addr->in6.sin6_port   = htons(port);
+        rc = inet_pton(af, ip, &addr->in6.sin6_addr);
+        if (len) *len = sizeof(addr->in6);
+    }
+
+    if (rc <= 0) {
+        return -1;
+    }
+
+    if ((sockfd = socket(af, type | SOCK_CLOEXEC, 0)) == -1) {
+        return -1;
+    }
+
+    return sockfd;
+}
 
 int     fnet_set_keepalive(int fd, int idle_time, int interval, int count)
 {
@@ -122,22 +146,25 @@ int     fnet_set_send_timeout(int fd, int timeout)
     return setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &timeo, len);
 }
 
-int     fnet_listen(const char* ip, in_port_t port, int max_link, int isblock)
+int     fnet_listen(const char* ip, in_port_t port, int backlog, int isblock)
 {
-    int listen_fd;
-    struct sockaddr_in addr;
+    fnet_sockaddr_t addr;
+    socklen_t addrlen = 0;
 
-    memset(&addr, 0, sizeof(addr));
-    addr.sin_family = AF_INET;
-    addr.sin_port = htons(port);
+    int listen_fd = fnet_socket(ip, port, SOCK_STREAM | SOCK_NONBLOCK, &addr, &addrlen);
 
-    if ( ip )
-        addr.sin_addr.s_addr = inet_addr(ip);
-    else
-        addr.sin_addr.s_addr = htons(INADDR_ANY);
+    if (listen_fd < 0) {
+        if (ip) return -1;
 
-    listen_fd = socket(AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0);
-    if (0 > listen_fd) return -1;
+        memset(&addr, 0, sizeof(addr));
+        addr.in.sin_family = AF_INET;
+        addr.in.sin_port   = htons(port);
+        addr.in.sin_addr.s_addr = htons(INADDR_ANY);
+        addrlen = sizeof(addr.in);
+
+        listen_fd = socket(AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0);
+        if (0 > listen_fd) return -1;
+    }
 
     if (fnet_set_reuse_addr(listen_fd)) {
         goto cleanup;
@@ -147,15 +174,15 @@ int     fnet_listen(const char* ip, in_port_t port, int max_link, int isblock)
         goto cleanup;
     }
 
-    if ( !isblock && fnet_set_nonblocking(listen_fd) ) {
+    if (!isblock && fnet_set_nonblocking(listen_fd)) {
         goto cleanup;
     }
 
-    if (0 > bind(listen_fd, (struct sockaddr *)&addr, sizeof(addr))) {
+    if (0 > bind(listen_fd, &addr.sa, addrlen)) {
         goto cleanup;
     }
 
-    if (0 > listen(listen_fd, max_link)) {
+    if (0 > listen(listen_fd, backlog)) {
         goto cleanup;
     }
 
@@ -252,13 +279,13 @@ unsigned int fnet_get_highdata(unsigned int data)
 
 int     fnet_accept(int listen_fd)
 {
-    struct sockaddr addr;
-    socklen_t addrlen = sizeof(struct sockaddr_in);
+    fnet_sockaddr_t addr;
+    socklen_t addrlen = sizeof(addr);
     memset(&addr, 0, addrlen);
 
     int sock_fd = -1;
     do {
-        sock_fd = accept(listen_fd, (struct sockaddr *)&addr, &addrlen);
+        sock_fd = accept(listen_fd, &addr.sa, &addrlen);
 
         if (sock_fd == -1) {
             switch (errno) {
@@ -275,59 +302,47 @@ int     fnet_accept(int listen_fd)
     return sock_fd;
 }
 
-// Sync method for connect
-// note: Whether or not set block type after connect sucess
+/**
+ * Connect to target in SYNC way
+ */
 int     fnet_conn(const char* ip, in_port_t port, int isblock)
 {
-    int sockfd;
-    struct sockaddr_in server_addr;
+    fnet_sockaddr_t addr;
+    socklen_t addrlen = 0;
 
-    if ((sockfd = socket(AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0)) == -1) {
+    int sockfd = fnet_socket(ip, port, SOCK_STREAM, &addr, &addrlen);
+    if (sockfd < 0) return -1;
+
+    if (connect(sockfd, &addr.sa, addrlen) == -1) {
         return -1;
     }
 
-    memset(&server_addr, 0, sizeof(server_addr));
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(port);
-    server_addr.sin_addr.s_addr = inet_addr(ip);
-
-    if ( connect(sockfd, (struct sockaddr *)(&server_addr),
-        sizeof(struct sockaddr)) == -1 ) {
-        return -1;
-    }
-
-    if ( !isblock )
+    if (!isblock)
         fnet_set_nonblocking(sockfd);
 
     return sockfd;
 }
 
-// async connect, nonblocking
-// return:
-// 0: sucess, you can use outfd
-// -1: error
-// 1: connect has in process
+/**
+ * Async and nonblocking way to connect the target end point
+ * Return:
+ *   0: Sucess, you can use outfd
+ *  -1: Error
+ *   1: Connecting has in progress
+ */
 int     fnet_conn_async(const char* ip, in_port_t port, int* outfd)
 {
-    int sockfd;
-    struct sockaddr_in server_addr;
+    fnet_sockaddr_t addr;
+    socklen_t addrlen = 0;
 
-    if ((sockfd = socket(AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0)) == -1) {
-        return -1;
-    }
+    int sockfd = fnet_socket(ip, port, SOCK_STREAM | SOCK_NONBLOCK, &addr, &addrlen);
+    if (sockfd < 0) return -1;
 
     *outfd = sockfd;
-    fnet_set_nonblocking(sockfd);
 
-    memset(&server_addr, 0, sizeof(server_addr));
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(port);
-    server_addr.sin_addr.s_addr = inet_addr(ip);
-
-    int r = connect(sockfd, (struct sockaddr *)(&server_addr),
-                    sizeof(struct sockaddr));
-    if ( r == -1 ) {
-        if ( errno == EINPROGRESS ) {
+    int r = connect(sockfd, &addr.sa, addrlen);
+    if (r == -1) {
+        if (errno == EINPROGRESS) {
             return 1;
         } else {
             return -1;
@@ -337,28 +352,42 @@ int     fnet_conn_async(const char* ip, in_port_t port, int* outfd)
     return 0;
 }
 
-char*   fnet_get_localip(int fd)
+const char* fnet_sockname(int fd, char* buf, socklen_t size, int* port)
 {
-    sockaddr_u_t u_addr;
-    socklen_t addr_len;
+    fnet_sockaddr_t u_addr;
+    socklen_t addr_len = sizeof(u_addr);
+    const char* ip = NULL;
 
-    if ( !getsockname(fd, &u_addr.sa, &addr_len) ) {
-        return inet_ntoa( u_addr.in.sin_addr );
-    } else {
-        return NULL;
+    if (!getsockname(fd, &u_addr.sa, &addr_len)) {
+        if (u_addr.sa.sa_family == AF_INET) {
+            ip = inet_ntop(AF_INET, (void*)&u_addr.in.sin_addr, buf, size);
+            *port = ntohs(u_addr.in.sin_port);
+        } else {
+            ip = inet_ntop(AF_INET6, (void*)&u_addr.in.sin_addr, buf, size);
+            *port = ntohs(u_addr.in6.sin6_port);
+        }
     }
+
+    return ip;
 }
 
-char*   fnet_get_peerip(int fd)
+const char* fnet_peername(int fd, char* buf, socklen_t size, int* port)
 {
-    sockaddr_u_t u_addr;
-    socklen_t addr_len;
+    fnet_sockaddr_t u_addr;
+    socklen_t addr_len = sizeof(u_addr);
+    const char* ip = NULL;
 
-    if ( !getpeername(fd, &u_addr.sa, &addr_len) ) {
-        return inet_ntoa( u_addr.in.sin_addr );
-    } else {
-        return NULL;
+    if (!getpeername(fd, &u_addr.sa, &addr_len)) {
+        if (u_addr.sa.sa_family == AF_INET) {
+            ip = inet_ntop(AF_INET, (void*)&u_addr.in.sin_addr, buf, size);
+            *port = ntohs(u_addr.in.sin_port);
+        } else {
+            ip = inet_ntop(AF_INET6, (void*)&u_addr.in.sin_addr, buf, size);
+            *port = ntohs(u_addr.in6.sin6_port);
+        }
     }
+
+    return ip;
 }
 
 int     fnet_get_host(const char* host_name, fhost_info_t* hinfo)
@@ -406,8 +435,8 @@ int     fnet_get_host(const char* host_name, fhost_info_t* hinfo)
             pptr = hptr->h_addr_list;
             hinfo->ips = (char**)calloc(1, sizeof(char*) * (size_t)hinfo->ip_count);
             for (i=0; *pptr!=NULL && i < hinfo->ip_count; pptr++, i++) {
-                char* ip = calloc(1, STATIC_IP_LEN);
-                inet_ntop(hptr->h_addrtype, *pptr, ip, STATIC_IP_LEN);
+                char* ip = calloc(1, INET6_ADDRSTRLEN);
+                inet_ntop(hptr->h_addrtype, *pptr, ip, INET6_ADDRSTRLEN);
                 hinfo->ips[i] = ip;
             }
 
