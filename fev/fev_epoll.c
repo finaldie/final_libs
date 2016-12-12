@@ -108,7 +108,7 @@ int fev_state_poll(fev_state* fev, int event_num, int timeout)
         // check the fd whether or not in firelist , if in, we ignore it
         // because sometimes we modify another fd state to FEV_NIL, so that
         // we process it unnecessary
-        if (fev_is_fired(fev, fd)) {
+        if (_fev_is_fired(fev, fd)) {
             continue;
         }
 
