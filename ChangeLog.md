@@ -1,3 +1,5 @@
+* 2016-12-17 0.9.6
+   * **fev:** Add more interfaces to fev_timer_service, user would manually trigger all expired timers
 * 2016-12-15 0.9.5
    * **fnet:** Support IPv6
    * **fev:** Add prepoll/postpoll for fev, and prevent output errors when del event on a NIL masked fd
