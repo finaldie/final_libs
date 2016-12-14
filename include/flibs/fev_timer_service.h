@@ -18,23 +18,46 @@ fev_timer_svc* fev_tmsvc_create(
 
 void fev_tmsvc_destroy(fev_timer_svc*);
 
-ftimer_node*   fev_tmsvc_timer_add(
-                fev_timer_svc*,
-                uint32_t expiration,       // unit millisecond
-                ftimer_cb,
-                void* arg);
+/**
+ * Trigger all expired timers manually
+ *
+ * @return  How many valid timers expired and be triggered
+ */
+int fev_tmsvc_process(fev_timer_svc*);
 
-// call this when user want to cancel it
+/**
+ * Get the first valid expired timer node
+ */
+ftimer_node* fev_tmsvc_first(fev_timer_svc*);
+
+ftimer_node* fev_tmsvc_timer_add(
+               fev_timer_svc*,
+               long expiration,       // unit millisecond
+               ftimer_cb,
+               void* arg);
+
+/**
+ * call this when user want to cancel it
+ */
 int fev_tmsvc_timer_del(ftimer_node*);
 
-// reset a timer, the timer start time will be set to
-// the current time, you also can use del_timer and add_timer
-// to achieve that, but it will cost more memory and may have
-// the performance impact.
-// Notes: It's no effect if the timer_node is invalid
-int fev_tmsvc_timer_reset(ftimer_node*);
+/**
+ * Reset a timer, the timer start time will be set to
+ * the current time, you also can use del_timer and add_timer
+ * to achieve that, but it will cost more memory and may have
+ * the performance impact.
+ *
+ * @note  It's no effect if the timer_node is invalid
+ */
+int   fev_tmsvc_timer_reset(ftimer_node*);
 
-int fev_tmsvc_timer_resetn(ftimer_node*, uint32_t expiration);
+int   fev_tmsvc_timer_resetn(ftimer_node*, long expiration);
+
+long  fev_tmsvc_timer_expiration(const ftimer_node*);
+
+int   fev_tmsvc_timer_valid(const ftimer_node*);
+
+void* fev_tmsvc_timer_data(const ftimer_node*);
 
 #ifdef __cplusplus
 }

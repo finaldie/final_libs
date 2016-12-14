@@ -3,7 +3,7 @@
 
 // The resolution is million seconds for this API
 int fev_tmmod_timeout(struct timespec* start, struct timespec* now,
-                      uint32_t expiration)
+                      long expiration)
 {
     long int diff_sec = now->tv_sec - start->tv_sec;
     long int diff_nsec = now->tv_nsec - start->tv_nsec;
@@ -19,7 +19,7 @@ int fev_tmmod_timeout(struct timespec* start, struct timespec* now,
 
     long int diff_ms = diff_sec * MS_PER_SECOND + (diff_nsec / NS_PER_MS);
 
-    if (diff_ms >= (long int)expiration) {
+    if (diff_ms >= expiration) {
         return 1;
     } else {
         return 0;
