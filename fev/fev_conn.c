@@ -86,8 +86,7 @@ int    fev_conn(fev_state* fev,
     } else {
         fev_conn_info* conn_info = calloc(1, sizeof(fev_conn_info));
         conn_info->fd = sockfd;
-        fev_timer_svc* timer_svc = (fev_timer_svc*)fev_get_module_data(fev,
-                                        FEV_CONN_MODULE_NAME);
+        fev_timer_svc* timer_svc = fev_module_data(fev, FEV_CONN_MODULE_NAME);
         conn_info->timer = fev_tmsvc_timer_add(timer_svc, (uint32_t)timeout,
                                                 on_timer, conn_info);
         if (!conn_info->timer) {
@@ -112,6 +111,7 @@ int    fev_conn(fev_state* fev,
     }
 }
 
+static
 void fev_conn_module_unload(fev_state* fev __attribute__((unused)),
                             void* ud)
 {
@@ -125,12 +125,13 @@ int fev_conn_module_init(fev_state* fev)
 
     fev_module_t module;
     module.name = FEV_CONN_MODULE_NAME;
-    module.fev_module_unload = fev_conn_module_unload;
+    module.unload = fev_conn_module_unload;
+    module.prepoll = module.postpoll = NULL;
     module.ud = fev_tmsvc_create(fev, FEV_CONN_TIME_SERVICE_INTERVAL,
                                  FEV_TMSVC_SINGLE_LINKED);
     if( !module.ud ) {
         return 1;
     }
 
-    return fev_register_module(fev, &module);
+    return fev_module_register(fev, &module);
 }

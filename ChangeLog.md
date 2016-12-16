@@ -1,3 +1,6 @@
+* 2016-12-15 0.9.5
+   * **fnet:** Support IPv6
+   * **fev:** Add prepoll/postpoll for fev, and prevent output errors when del event on a NIL masked fd
 * 2016-10-30 0.9.4
    * **fhash:** Data address must be 32 bit-aligned
 * 2016-10-29 0.9.3

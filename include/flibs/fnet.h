@@ -25,6 +25,14 @@ typedef struct {
     char** ips;
 } fhost_info_t;
 
+// Union of socketaddr
+typedef union fnet_sockaddr_t {
+    struct sockaddr_in  in;
+    struct sockaddr_in6 in6;
+    struct sockaddr     sa;
+    struct sockaddr_storage ss;
+} fnet_sockaddr_t;
+
 unsigned int fnet_get_lowdata(unsigned int data);
 unsigned int fnet_get_highdata(unsigned int data);
 
@@ -39,7 +47,12 @@ int     fnet_set_linger(int fd);
 int     fnet_set_reuse_addr(int fd);
 int     fnet_set_reuse_port(int fd);
 
-int     fnet_listen(const char* ip, in_port_t port, int max_link, int isblock);
+/**
+ * Currently support IPv4/IPv6 socket
+ */
+int     fnet_socket(const char* ip, in_port_t port, int type, fnet_sockaddr_t*,
+                    socklen_t* len);
+int     fnet_listen(const char* ip, in_port_t port, int backlog, int isblock);
 int     fnet_accept(int listen_fd);
 ssize_t fnet_send(int fd, const void* data, size_t len);
 ssize_t fnet_send_safe(int fd, const void* data, size_t len);
@@ -47,8 +60,8 @@ ssize_t fnet_recv(int fd, void* data, size_t len);
 int     fnet_conn(const char* ip, in_port_t port, int isblock);
 int     fnet_conn_async(const char* ip, in_port_t port, int* outfd);
 
-char*   fnet_get_localip(int fd);
-char*   fnet_get_peerip(int fd);
+const char* fnet_sockname(int fd, char* buf, socklen_t size, int* port);
+const char* fnet_peername(int fd, char* buf, socklen_t size, int* port);
 
 // dns , after use must call net_free_host
 int     fnet_get_host(const char* host_name, fhost_info_t* hinfo);

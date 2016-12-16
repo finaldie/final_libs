@@ -29,11 +29,14 @@ int  fev_get_fd(fev_state*);
 typedef struct fev_module_t {
     const char* name;
     void* ud;
-    void  (*fev_module_unload)(fev_state*, void* ud);
+
+    void  (*unload)  (fev_state*, void* ud);
+    void  (*prepoll) (fev_state*, void* ud);
+    void  (*postpoll)(fev_state*, void* ud);
 } fev_module_t;
 
-int   fev_register_module(fev_state*, fev_module_t*);
-void* fev_get_module_data(fev_state*, const char* module_name);
+int   fev_module_register(fev_state*, fev_module_t*);
+void* fev_module_data(fev_state*, const char* module_name);
 
 #ifdef __cplusplus
 }
