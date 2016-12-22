@@ -352,18 +352,20 @@ int     fnet_conn_async(const char* ip, in_port_t port, int* outfd)
     return 0;
 }
 
-const char* fnet_sockname(int fd, char* buf, socklen_t size, int* port)
+const char* fnet_sockname(int fd, char* buf, socklen_t size, int* port, int* family)
 {
     fnet_sockaddr_t u_addr;
     socklen_t addr_len = sizeof(u_addr);
     const char* ip = NULL;
 
     if (!getsockname(fd, &u_addr.sa, &addr_len)) {
+        if (family) *family = u_addr.sa.sa_family;
+
         if (u_addr.sa.sa_family == AF_INET) {
             ip = inet_ntop(AF_INET, (void*)&u_addr.in.sin_addr, buf, size);
             *port = ntohs(u_addr.in.sin_port);
-        } else {
-            ip = inet_ntop(AF_INET6, (void*)&u_addr.in.sin_addr, buf, size);
+        } else if (u_addr.sa.sa_family == AF_INET6) {
+            ip = inet_ntop(AF_INET6, (void*)&u_addr.in6.sin6_addr, buf, size);
             *port = ntohs(u_addr.in6.sin6_port);
         }
     }
@@ -371,18 +373,20 @@ const char* fnet_sockname(int fd, char* buf, socklen_t size, int* port)
     return ip;
 }
 
-const char* fnet_peername(int fd, char* buf, socklen_t size, int* port)
+const char* fnet_peername(int fd, char* buf, socklen_t size, int* port, int* family)
 {
     fnet_sockaddr_t u_addr;
     socklen_t addr_len = sizeof(u_addr);
     const char* ip = NULL;
 
     if (!getpeername(fd, &u_addr.sa, &addr_len)) {
+        if (family) *family = u_addr.sa.sa_family;
+
         if (u_addr.sa.sa_family == AF_INET) {
             ip = inet_ntop(AF_INET, (void*)&u_addr.in.sin_addr, buf, size);
             *port = ntohs(u_addr.in.sin_port);
-        } else {
-            ip = inet_ntop(AF_INET6, (void*)&u_addr.in.sin_addr, buf, size);
+        } else if (u_addr.sa.sa_family == AF_INET6) {
+            ip = inet_ntop(AF_INET6, (void*)&u_addr.in6.sin6_addr, buf, size);
             *port = ntohs(u_addr.in6.sin6_port);
         }
     }

@@ -1,3 +1,5 @@
+* 2017-01-09 0.9.7
+   * **fnet:** Fix sockaddr issues in fnet_(peer|sock)name for AF_INET6
 * 2016-12-17 0.9.6
    * **fev:** Add more interfaces to fev_timer_service, user would manually trigger all expired timers
 * 2016-12-15 0.9.5

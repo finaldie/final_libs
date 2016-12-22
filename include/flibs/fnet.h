@@ -60,8 +60,8 @@ ssize_t fnet_recv(int fd, void* data, size_t len);
 int     fnet_conn(const char* ip, in_port_t port, int isblock);
 int     fnet_conn_async(const char* ip, in_port_t port, int* outfd);
 
-const char* fnet_sockname(int fd, char* buf, socklen_t size, int* port);
-const char* fnet_peername(int fd, char* buf, socklen_t size, int* port);
+const char* fnet_sockname(int fd, char* buf, socklen_t size, int* port, int* family);
+const char* fnet_peername(int fd, char* buf, socklen_t size, int* port, int* family);
 
 // dns , after use must call net_free_host
 int     fnet_get_host(const char* host_name, fhost_info_t* hinfo);
