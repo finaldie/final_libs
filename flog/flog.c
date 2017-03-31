@@ -30,6 +30,9 @@
 #define LOG_MSG_HEAD_SIZE             (sizeof(log_msg_head_t))
 #define LOG_PTO_ID_SIZE               (sizeof(pto_id_t))
 
+#define LOG_FETCHER_MAXPOLL           (1024)
+#define LOG_FETCHER_MAXWAIT           (1000)
+
 #define LOG_FILENAME_FMT              "%s-%s.%d"
 #define LOG_FILE_TIME_FMT             "%04d_%02d_%02d_%02d_%02d_%02d.%03lu"
 #define LOG_FILE_TIME_BUFSZ           (24)
@@ -64,8 +67,11 @@ struct flog_file_t {
     flog_mode_t mode; // Sync or Async
     int    fd;
 
-    int    curr_aid;  // Current auto id
     int    last_aid;  // Last auto id
+
+#if __WORDSIZE == 64
+    int    _padding;
+#endif
 };
 
 // Internal log message protocol
@@ -160,7 +166,16 @@ void _destroy_thread_data(thread_data_t* th_data)
     }
 
     if (th_data->efd > 0) {
+        // 1. De-register efd from epoll
+        struct epoll_event ee;
+        memset(&ee, 0, sizeof(ee));
+        ee.events |= EPOLLIN;
+        epoll_ctl(g_log->epfd, EPOLL_CTL_ADD, th_data->efd, &ee);
+
+        // 2. Close efd
         close(th_data->efd);
+
+        // 3. Reset thread_data->efd
         th_data->efd = 0;
     }
 
@@ -335,9 +350,9 @@ thread_data_t* _log_create_thread_data()
     }
     th_data->plog_buf = pbuf;
 
-    // for forward compatible old version of kernel from 2.6.22 - 2.6.26
-    // we couldn't use EFD_NONBLOCK flag, so we need to call fcntl for
-    // setting nonblocking flag
+    // Forward compatible with old version of kernel from 2.6.22 - 2.6.26
+    //  we couldn't use EFD_NONBLOCK flag, so we need to call fcntl for
+    //  setting nonblocking flag
     int efd = eventfd(0, 0);
     if (!efd) {
         printError("error in creating efd");
@@ -360,12 +375,9 @@ thread_data_t* _log_create_thread_data()
 
     struct epoll_event ee;
     memset(&ee, 0, sizeof(ee));
-    ee.data.u64 = 0;
-    ee.data.fd = 0;
     ee.data.ptr = th_data;
-    ee.events = 0;
     ee.events |= EPOLLIN;
-    if (epoll_ctl( g_log->epfd, EPOLL_CTL_ADD, efd, &ee)) {
+    if (epoll_ctl(g_log->epfd, EPOLL_CTL_ADD, efd, &ee)) {
         printError("cannot add eventfd into epoll for thread data");
         _destroy_thread_data(th_data);
         return NULL;
@@ -715,15 +727,14 @@ int _log_process_timeout(void* ud,
 }
 
 static
-void* _log_fetcher(void* arg __attribute__((unused))){
+void* _log_fetcher(void* arg __attribute__((unused))) {
     int nums, i;
-    struct epoll_event events[1024];
+    struct epoll_event events[LOG_FETCHER_MAXPOLL];
     g_log->is_fetcher_running = 1;
 
     do {
-        nums = epoll_wait(g_log->epfd, events, 1024, 1000);
-        if (nums < 0 && errno == EINTR)
-            continue;
+        nums = epoll_wait(g_log->epfd, events, LOG_FETCHER_MAXPOLL, LOG_FETCHER_MAXWAIT);
+        if (nums < 0 && errno == EINTR) continue;
 
         // timeout
         if (unlikely(nums == 0)) {
