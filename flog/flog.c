@@ -21,8 +21,6 @@
 
 // BASE DEFINE
 #define LOG_OPEN_PERMISSION           0644
-#define LOG_MAX_FILE_NAME             (256)
-#define LOG_MAX_OUTPUT_NAME           (512)
 #define LOG_COOKIE_MAX_LEN            (256)
 #define LOG_BUFFER_SIZE_PER_FILE      (1024 * 128)
 #define LOG_DEFAULT_ROLL_SIZE         (1024lu * 1024lu * 1024lu * 1lu)
@@ -32,9 +30,15 @@
 #define LOG_MSG_HEAD_SIZE             (sizeof(log_msg_head_t))
 #define LOG_PTO_ID_SIZE               (sizeof(pto_id_t))
 
-// specify the length of the formative time string:
-// "%04d:%02d:%02d_%02d:%02d:%02d.%03lu "
+#define LOG_FILENAME_FMT              "%s-%s.%d"
+#define LOG_FILE_TIME_FMT             "%04d_%02d_%02d_%02d_%02d_%02d.%03lu"
+#define LOG_FILE_TIME_BUFSZ           (24)
+#define LOG_MAX_FILE_NAME             (256)
+#define LOG_MAX_OUTPUT_NAME           (512)
+
+#define LOG_TIME_FMT                  "%04d:%02d:%02d_%02d:%02d:%02d."
 #define LOG_TIME_LEN                  (20)
+#define LOG_TIME_MS_FMT               "%03lu "
 #define LOG_TIME_MS_LEN               (4)
 #define LOG_TIME_TOTAL_LEN            (LOG_TIME_LEN + LOG_TIME_MS_LEN)
 
@@ -43,10 +47,10 @@
 #define LOG_GET_COOKIE(header)        ((char*)header + LOG_TIME_TOTAL_LEN)
 
 // LOG PROTOCOL DEFINE
-#define LOG_PTO_FETCH_MSG          0
-#define LOG_PTO_THREAD_QUIT        1
+#define LOG_PTO_FETCH_MSG             0
+#define LOG_PTO_THREAD_QUIT           1
 
-// every file have only one log_file structure data
+// Every file have only one log_file structure data
 struct flog_file_t {
     size_t file_size;
     time_t last_flush_time;
@@ -58,12 +62,13 @@ struct flog_file_t {
     int    fd;
 };
 
-// internal log message protocol
+// Internal log message protocol
+
 #pragma pack(1)
-// protocol id
+// Protocol id
 typedef unsigned char pto_id_t;
 
-// fetch log header
+// FetchMsg log header
 typedef struct {
     flog_file_t*   f;
     unsigned short len;
@@ -75,8 +80,8 @@ typedef struct {
 } log_fetch_msg_head_t;
 #pragma pack()
 
-// every thread have a private thread_data for containing logbuf
-// when we write log messages, data will fill into this buffer
+// Every thread have a private thread_data for containing logbuf
+//  when we write log messages, data will fill into this buffer
 typedef struct _thread_data_t {
     fmbuf*       plog_buf;
     int          efd;        // eventfd, used for notify the async fetcher
@@ -95,7 +100,7 @@ typedef struct _thread_data_t {
 
 typedef void (*ptofunc)(thread_data_t*);
 
-// global log system data
+// Global log system data
 typedef struct _log_t {
     fhash*          phash;       // mapping filename <--> log_file structure
     flog_event_func event_cb;    // event callback
@@ -116,13 +121,13 @@ typedef struct _log_t {
 #endif
 } f_log;
 
-// define global log struct
+// Define global log struct
 static f_log* g_log = NULL;
 
-// ensure g_log only initialization once
+// Ensure g_log only initialization once
 static pthread_once_t init_create = PTHREAD_ONCE_INIT;
 
-// protocol table
+// Protocol table
 static void _log_pto_fetch_msg  (thread_data_t* th_data);
 static void _log_pto_thread_quit(thread_data_t* th_data);
 static ptofunc g_pto_tbl[] = {
@@ -130,7 +135,7 @@ static ptofunc g_pto_tbl[] = {
     _log_pto_thread_quit
 };
 
-// other internal api
+// Other internal api
 static void _log_clear_cookie(thread_data_t* th_data);
 
 #define printError(msg) \
@@ -225,15 +230,15 @@ char* _log_generate_filename(const char* filename, char* output_filename)
         abort();
     }
 
-    char now_time[24];
+    char now_time[LOG_FILE_TIME_BUFSZ];
     time_t tm_time = tv.tv_sec;
     struct tm now;
     gmtime_r(&tm_time, &now);
-    snprintf(now_time, 24, "%04d_%02d_%02d_%02d_%02d_%02d.%03lu",
-                (now.tm_year+1900), now.tm_mon+1, now.tm_mday,
+    snprintf(now_time, LOG_FILE_TIME_BUFSZ, LOG_FILE_TIME_FMT,
+                (now.tm_year + 1900), now.tm_mon + 1, now.tm_mday,
                 now.tm_hour, now.tm_min, now.tm_sec, tv.tv_usec / 1000);
 
-    snprintf(output_filename, LOG_MAX_OUTPUT_NAME, "%s-%s.%d",
+    snprintf(output_filename, LOG_MAX_OUTPUT_NAME, LOG_FILENAME_FMT,
             filename, now_time, getpid());
     return output_filename;
 }
@@ -244,7 +249,7 @@ void _log_get_time(time_t tm_time, char* time_str)
 {
     struct tm now;
     gmtime_r(&tm_time, &now);
-    snprintf(time_str, LOG_TIME_LEN + 1, "%04d:%02d:%02d_%02d:%02d:%02d.",
+    snprintf(time_str, LOG_TIME_LEN + 1, LOG_TIME_FMT,
              (now.tm_year+1900), now.tm_mon+1, now.tm_mday,
              now.tm_hour, now.tm_min, now.tm_sec);
 }
@@ -405,12 +410,12 @@ const char* _log_get_header(size_t* header_len/*out*/)
     }
 
     char tm_ms[LOG_TIME_MS_LEN + 1];
-    snprintf(tm_ms, LOG_TIME_MS_LEN + 1, "%03lu ", tv.tv_usec / 1000);
+    snprintf(tm_ms, LOG_TIME_MS_LEN + 1, LOG_TIME_MS_FMT, tv.tv_usec / 1000);
 
     memcpy(th_data->header, th_data->last_time_str, LOG_TIME_LEN);
     memcpy(th_data->header + LOG_TIME_LEN, tm_ms, LOG_TIME_MS_LEN);
 
-    *header_len = (size_t)(LOG_TIME_TOTAL_LEN + th_data->cookie_len);
+    *header_len = (size_t)(LOG_TIME_TOTAL_LEN + (size_t)th_data->cookie_len);
     return th_data->header;
 }
 
