@@ -50,6 +50,9 @@
 #define LOG_PTO_FETCH_MSG             0
 #define LOG_PTO_THREAD_QUIT           1
 
+// Atomic Interfaces
+#define fatomic_inc(x) __sync_add_and_fetch(&x, 1)
+
 // Every file have only one log_file structure data
 struct flog_file_t {
     size_t file_size;
@@ -58,8 +61,11 @@ struct flog_file_t {
     char   poutput_filename[LOG_MAX_OUTPUT_NAME];
     size_t ref_count;
 
-    flog_mode_t mode; // sync or async
+    flog_mode_t mode; // Sync or Async
     int    fd;
+
+    int    curr_aid;  // Current auto id
+    int    last_aid;  // Last auto id
 };
 
 // Internal log message protocol
@@ -71,6 +77,7 @@ typedef unsigned char pto_id_t;
 // FetchMsg log header
 typedef struct {
     flog_file_t*   f;
+    int            aid;  // Auto incremental id
     unsigned short len;
 } log_msg_head_t;
 
@@ -80,8 +87,8 @@ typedef struct {
 } log_fetch_msg_head_t;
 #pragma pack()
 
-// Every thread have a private thread_data for containing logbuf
-//  when we write log messages, data will fill into this buffer
+// Every thread have a private thread_data for containing logbuf.
+//  When write log messages, the data will be filled into this buffer
 typedef struct _thread_data_t {
     fmbuf*       plog_buf;
     int          efd;        // eventfd, used for notify the async fetcher
@@ -166,7 +173,7 @@ void _destroy_thread_data(thread_data_t* th_data)
 static inline
 void _log_event_notice(flog_event_t event)
 {
-    if ( g_log->event_cb ) {
+    if (g_log->event_cb) {
         g_log->event_cb(event);
     }
 }
@@ -196,7 +203,7 @@ static inline
 int _log_set_nonblocking(int fd)
 {
     int flag = fcntl(fd, F_GETFL, 0);
-    if ( flag != -1 ) {
+    if (flag != -1) {
         return fcntl(fd, F_SETFL, flag | O_NONBLOCK);
     }
 
@@ -321,7 +328,7 @@ thread_data_t* _log_create_thread_data()
     thread_data_t* th_data = calloc(1, sizeof (thread_data_t));
 
     fmbuf* pbuf = fmbuf_create(g_log->buffer_size);
-    if ( !pbuf ) {
+    if (!pbuf) {
         printError("cannot alloc memory for thread data");
         _destroy_thread_data(th_data);
         return NULL;
@@ -338,13 +345,13 @@ thread_data_t* _log_create_thread_data()
         return NULL;
     }
 
-    if ( _log_set_nonblocking(efd) == -1 ) {
+    if (_log_set_nonblocking(efd) == -1) {
         printError("error in set nonblocking flag for efd");
         _destroy_thread_data(th_data);
         return NULL;
     }
 
-    if ( efd == -1 ) {
+    if (efd == -1) {
         printError("cannot create eventfd for thread data");
         _destroy_thread_data(th_data);
         return NULL;
@@ -358,7 +365,7 @@ thread_data_t* _log_create_thread_data()
     ee.data.ptr = th_data;
     ee.events = 0;
     ee.events |= EPOLLIN;
-    if ( epoll_ctl( g_log->epfd, EPOLL_CTL_ADD, efd, &ee) ) {
+    if (epoll_ctl( g_log->epfd, EPOLL_CTL_ADD, efd, &ee)) {
         printError("cannot add eventfd into epoll for thread data");
         _destroy_thread_data(th_data);
         return NULL;
@@ -404,7 +411,7 @@ const char* _log_get_header(size_t* header_len/*out*/)
     }
 
     time_t now = tv.tv_sec;
-    if ( now > th_data->last_time ) {
+    if (now > th_data->last_time) {
         _log_get_time(now, th_data->last_time_str);
         th_data->last_time = now;
     }
@@ -433,7 +440,7 @@ size_t _log_async_write(flog_file_t* f,
                         const char* log, size_t len)
 {
     int is_report_truncated = 0;
-    if ( len > LOG_MAX_LEN_PER_MSG ) {
+    if (len > LOG_MAX_LEN_PER_MSG) {
         len = LOG_MAX_LEN_PER_MSG;
         is_report_truncated = 1;
     }
@@ -442,7 +449,7 @@ size_t _log_async_write(flog_file_t* f,
     thread_data_t* th_data = _get_or_create_thdata();
     size_t msg_body_len = header_len + len + 1;
     size_t total_msg_len = sizeof(log_fetch_msg_head_t) + msg_body_len;
-    if ( fmbuf_free(th_data->plog_buf) < total_msg_len ) {
+    if (fmbuf_free(th_data->plog_buf) < total_msg_len) {
         _log_event_notice(FLOG_EVENT_BUFFER_FULL);
         return 0;
     }
@@ -452,29 +459,29 @@ size_t _log_async_write(flog_file_t* f,
     msg_header.id = LOG_PTO_FETCH_MSG;
     msg_header.msgh.f = f;
     msg_header.msgh.len = (unsigned short)msg_body_len;
-    if ( fmbuf_push(th_data->plog_buf, &msg_header,
-                    sizeof(log_fetch_msg_head_t)) ) {
+    if (fmbuf_push(th_data->plog_buf, &msg_header,
+                    sizeof(log_fetch_msg_head_t))) {
         _log_event_notice(FLOG_EVENT_ERROR_ASYNC_PUSH);
         return 0;
     }
 
-    if( fmbuf_push(th_data->plog_buf, header, header_len) ) {
+    if (fmbuf_push(th_data->plog_buf, header, header_len)) {
         _log_event_notice(FLOG_EVENT_ERROR_ASYNC_PUSH);
         return 0;
     }
 
-    if( fmbuf_push(th_data->plog_buf, log, len) ) {
+    if (fmbuf_push(th_data->plog_buf, log, len)) {
         _log_event_notice(FLOG_EVENT_ERROR_ASYNC_PUSH);
         return 0;
     }
 
-    if( fmbuf_push(th_data->plog_buf, "\n", 1) ) {
+    if (fmbuf_push(th_data->plog_buf, "\n", 1)) {
         _log_event_notice(FLOG_EVENT_ERROR_ASYNC_PUSH);
         return 0;
     }
 
     // notice fetcher to write log
-    if ( eventfd_write(th_data->efd, 1) ) {
+    if (eventfd_write(th_data->efd, 1)) {
         _log_event_notice(FLOG_EVENT_ERROR_ASYNC_PUSH);
         return 0;
     }
@@ -505,15 +512,15 @@ size_t _log_fill_async_msg(flog_file_t* f, thread_data_t* th_data, char* buff,
     copy_len = _log_snprintf(tbuf + header_len, LOG_MAX_LEN_PER_MSG + 1,
                              fmt, ap);
 
-    // fill \n
-    if ( copy_len > LOG_MAX_LEN_PER_MSG ) {
+    // Fill \n
+    if (copy_len > LOG_MAX_LEN_PER_MSG) {
         tbuf[header_len + LOG_MAX_LEN_PER_MSG] = '\n';
     } else {
         tbuf[header_len + (size_t)copy_len] = '\n';
     }
 
-    // after all, fill the size with real write number
-    // notes: the msg_len must be < 65535(unsigned short)
+    // In the end, fill the size with real write number
+    // Notes: the msg_len must be < 65535(unsigned short)
     size_t msg_len = header_len + (size_t)copy_len + 1;
     msg_header->msgh.len = (unsigned short)msg_len;
 
@@ -533,7 +540,7 @@ void _log_async_write_f(flog_file_t* f,
                          LOG_MAX_LEN_PER_MSG + 1;
 
     size_t total_free = fmbuf_free(th_data->plog_buf);
-    if ( total_free < max_msg_len ) {
+    if (total_free < max_msg_len) {
         _log_event_notice(FLOG_EVENT_BUFFER_FULL);
         return;
     }
@@ -543,7 +550,7 @@ void _log_async_write_f(flog_file_t* f,
     size_t tail_free_size = tail < head ? total_free :
                                   fmbuf_tail_free(th_data->plog_buf);
 
-    if ( tail_free_size >= max_msg_len ) {
+    if (tail_free_size >= max_msg_len) {
         // fill log message in mbuf directly
         char* buf = fmbuf_tail(th_data->plog_buf);
         size_t buff_size = _log_fill_async_msg(f, th_data, buf, header,
@@ -558,7 +565,7 @@ void _log_async_write_f(flog_file_t* f,
     }
 
     // notice fetcher to write log
-    if ( eventfd_write(th_data->efd, 1) ) {
+    if (eventfd_write(th_data->efd, 1)) {
         _log_event_notice(FLOG_EVENT_ERROR_ASYNC_PUSH);
         return;
     }
@@ -606,7 +613,7 @@ size_t _log_sync_write_to_kernel(flog_file_t* f,
     }
     pthread_mutex_unlock(&g_log->lock);
 
-    if ( writen_len < len + header_len ) {
+    if (writen_len < len + header_len) {
         _log_event_notice(FLOG_EVENT_ERROR_WRITE);
     }
 
@@ -619,7 +626,7 @@ size_t _log_sync_write(flog_file_t* f,
                        const char* log, size_t len)
 {
     // The log will be truncated if the length > LOG_MAX_LEN_PER_MSG
-    if ( len > LOG_MAX_LEN_PER_MSG ) {
+    if (len > LOG_MAX_LEN_PER_MSG) {
         len = LOG_MAX_LEN_PER_MSG;
         _log_event_notice(FLOG_EVENT_TRUNCATED);
     }
@@ -650,20 +657,20 @@ void _log_pto_fetch_msg(thread_data_t* th_data)
     char* tmsg = NULL;
     log_msg_head_t header;
 
-    if ( fmbuf_pop(pbuf, &header, LOG_MSG_HEAD_SIZE) ) {
+    if (fmbuf_pop(pbuf, &header, LOG_MSG_HEAD_SIZE)) {
         _log_event_notice(FLOG_EVENT_ERROR_ASYNC_POP);
         return;
     }
 
     tmsg = fmbuf_rawget(pbuf, tmp_buf, (size_t)header.len);
-    if ( !tmsg ) {
+    if (!tmsg) {
         _log_event_notice(FLOG_EVENT_ERROR_ASYNC_POP);
         return;
     }
 
     size_t writen_len = _log_write(header.f, tmsg, (size_t)header.len);
 
-    if ( writen_len < (size_t)header.len) {
+    if (writen_len < (size_t)header.len) {
         _log_event_notice(FLOG_EVENT_ERROR_WRITE);
     }
 
@@ -681,10 +688,10 @@ static inline
 void _log_async_process(thread_data_t* th_data, uint64_t process_num)
 {
     unsigned int i;
-    for (i=0; i<process_num; i++) {
+    for (i = 0; i < process_num; i++) {
         // first, pop protocol id
         pto_id_t id = 0;
-        if ( fmbuf_pop(th_data->plog_buf, &id, LOG_PTO_ID_SIZE) ) {
+        if (fmbuf_pop(th_data->plog_buf, &id, LOG_PTO_ID_SIZE)) {
             break;
         }
 
@@ -700,7 +707,7 @@ int _log_process_timeout(void* ud,
 {
     flog_file_t* f = (flog_file_t*)value;
     time_t now = time(NULL);
-    if ( now - f->last_flush_time >= g_log->flush_interval ) {
+    if (now - f->last_flush_time >= g_log->flush_interval) {
         _log_flush_file(f, now);
     }
 
@@ -715,11 +722,11 @@ void* _log_fetcher(void* arg __attribute__((unused))){
 
     do {
         nums = epoll_wait(g_log->epfd, events, 1024, 1000);
-        if ( nums < 0 && errno == EINTR )
+        if (nums < 0 && errno == EINTR)
             continue;
 
         // timeout
-        if ( unlikely(nums == 0) ) {
+        if (unlikely(nums == 0)) {
             pthread_mutex_lock(&g_log->lock);
             fhash_str_foreach(g_log->phash, _log_process_timeout, NULL);
             pthread_mutex_unlock(&g_log->lock);
@@ -730,7 +737,7 @@ void* _log_fetcher(void* arg __attribute__((unused))){
             thread_data_t* th_data = ee->data.ptr;
             uint64_t process_num = 0;
 
-            if ( eventfd_read(th_data->efd, &process_num) ) {
+            if (eventfd_read(th_data->efd, &process_num)) {
                 printError("error in read eventfd value");
                 continue;
             }
@@ -760,9 +767,9 @@ void _user_thread_destroy(void* arg)
     // user thread to fetcher, and the THREAD_QUIT msg will be the last msg of
     // the dying thread
     thread_data_t* th_data = (thread_data_t*)arg;
-    if ( !th_data ) return;
+    if (!th_data) return;
 
-    if ( fmbuf_used(th_data->plog_buf) == 0 ) {
+    if (fmbuf_used(th_data->plog_buf) == 0) {
         // thread buffer is empty
         _destroy_thread_data(th_data);
         _log_event_notice(FLOG_EVENT_USER_BUFFER_RELEASED);
@@ -862,7 +869,7 @@ flog_file_t* flog_create(const char* filename, flog_mode_t mode)
         // check whether log file data has been created
         // if not, create it, or return its pointer
         flog_file_t* created_file = fhash_str_get(g_log->phash, filename);
-        if ( created_file ) {
+        if (created_file) {
             created_file->ref_count++;
             pthread_mutex_unlock(&g_log->lock);
             return created_file;
@@ -906,12 +913,12 @@ flog_file_t* flog_create(const char* filename, flog_mode_t mode)
 
 void flog_destroy(flog_file_t* lf)
 {
-    if ( !g_log || !lf ) return;
+    if (!g_log || !lf) return;
     pthread_mutex_lock(&g_log->lock);
     {
         lf->ref_count--;
 
-        if ( lf->ref_count == 0 ) {
+        if (lf->ref_count == 0) {
             _log_flush_file(lf, 0);  // force to flush buffer to disk
 
             if (lf->mode == FLOG_SYNC_MODE) {
@@ -947,7 +954,7 @@ size_t flog_write(flog_file_t* f, const char* log, size_t len)
     const char* header = _log_get_header(&header_len);
 
     // write log according to the working mode
-    if ( unlikely(f->mode == FLOG_SYNC_MODE) ) {
+    if (unlikely(f->mode == FLOG_SYNC_MODE)) {
         return _log_sync_write(f, header, header_len, log, len);
     } else {
         return _log_async_write(f, header, header_len, log, len);
@@ -969,7 +976,7 @@ void flog_writef(flog_file_t* f, const char* fmt, ...)
     va_list ap;
     va_start(ap, fmt);
 
-    if ( unlikely(f->mode == FLOG_SYNC_MODE) ) {
+    if (unlikely(f->mode == FLOG_SYNC_MODE)) {
         _log_sync_write_f(f, header, header_len, fmt, ap);
     } else {
         _log_async_write_f(f, header, header_len, fmt, ap);
@@ -990,7 +997,7 @@ void flog_vwritef(flog_file_t* f, const char* fmt, va_list ap)
     size_t header_len = 0;
     const char* header = _log_get_header(&header_len);
 
-    if ( unlikely(f->mode == FLOG_SYNC_MODE) ) {
+    if (unlikely(f->mode == FLOG_SYNC_MODE)) {
         _log_sync_write_f(f, header, header_len, fmt, ap);
     } else {
         _log_async_write_f(f, header, header_len, fmt, ap);
@@ -1004,7 +1011,7 @@ void flog_set_roll_size(size_t size)
 {
     // init log system global data
     pthread_once(&init_create, _log_init);
-    if ( !g_log || !size ) return;
+    if (!g_log || !size) return;
 
     pthread_mutex_lock(&g_log->lock);
     {
@@ -1020,7 +1027,7 @@ void flog_set_flush_interval(time_t sec)
 {
     // init log system global data
     pthread_once(&init_create, _log_init);
-    if ( !g_log ) return;
+    if (!g_log) return;
 
     pthread_mutex_lock(&g_log->lock);
     {
@@ -1033,13 +1040,13 @@ void flog_set_buffer_size(size_t size)
 {
     // init log system global data
     pthread_once(&init_create, _log_init);
-    if ( !g_log ) return;
+    if (!g_log) return;
 
     pthread_mutex_lock(&g_log->lock);
     {
-        if ( size == 0 ) size = LOG_DEFAULT_LOCAL_BUFFER_SIZE;
+        if (size == 0) size = LOG_DEFAULT_LOCAL_BUFFER_SIZE;
         size_t min_size = sizeof(log_fetch_msg_head_t) + LOG_MAX_LEN_PER_MSG;
-        if ( size < min_size ) size = min_size;
+        if (size < min_size) size = min_size;
         g_log->buffer_size = size;
     }
     pthread_mutex_unlock(&g_log->lock);
@@ -1047,7 +1054,7 @@ void flog_set_buffer_size(size_t size)
 
 size_t flog_get_buffer_size()
 {
-    if ( !g_log ) return 0;
+    if (!g_log) return 0;
     return g_log->buffer_size;
 }
 
@@ -1055,7 +1062,7 @@ void flog_register_event_callback(flog_event_func pfunc)
 {
     // init log system global data
     pthread_once(&init_create, _log_init);
-    if ( !g_log || !pfunc ) return;
+    if (!g_log || !pfunc) return;
 
     pthread_mutex_lock(&g_log->lock);
     {
