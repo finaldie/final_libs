@@ -64,7 +64,10 @@ struct flog_file_t {
     char   poutput_filename[LOG_MAX_OUTPUT_NAME];
     size_t ref_count;
 
-    flog_mode_t mode; // Sync or Async
+    uint32_t async :1; // Sync or Async
+    uint32_t debug :1;
+    uint32_t _reserved :30;
+
     int    fd;        // File descriptor of logger file
 
     int    last_aid;  // Last auto id
@@ -935,7 +938,7 @@ void _log_clear_cookie(thread_data_t* th_data)
 /******************************************************************************
  * Interfaces
  *****************************************************************************/
-flog_file_t* flog_create(const char* filename, flog_mode_t mode)
+flog_file_t* flog_create(const char* filename, int flags)
 {
     // init log system global data
     pthread_once(&init_create, _log_init);
@@ -976,9 +979,10 @@ flog_file_t* flog_create(const char* filename, flog_mode_t mode)
         snprintf(f->filename, LOG_MAX_FILE_NAME, "%s", filename);
         fhash_str_set(g_log->phash, filename, f);
         f->ref_count = 1;
-        f->mode = mode;
+        f->async = (uint32_t)((flags & FLOG_F_ASYNC) != 0);
+        f->debug = (uint32_t)((flags & FLOG_F_DEBUG) != 0);
 
-        if ((mode == FLOG_ASYNC_MODE) && !g_log->is_fetcher_started) {
+        if (f->async && !g_log->is_fetcher_started) {
             _create_fetcher_thread();
             g_log->is_fetcher_started = 1;
         }
@@ -998,7 +1002,7 @@ void flog_destroy(flog_file_t* lf)
         if (lf->ref_count == 0) {
             _log_flush_file(lf, 0);  // force to flush buffer to disk
 
-            if (lf->mode == FLOG_SYNC_MODE) {
+            if (!lf->async) {
                 close(lf->fd);
                 fhash_str_del(g_log->phash, lf->filename);
                 free(lf);
@@ -1031,7 +1035,7 @@ size_t flog_write(flog_file_t* f, const char* log, size_t len)
     const char* header = _log_get_header(&header_len);
 
     // write log according to the working mode
-    if (unlikely(f->mode == FLOG_SYNC_MODE)) {
+    if (unlikely(!f->async)) {
         return _log_sync_write(f, header, header_len, log, len);
     } else {
         return _log_async_write(f, header, header_len, log, len);
@@ -1053,7 +1057,7 @@ void flog_writef(flog_file_t* f, const char* fmt, ...)
     va_list ap;
     va_start(ap, fmt);
 
-    if (unlikely(f->mode == FLOG_SYNC_MODE)) {
+    if (unlikely(!f->async)) {
         _log_sync_write_f(f, header, header_len, fmt, ap);
     } else {
         _log_async_write_f(f, header, header_len, fmt, ap);
@@ -1074,7 +1078,7 @@ void flog_vwritef(flog_file_t* f, const char* fmt, va_list ap)
     size_t header_len = 0;
     const char* header = _log_get_header(&header_len);
 
-    if (unlikely(f->mode == FLOG_SYNC_MODE)) {
+    if (unlikely(!f->async)) {
         _log_sync_write_f(f, header, header_len, fmt, ap);
     } else {
         _log_async_write_f(f, header, header_len, fmt, ap);
