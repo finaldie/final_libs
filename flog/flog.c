@@ -27,8 +27,8 @@
 #define LOG_DEFAULT_LOCAL_BUFFER_SIZE (1024 * 1024 * 10)
 #define LOG_DEFAULT_FLUSH_INTERVAL    (0)
 #define LOG_MAX_LEN_PER_MSG           (4096)
-#define LOG_MSG_HEAD_SIZE             (sizeof(log_msg_head_t))
 #define LOG_PTO_ID_SIZE               (sizeof(pto_id_t))
+#define LOG_MSG_HEAD_SIZE             (sizeof(log_msg_head_t))
 
 #define LOG_FETCHER_MAXPOLL           (1024)
 #define LOG_FETCHER_MAXWAIT           (1000)
@@ -65,13 +65,10 @@ struct flog_file_t {
     size_t ref_count;
 
     flog_mode_t mode; // Sync or Async
-    int    fd;
+    int    fd;        // File descriptor of logger file
 
     int    last_aid;  // Last auto id
-
-#if __WORDSIZE == 64
-    int    _padding;
-#endif
+    int    curr_aid;  // Current auto id
 };
 
 // Internal log message protocol
@@ -111,11 +108,10 @@ typedef struct _thread_data_t {
 #endif
 } thread_data_t;
 
-typedef void (*ptofunc)(thread_data_t*);
-
 // Global log system data
 typedef struct _log_t {
     fhash*          phash;       // mapping filename <--> log_file structure
+    fhash*          threads;     // hold all threads (For Fetcher only)
     flog_event_func event_cb;    // event callback
     pthread_mutex_t lock;        // protect some scences resource competion
     pthread_key_t   key;
@@ -141,8 +137,10 @@ static f_log* g_log = NULL;
 static pthread_once_t init_create = PTHREAD_ONCE_INIT;
 
 // Protocol table
-static void _log_pto_fetch_msg  (thread_data_t* th_data);
-static void _log_pto_thread_quit(thread_data_t* th_data);
+typedef int (*ptofunc)(thread_data_t*);
+
+static int _log_pto_fetch_msg  (thread_data_t* th_data);
+static int _log_pto_thread_quit(thread_data_t* th_data);
 static ptofunc g_pto_tbl[] = {
     _log_pto_fetch_msg,
     _log_pto_thread_quit
@@ -159,6 +157,16 @@ static void _log_clear_cookie(thread_data_t* th_data);
  * Internal functions
  *****************************************************************************/
 static
+void _log_register_thread(int efd, thread_data_t* th_data) {
+    fhash_int_set(g_log->threads, efd, th_data);
+}
+
+static
+void _log_unregister_thread(int efd) {
+    fhash_int_del(g_log->threads, efd);
+}
+
+static
 void _destroy_thread_data(thread_data_t* th_data)
 {
     if (!th_data) {
@@ -170,12 +178,15 @@ void _destroy_thread_data(thread_data_t* th_data)
         struct epoll_event ee;
         memset(&ee, 0, sizeof(ee));
         ee.events |= EPOLLIN;
-        epoll_ctl(g_log->epfd, EPOLL_CTL_ADD, th_data->efd, &ee);
+        epoll_ctl(g_log->epfd, EPOLL_CTL_DEL, th_data->efd, &ee);
 
         // 2. Close efd
         close(th_data->efd);
 
-        // 3. Reset thread_data->efd
+        // 3. Unregister thread from global manager
+        _log_unregister_thread(th_data->efd);
+
+        // 4. Reset thread_data->efd
         th_data->efd = 0;
     }
 
@@ -468,8 +479,9 @@ size_t _log_async_write(flog_file_t* f,
 
     // wrap and push log message
     log_fetch_msg_head_t msg_header;
-    msg_header.id = LOG_PTO_FETCH_MSG;
-    msg_header.msgh.f = f;
+    msg_header.id       = LOG_PTO_FETCH_MSG;
+    msg_header.msgh.f   = f;
+    msg_header.msgh.aid = fatomic_inc(f->last_aid);
     msg_header.msgh.len = (unsigned short)msg_body_len;
     if (fmbuf_push(th_data->plog_buf, &msg_header,
                     sizeof(log_fetch_msg_head_t))) {
@@ -513,8 +525,9 @@ size_t _log_fill_async_msg(flog_file_t* f, thread_data_t* th_data, char* buff,
 {
     char* tbuf = buff;
     log_fetch_msg_head_t* msg_header = (log_fetch_msg_head_t*)tbuf;
-    msg_header->id = LOG_PTO_FETCH_MSG;
-    msg_header->msgh.f = f;
+    msg_header->id       = LOG_PTO_FETCH_MSG;
+    msg_header->msgh.f   = f;
+    msg_header->msgh.aid = fatomic_inc(f->last_aid);
     msg_header->msgh.len = 0;
 
     tbuf += sizeof(log_fetch_msg_head_t);
@@ -563,7 +576,7 @@ void _log_async_write_f(flog_file_t* f,
                                   fmbuf_tail_free(th_data->plog_buf);
 
     if (tail_free_size >= max_msg_len) {
-        // fill log message in mbuf directly
+        // fill log message in mbuf directly, prevent additional copying efforts
         char* buf = fmbuf_tail(th_data->plog_buf);
         size_t buff_size = _log_fill_async_msg(f, th_data, buf, header,
                                                header_len, fmt, ap);
@@ -662,54 +675,89 @@ void _log_sync_write_f(flog_file_t* f,
 }
 
 static inline
-void _log_pto_fetch_msg(thread_data_t* th_data)
+int _log_pto_fetch_msg(thread_data_t* th_data)
 {
     fmbuf* pbuf = th_data->plog_buf;
+
     char tmp_buf[LOG_MAX_LEN_PER_MSG];
     char* tmsg = NULL;
-    log_msg_head_t header;
+    log_fetch_msg_head_t header;
+    size_t pbuf_sz = fmbuf_used(pbuf);
+    size_t header_sz = sizeof(header);
 
-    if (fmbuf_pop(pbuf, &header, LOG_MSG_HEAD_SIZE)) {
+    if (pbuf_sz < header_sz) {
         _log_event_notice(FLOG_EVENT_ERROR_ASYNC_POP);
-        return;
+        return 1;
     }
 
-    tmsg = fmbuf_rawget(pbuf, tmp_buf, (size_t)header.len);
+    // Fetch header
+    memset(&header, 0, header_sz);
+
+    log_fetch_msg_head_t* rheader =
+        fmbuf_rawget(pbuf, &header, header_sz);
+    header = *rheader;
+
+    // Validate aid to decide that whether or not can log it right now
+    if (header.msgh.aid != header.msgh.f->curr_aid + 1) {
+        // wait for next round
+        return 1;
+    }
+
+    header.msgh.f->curr_aid += 1;
+
+    // Fetch log content
+    size_t content_sz = (size_t)header.msgh.len;
+    tmsg = fmbuf_rawget(pbuf, tmp_buf, header_sz + content_sz);
     if (!tmsg) {
         _log_event_notice(FLOG_EVENT_ERROR_ASYNC_POP);
-        return;
+        return 1;
     }
 
-    size_t writen_len = _log_write(header.f, tmsg, (size_t)header.len);
+    size_t writen_len = _log_write(header.msgh.f, tmsg + header_sz, content_sz);
 
-    if (writen_len < (size_t)header.len) {
+    if (writen_len < content_sz) {
         _log_event_notice(FLOG_EVENT_ERROR_WRITE);
     }
 
-    fmbuf_pop(pbuf, NULL, (size_t)header.len);
+    fmbuf_pop(pbuf, NULL, header_sz + content_sz);
+    return 0;
 }
 
 static inline
-void _log_pto_thread_quit(thread_data_t* th_data)
+int _log_pto_thread_quit(thread_data_t* th_data)
 {
+    fmbuf_pop(th_data->plog_buf, NULL, LOG_PTO_ID_SIZE);
+
     _destroy_thread_data(th_data);
     _log_event_notice(FLOG_EVENT_USER_BUFFER_RELEASED);
+
+    // Return 1 to avoid this event be counted
+    return 1;
 }
 
 static inline
-void _log_async_process(thread_data_t* th_data, uint64_t process_num)
+int _log_async_process(thread_data_t* th_data)
 {
-    unsigned int i;
-    for (i = 0; i < process_num; i++) {
-        // first, pop protocol id
-        pto_id_t id = 0;
-        if (fmbuf_pop(th_data->plog_buf, &id, LOG_PTO_ID_SIZE)) {
-            break;
-        }
+    int nprocessed = 0;
+    for (;;) {
+        // Check empty queue or not
+        if (fmbuf_empty(th_data->plog_buf)) break;
 
-        // run the protocol registration function from pto_tbl
-        g_pto_tbl[id](th_data);
+        // First, pop protocol id
+        pto_id_t id = 0;
+        pto_id_t* rid = fmbuf_rawget(th_data->plog_buf, &id, LOG_PTO_ID_SIZE);
+        id = *rid;
+
+        // Run the protocol registration function from pto_tbl
+        int ret = g_pto_tbl[id](th_data);
+        if (ret) {
+            break;
+        } else {
+            nprocessed++;
+        }
     }
+
+    return nprocessed;
 }
 
 static inline
@@ -728,7 +776,7 @@ int _log_process_timeout(void* ud,
 
 static
 void* _log_fetcher(void* arg __attribute__((unused))) {
-    int nums, i;
+    int nums, i, total_processed = 0;
     struct epoll_event events[LOG_FETCHER_MAXPOLL];
     g_log->is_fetcher_running = 1;
 
@@ -736,26 +784,49 @@ void* _log_fetcher(void* arg __attribute__((unused))) {
         nums = epoll_wait(g_log->epfd, events, LOG_FETCHER_MAXPOLL, LOG_FETCHER_MAXWAIT);
         if (nums < 0 && errno == EINTR) continue;
 
-        // timeout
+        // Timeout
         if (unlikely(nums == 0)) {
             pthread_mutex_lock(&g_log->lock);
             fhash_str_foreach(g_log->phash, _log_process_timeout, NULL);
             pthread_mutex_unlock(&g_log->lock);
         }
 
+        // Process active threads
         for (i = 0; i < nums; i++) {
             struct epoll_event* ee = &events[i];
             thread_data_t* th_data = ee->data.ptr;
             uint64_t process_num = 0;
 
+            // Register thread
+            _log_register_thread(th_data->efd, th_data);
+
+            // Process event
             if (eventfd_read(th_data->efd, &process_num)) {
                 printError("error in read eventfd value");
                 continue;
             }
 
-            _log_async_process(th_data, process_num);
+            _log_async_process(th_data);
         }
-    } while (likely(g_log->is_fetcher_running || nums));
+
+        // Process all thread local buffers
+        total_processed = 0;
+        int round_processed = 0;
+
+        do {
+            fhash_int_iter iter = fhash_int_iter_new(g_log->threads);
+            thread_data_t* th_data = NULL;
+
+            round_processed = 0;
+            while ((th_data = fhash_int_next(&iter))) {
+                round_processed += _log_async_process(th_data);
+            }
+
+            fhash_int_iter_release(&iter);
+            total_processed += round_processed;
+        } while (round_processed);
+
+    } while (likely(g_log->is_fetcher_running || nums || total_processed));
 
     return NULL;
 }
@@ -772,7 +843,7 @@ void _create_fetcher_thread(){
 static
 void _user_thread_destroy(void* arg)
 {
-    // note: DO NOT RELEASE thread data directly when thread buffer is not
+    // Note: DO NOT RELEASE thread data directly when thread buffer is not
     // empty, cause thread fetcher may using this data now.
     // The correct way is that transform responsibility of release from
     // user thread to fetcher, and the THREAD_QUIT msg will be the last msg of
@@ -780,18 +851,12 @@ void _user_thread_destroy(void* arg)
     thread_data_t* th_data = (thread_data_t*)arg;
     if (!th_data) return;
 
-    if (fmbuf_used(th_data->plog_buf) == 0) {
-        // thread buffer is empty
-        _destroy_thread_data(th_data);
-        _log_event_notice(FLOG_EVENT_USER_BUFFER_RELEASED);
-    } else {
-        // thread buffer is not empty, notice fetcher to release th_data
-        pto_id_t id = LOG_PTO_THREAD_QUIT;
-        fmbuf_push(th_data->plog_buf, &id, LOG_PTO_ID_SIZE);
+    // Thread buffer is not empty, notice fetcher to release th_data
+    pto_id_t id = LOG_PTO_THREAD_QUIT;
+    fmbuf_push(th_data->plog_buf, &id, LOG_PTO_ID_SIZE);
 
-        // notice fetcher to fetch this exit message
-        eventfd_write(th_data->efd, 1);
-    }
+    // Notice fetcher to fetch this exit message
+    eventfd_write(th_data->efd, 1);
 }
 
 static
@@ -826,8 +891,9 @@ void _log_init()
         exit(1);
     }
 
-    t_log->epfd = epfd;
-    t_log->phash = fhash_str_create(0, FHASH_MASK_AUTO_REHASH);
+    t_log->epfd    = epfd;
+    t_log->phash   = fhash_str_create(0, FHASH_MASK_AUTO_REHASH);
+    t_log->threads = fhash_int_create(0, FHASH_MASK_AUTO_REHASH);
     int rc = pthread_mutex_init(&t_log->lock, NULL);
     if (rc) {
         printError("cannot init global mutex");
@@ -840,11 +906,11 @@ void _log_init()
         exit(1);
     }
 
-    t_log->event_cb = NULL;
-    t_log->roll_size = LOG_DEFAULT_ROLL_SIZE;
+    t_log->event_cb    = NULL;
+    t_log->roll_size   = LOG_DEFAULT_ROLL_SIZE;
     t_log->buffer_size = LOG_DEFAULT_LOCAL_BUFFER_SIZE;
     t_log->is_fetcher_started = 0;
-    t_log->flush_interval = LOG_DEFAULT_FLUSH_INTERVAL;
+    t_log->flush_interval     = LOG_DEFAULT_FLUSH_INTERVAL;
 
     g_log = t_log;
 

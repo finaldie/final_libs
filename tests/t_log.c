@@ -24,14 +24,17 @@ void    _test_log()
     int fd = open("./tests/logs/test_log", O_RDONLY);
     FCUNIT_ASSERT(0 < fd);
 
-    char assert_info[100];
-    memset(assert_info, 0, 100);
-    ssize_t bytes_read = read(fd, assert_info, 99);
+    char assert_info[200];
+    memset(assert_info, 0, 200);
+    ssize_t bytes_read = read(fd, assert_info, 199);
     FCUNIT_ASSERT(0 < bytes_read);
 
     //printf("read log info:%s\n", assert_info);
     char* ptr = strstr(assert_info, "error log test");
     //printf("find ptr=%p\n", ptr);
+    FCUNIT_ASSERT(ptr!=NULL);
+
+    ptr = strstr(assert_info, "hello world");
     FCUNIT_ASSERT(ptr!=NULL);
 
     close(fd);
@@ -60,14 +63,17 @@ void* _test_async_log(void* arg __attribute__((unused)))
     int fd = open("./tests/logs/test_async_log", O_RDONLY);
     FCUNIT_ASSERT(0 < fd);
 
-    char assert_info[100];
-    memset(assert_info, 0, 100);
-    ssize_t bytes_read = read(fd, assert_info, 99);
+    char assert_info[200];
+    memset(assert_info, 0, 200);
+    ssize_t bytes_read = read(fd, assert_info, 199);
     FCUNIT_ASSERT(0 < bytes_read);
 
     //printf("read log info:%s\n", assert_info);
     char* ptr = strstr(assert_info, "debug log test");
     //printf("find ptr=%p\n", ptr);
+    FCUNIT_ASSERT(ptr!=NULL);
+
+    ptr = strstr(assert_info, "hello world");
     FCUNIT_ASSERT(ptr!=NULL);
 
     close(fd);
