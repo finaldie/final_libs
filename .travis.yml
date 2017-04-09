@@ -26,6 +26,7 @@ after_script:
     - make validate
     - make clean && make -j4 && make bench
     - make clean && make SHARED=true -j4 && make SHARED=true bench
+    - make bench-run
 
 after_failure: true
 
