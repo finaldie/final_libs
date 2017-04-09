@@ -100,7 +100,6 @@ typedef struct _thread_data_t {
     int          efd;        // eventfd, used for notify the async fetcher
     int          cookie_len;
     time_t       last_time;
-    char         tmp_buf[LOG_MAX_LEN_PER_MSG];
     char         header[LOG_TIME_TOTAL_LEN + LOG_COOKIE_MAX_LEN + 3 + 1];
     char         last_time_str[LOG_TIME_LEN + 1];
 
@@ -475,6 +474,7 @@ size_t _log_async_write(flog_file_t* f,
     thread_data_t* th_data = _get_or_create_thdata();
     size_t msg_body_len = header_len + len + 1;
     size_t total_msg_len = sizeof(log_fetch_msg_head_t) + msg_body_len;
+
     if (fmbuf_free(th_data->plog_buf) < total_msg_len) {
         _log_event_notice(FLOG_EVENT_BUFFER_FULL);
         return 0;
@@ -486,6 +486,7 @@ size_t _log_async_write(flog_file_t* f,
     msg_header.msgh.f   = f;
     msg_header.msgh.aid = fatomic_inc(f->last_aid);
     msg_header.msgh.len = (unsigned short)msg_body_len;
+
     if (fmbuf_push(th_data->plog_buf, &msg_header,
                     sizeof(log_fetch_msg_head_t))) {
         _log_event_notice(FLOG_EVENT_ERROR_ASYNC_PUSH);
@@ -586,7 +587,9 @@ void _log_async_write_f(flog_file_t* f,
         fmbuf_tail_seek(th_data->plog_buf, buff_size, FMBUF_SEEK_RIGHT);
     } else {
         // fill log message in tmp buffer
-        char* buf = th_data->tmp_buf;
+        char buf[max_msg_len];
+        memset(buf, 0, max_msg_len);
+
         size_t buff_size = _log_fill_async_msg(f, th_data, buf, header,
                                                header_len, fmt, ap);
         fmbuf_push(th_data->plog_buf, buf, buff_size);
