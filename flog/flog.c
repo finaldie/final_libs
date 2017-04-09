@@ -49,6 +49,9 @@
 #define LOG_COOKIE_DEFAULT            "[] "
 #define LOG_GET_COOKIE(header)        ((char*)header + LOG_TIME_TOTAL_LEN)
 
+// debugging string
+#define LOG_DEBUG_MAXLEN              (40)
+
 // LOG PROTOCOL DEFINE
 #define LOG_PTO_FETCH_MSG             0
 #define LOG_PTO_THREAD_QUIT           1
@@ -537,20 +540,32 @@ size_t _log_fill_async_msg(flog_file_t* f, thread_data_t* th_data, char* buff,
     tbuf += sizeof(log_fetch_msg_head_t);
     memcpy(tbuf, header, header_len);
 
+    int debug_len = 0;
+    if (unlikely(f->debug)) {
+        debug_len = snprintf(tbuf + header_len, LOG_DEBUG_MAXLEN,
+                                 "[aid=%d] ", msg_header->msgh.aid);
+
+        if (debug_len < 0) {
+            debug_len = 0;
+            printError("copy debugging content failed");
+        }
+    }
+
     int copy_len = 0;
-    copy_len = _log_snprintf(tbuf + header_len, LOG_MAX_LEN_PER_MSG + 1,
+    copy_len = _log_snprintf(tbuf + header_len + debug_len,
+                             LOG_MAX_LEN_PER_MSG - (size_t)debug_len + 1,
                              fmt, ap);
 
     // Fill \n
     if (copy_len > LOG_MAX_LEN_PER_MSG) {
-        tbuf[header_len + LOG_MAX_LEN_PER_MSG] = '\n';
+        tbuf[header_len + (size_t)debug_len + LOG_MAX_LEN_PER_MSG] = '\n';
     } else {
-        tbuf[header_len + (size_t)copy_len] = '\n';
+        tbuf[header_len + (size_t)debug_len + (size_t)copy_len] = '\n';
     }
 
     // In the end, fill the size with real write number
     // Notes: the msg_len must be < 65535(unsigned short)
-    size_t msg_len = header_len + (size_t)copy_len + 1;
+    size_t msg_len = header_len + (size_t)debug_len + (size_t)copy_len + 1;
     msg_header->msgh.len = (unsigned short)msg_len;
 
     return sizeof(log_fetch_msg_head_t) + msg_len;
