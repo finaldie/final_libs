@@ -1,3 +1,6 @@
+#ifndef FLOG_SYSTEM_H
+#define FLOG_SYSTEM_H
+
 /******************************************************************************
  * Description: Asynchronous logging system
  *   The base idea of this system is using the thread cache to buffer log
@@ -5,9 +8,6 @@
  *   So it try the best to remove locks, which will be influence performance.
  *   It could be very fast, simple and strong. have a fun :)
  *****************************************************************************/
-
-#ifndef FLOG_SYSTEM_H
-#define FLOG_SYSTEM_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -21,12 +21,10 @@ extern "C" {
 #include <flibs/flog_helpers.h>
 
 /**
- * @brief flog working mode: sync or async
+ * @brief flog flags: async or debug
  */
-typedef enum {
-    FLOG_SYNC_MODE = 0,
-    FLOG_ASYNC_MODE
-} flog_mode_t;
+#define FLOG_F_ASYNC 0x1
+#define FLOG_F_DEBUG 0x2
 
 /**
  * @brief flog event types
@@ -58,11 +56,11 @@ typedef struct flog_file_t flog_file_t;
  *  @brief Create Logger
  *
  *  @param filename log filename
- *  @param mode     sync or async mode
+ *  @param flags    FLOG_F_ASYNC, FLOG_F_DEBUG
  *
  *  @return a pointer of log_file structure
  */
-flog_file_t* flog_create(const char* filename, flog_mode_t mode);
+flog_file_t* flog_create(const char* filename, int flags);
 
 /**
  *  @brief Destroy Logger

@@ -341,3 +341,7 @@ size_t  fmbuf_size(fmbuf* pbuf)
 {
     return MBUF_SIZE(pbuf);
 }
+
+bool fmbuf_empty(fmbuf* pbuf) {
+    return MBUF_USED(pbuf) == 0;
+}

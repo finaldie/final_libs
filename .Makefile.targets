@@ -230,7 +230,9 @@ bench-flog:
 	@echo "=============== Running benchmark for flog ==============="
 	rm -rf benchmark/flog/logs
 	mkdir -p benchmark/flog/logs
-	./$(BENCH_FLOG_TARGET) 1000000 2 4
+	./$(BENCH_FLOG_TARGET) 1000000 2 5
+	@echo "=============== Validation Phase ========================="
+	cd benchmark/flog/ && ./validation.sh
 
 clean-bench-flog:
 	rm -rf $(BENCH_FLOG_TARGET) $(BENCH_FLOG_OBJS) benchmark/flog/logs

@@ -1,16 +1,17 @@
+#ifndef FMBUF_H_FINAL
+#define FMBUF_H_FINAL
+
 /**
  *  Light Weight Memory Buffer, which can be used for Ring-Buffer or A Simple
  *  Array
  */
-
-#ifndef FMBUF_H_FINAL
-#define FMBUF_H_FINAL
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #include <stddef.h>
+#include <stdbool.h>
 
 #define FMBUF_SEEK_LEFT  0
 #define FMBUF_SEEK_RIGHT 1
@@ -222,6 +223,14 @@ size_t  fmbuf_head_free(fmbuf* mbuf);
  * @return void
  */
 size_t  fmbuf_tail_free(fmbuf* mbuf);
+
+/**
+ * return the mbuf is empty or not
+ *
+ * @param mbuf  pointer of fmbuf
+ * @return True/False
+ */
+bool fmbuf_empty(fmbuf* mbuf);
 
 #ifdef __cplusplus
 }

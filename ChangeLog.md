@@ -1,3 +1,6 @@
+* 2017-04-10 0.9.8
+   * **flog:** Log the content sequentially
+   * **fmbuf:** Add fmbuf_empty()
 * 2017-01-09 0.9.7
    * **fnet:** Fix sockaddr issues in fnet_(peer|sock)name for AF_INET6
 * 2016-12-17 0.9.6

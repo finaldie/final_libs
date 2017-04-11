@@ -1,3 +1,5 @@
+#define _BSD_SOURCE 1
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -23,7 +25,7 @@ static int error_async_pop_count = 0;
 static int log_truncated_count = 0;
 static int buff_full_count = 0;
 
-static flog_mode_t log_mode;
+static int log_mode = 0;
 static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
 static
@@ -100,7 +102,7 @@ void* write_log(void* arg)
     unsigned long long start = ftime_gettime();
     int i = 0, j = 0;
     for ( i = 0; i < group; i++ ) {
-        if ( log_mode == FLOG_ASYNC_MODE ) {
+        if ( log_mode & FLOG_F_ASYNC ) {
             last_miss_count = buff_full_count;
         }
 
@@ -108,13 +110,14 @@ void* write_log(void* arg)
         for ( j = 0; j < max_num_per_group; ++j, ++step ) {
             FLOG_DEBUG(log_handler, "%s", log_str);
 
-            if ( log_mode == FLOG_ASYNC_MODE && (step == sleep_step) ) {
+            if ( (log_mode & FLOG_F_ASYNC) && (step == sleep_step) ) {
                 step = 0;
-                usleep(1);
+                unsigned int usecs = 1;
+                usleep(usecs);
             }
         }
 
-        if ( log_mode == FLOG_ASYNC_MODE ) {
+        if ( log_mode & FLOG_F_ASYNC ) {
             int current_miss_count = buff_full_count;
             int diff = current_miss_count - last_miss_count;
 
@@ -147,7 +150,7 @@ void do_test(int num, int thread_num)
     flog_set_flush_interval(2);
     flog_set_level(FLOG_LEVEL_DEBUG);
     flog_set_buffer_size(MAX_BUFF_SIZE_PER_THREAD);
-    if ( log_mode == FLOG_ASYNC_MODE ) {
+    if ( log_mode & FLOG_F_ASYNC ) {
         printf("current buffer size per-thread = %lu\n", flog_get_buffer_size());
     }
     flog_set_roll_size(FILE_ROLL_SIZE);
@@ -182,7 +185,7 @@ void do_test(int num, int thread_num)
 static
 void test_single_sync(int num)
 {
-    log_mode = FLOG_SYNC_MODE;
+    log_mode = 0;
     log_handler = flog_create("benchmark/flog/logs/sync_single_thread.log", log_mode);
     printf("[SYNC]start single testing...\n");
     do_test(num, 1);
@@ -194,7 +197,7 @@ void test_single_sync(int num)
 static
 void test_multi_sync(int num, int thread_num)
 {
-    log_mode = FLOG_SYNC_MODE;
+    log_mode = 0;
     log_handler = flog_create("benchmark/flog/logs/sync_multithread.log", log_mode);
     printf("[SYNC]start multip testing ( totally, we start %d threads for testing)...\n", thread_num);
     do_test(num, thread_num);
@@ -206,7 +209,7 @@ void test_multi_sync(int num, int thread_num)
 static
 void test_single_async(int num)
 {
-    log_mode = FLOG_ASYNC_MODE;
+    log_mode = FLOG_F_ASYNC;
     log_handler = flog_create("benchmark/flog/logs/async_single_thread.log", log_mode);
     printf("[ASYNC]start single testing...\n");
     do_test(num, 1);
@@ -218,12 +221,24 @@ void test_single_async(int num)
 static
 void test_multi_async(int num, int thread_num)
 {
-    log_mode = FLOG_ASYNC_MODE;
+    log_mode = FLOG_F_ASYNC;
     log_handler = flog_create("benchmark/flog/logs/async_multithread.log", log_mode);
     printf("[ASYNC]start multip testing ( totally, we start %d threads for testing)...\n", thread_num);
     do_test(num, thread_num);
     sleep(6);
     printf("[ASYNC]end multip testing\n\n");
+    flog_destroy(log_handler);
+}
+
+static
+void test_multi_async_debug(int num, int thread_num)
+{
+    log_mode = FLOG_F_ASYNC | FLOG_F_DEBUG;
+    log_handler = flog_create("benchmark/flog/logs/async_multithread_debug.log", log_mode);
+    printf("[ASYNC]start multip testing - debug ( totally, we start %d threads for testing)...\n", thread_num);
+    do_test(num, thread_num);
+    sleep(6);
+    printf("[ASYNC]end multip testing - debug\n\n");
     flog_destroy(log_handler);
 }
 
@@ -272,7 +287,8 @@ int main(int argc, char** argv)
         printf("  `---- 1: only test multithread sync writin\n");
         printf("  `---- 2: only test single thread async wrting\n");
         printf("  `---- 3: only test mulithread async writing\n");
-        printf("  `---- 4: test all\n");
+        printf("  `---- 4: only test mulithread async writing for debugging\n");
+        printf("  `---- 5: test all\n");
         printf("\ncmd example:\n");
         printf("./flog.bm 100000\n");
         printf("./flog.bm 100000 2\n");
@@ -301,12 +317,13 @@ int main(int argc, char** argv)
     // 1: only test multithread sync writin
     // 2: only test single thread async wrting
     // 3: only test mulithread async writing
-    // 4: test all
+    // 4: only test mulithread async writing for debugging
+    // 5: test all
     int mode = 4;
     if ( argc == 4 ) {
         mode = atoi(argv[3]);
-        if ( mode < 0 || mode > 4 ) {
-            printf("wrong mode, mode must within 0-4\n");
+        if ( mode < 0 || mode > 5 ) {
+            printf("wrong mode, mode must within 0-5\n");
             exit(1);
         }
     }
@@ -320,34 +337,34 @@ int main(int argc, char** argv)
 
     printf("startup mode = %d ..\n", mode);
     switch ( mode ) {
-        case 0:
-            {
-                test_single_sync(num);
-                break;
-            }
-        case 1:
-            {
-                test_multi_sync(num, thread_num);
-                break;
-            }
-        case 2:
-            {
-                test_single_async(num);
-                break;
-            }
-        case 3:
-            {
-                test_multi_async(num, thread_num);
-                break;
-            }
-        case 4:
-            {
-                test_single_sync(num);
-                test_multi_sync(num, thread_num);
-                test_single_async(num);
-                test_multi_async(num, thread_num);
-                break;
-            }
+    case 0: {
+        test_single_sync(num);
+        break;
+    }
+    case 1: {
+        test_multi_sync(num, thread_num);
+        break;
+    }
+    case 2: {
+        test_single_async(num);
+        break;
+    }
+    case 3: {
+        test_multi_async(num, thread_num);
+        break;
+    }
+    case 4: {
+        test_multi_async_debug(num, thread_num);
+        break;
+    }
+    case 5: {
+        test_single_sync(num);
+        test_multi_sync(num, thread_num);
+        test_single_async(num);
+        test_multi_async(num, thread_num);
+        test_multi_async_debug(num, thread_num);
+        break;
+    }
     }
 
     return 0;
