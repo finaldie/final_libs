@@ -8,9 +8,7 @@
 
 struct fev_listen_info {
     int           fd;
-#if __WORDSIZE == 64
-    int           padding;
-#endif
+    int           _padding; // reserved
 
     fev_accept_cb accept_cb;
     void*         ud;

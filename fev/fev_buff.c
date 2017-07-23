@@ -20,9 +20,7 @@
 
 struct fev_buff {
     int             fd;
-#if __WORDSIZE == 64
-    int             padding;
-#endif
+    int             _padding; // reserved
 
     fev_state*      fstate;
     fmbuf*          rbuf;

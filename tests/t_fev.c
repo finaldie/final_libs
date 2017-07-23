@@ -22,9 +22,7 @@
 typedef struct test_arg {
     fev_state* fev;
     int fd;
-#if __WORDSIZE == 64
-    int padding;
-#endif
+    int _padding;
 } test_arg;
 
 typedef struct fake_fev_event {

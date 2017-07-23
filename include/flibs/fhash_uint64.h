@@ -15,9 +15,8 @@ typedef struct {
     uint64_t   key;
     void*      value;
 
-#if __WORDSIZE == 32
-    int        _padding;
-#endif
+    // Padding for 32bit platform
+    char       _padding[sizeof(void*)];
 } fhash_u64_iter;
 
 /**

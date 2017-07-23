@@ -106,11 +106,7 @@ typedef struct _thread_data_t {
     char         header[LOG_TIME_TOTAL_LEN + LOG_COOKIE_MAX_LEN + 3 + 1];
     char         last_time_str[LOG_TIME_LEN + 1];
 
-#if __WORDSIZE == 64
     char         _padding[7];
-#else
-    char         _padding[3];
-#endif
 } thread_data_t;
 
 // Global log system data
@@ -130,9 +126,7 @@ typedef struct _log_t {
     uint32_t        is_fetcher_running :1;
     uint32_t        _reserved          :30;
 
-#if __WORDSIZE == 64
     int             _padding;
-#endif
 } f_log;
 
 // Define global log struct

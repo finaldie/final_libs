@@ -24,9 +24,8 @@ typedef struct plugin_meta {
 struct _fco {
     ucontext_t   ctx;
 
-#if __WORDSIZE == 32
-    int _padding;
-#endif
+    // Padding for 32bit platform
+    char         _padding[sizeof(void*)];
 
     ucontext_t*  prev_ctx;
     fco_sched*   root;
@@ -209,7 +208,7 @@ fco* fco_create(fco* co, pfunc_co pf, int type)
     }
 }
 
-#if __WORDSIZE == 64
+#if UINTPTR_MAX == UINT64_MAX
 static
 void co_main(uint32_t co_low32, uint32_t co_hi32)
 {
@@ -266,7 +265,7 @@ void* fco_resume(fco* co, void* arg)
             co->owner->arg = arg;
             co->status = FCO_STATUS_RUNNING;
             uintptr_t lco = (uintptr_t)co;
-#if __WORDSIZE == 64
+#if UINTPTR_MAX == UINT64_MAX
             makecontext(&co->ctx, (void (*)(void)) co_main, 2, (uint32_t)lco,
                         (uint32_t)(lco >> 32));
 #else

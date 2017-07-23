@@ -21,9 +21,7 @@ struct _ftimer_node {
     fev_timer_svc*  owner;
     long            expiration;
     int             isvalid;
-#if __WORDSIZE == 64
     int             _padding;
-#endif
 };
 
 // This operation table control the low level data storage/operation behaivor

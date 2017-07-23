@@ -15,9 +15,7 @@ typedef struct {
     void* value;
     int   key;
 
-#if __WORDSIZE == 64
-    int   padding;
-#endif
+    int   _padding;
 } fhash_int_iter;
 
 /**
