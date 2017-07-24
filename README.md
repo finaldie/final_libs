@@ -93,8 +93,7 @@ make prefix=$(other_location) install
 ## Use _flibs_ in a Project
 After installing _flibs_ into system, basically we need few steps to use it:
  * Include the headers from your source file
- * Link the statis/dynamic lib from your _Makefile_
- * Add `-D_POSIX_C_SOURCE=200809L` in your compiling options
+ * Link the statis/dynamic library from your _Makefile_
 
 Let's see an example _Source file_ and _Makefile_, e.g. use _fhash_:
 ```c
@@ -124,13 +123,13 @@ int main(int argc, char** argv)
 ```makefile
 # Makefile
 all:
-       	gcc -Wall -g -O2 -D_POSIX_C_SOURCE=200809L -o demo main.c -lflibs
+	gcc -Wall -g -O2 -o demo main.c -lflibs
 ```
 
 Then Build and Run it:
 ```console
 final@ubuntu1404: ~/code/github/flibs/demo>make
-gcc -Wall -g -O2 -D_POSIX_C_SOURCE=200809L -o demo main.c -lflibs
+gcc -Wall -g -O2 -o demo main.c -lflibs
 final@ubuntu1404: ~/code/github/flibs/demo>./demo
 Key: hello, value: world
 ```
