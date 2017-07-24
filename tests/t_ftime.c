@@ -26,7 +26,7 @@ void    test_ftimerfd()
 }
 #else
 void    test_ftimerfd() {
-    printf("Non-Linux platform, nothing to be done\n");
+    printf("Non-Linux platform, won't test it... ");
 }
 #endif
 

@@ -26,8 +26,8 @@ typedef struct _fco_sched fco_sched;
 typedef struct _fco fco;
 
 typedef void* (*pfunc_co)(fco*, void* arg);
-typedef void (*phook_cb)(fco*, void* arg);
-typedef void (*plugin_init)(fco_sched*, void* arg);
+typedef void  (*phook_cb)(fco*, void* arg);
+typedef void  (*plugin_init)(fco_sched*, void* arg);
 
 fco_sched* fco_scheduler_create();
 void       fco_scheduler_destroy(fco_sched*);
