@@ -7,6 +7,7 @@
 #include <fcunit.h>
 #include "flibs/ftime.h"
 
+#ifdef __linux__
 void    test_ftimerfd()
 {
     int fd = ftimerfd_create();
@@ -23,6 +24,11 @@ void    test_ftimerfd()
     ret = ftimerfd_stop(fd);
     FCUNIT_ASSERT(0 == ret);
 }
+#else
+void    test_ftimerfd() {
+    printf("Non-Linux platform, nothing to be done\n");
+}
+#endif
 
 int main(int argc, char** argv)
 {
