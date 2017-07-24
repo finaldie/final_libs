@@ -3,21 +3,20 @@ prefix ?= /usr/local
 topdir = $(shell pwd)
 
 # compiling flags
-STD = -std=c99
-WARN = -Wall
-EXTRA = -pedantic -Wpadded -Werror -Wextra -Wno-unused-parameter
+STD += -std=c99
+WARN += -Wall
+EXTRA += -pedantic -Wpadded -Werror -Wextra -Wno-unused-parameter
 EXTRA += -Wno-unused-function -Wfloat-equal -Winline -Wdisabled-optimization
 EXTRA += -Wconversion -fno-omit-frame-pointer
-OTHER = -pipe -g -ggdb3
-CC_SHARED = -fPIC
-#MACRO = -D_POSIX_C_SOURCE=200809L -D_BSD_SOURCE
-MACRO = -D_POSIX_C_SOURCE=200809L
-INC = \
+OTHER += -pipe -g -ggdb3
+CC_SHARED += -fPIC
+MACRO +=
+INC += \
     -I./include \
     -I./3rds/fcunit
 
 ifeq ($(debug), false)
-OPT = -O2
+OPT += -O2
 EXTRA += -fstack-protector
 else
 EXTRA += -fstack-protector-all
@@ -25,9 +24,9 @@ MACRO += -O0 -finstrument-functions
 endif
 
 # linking flags
-LD_SHARED = -shared
+LD_SHARED += -shared
 
-DEP_LDFLAGS = \
+DEP_LDFLAGS += \
     -Wl,-rpath,$(prefix)/lib \
     -Wl,-rpath,$(topdir)/lib \
     -Lflist \

@@ -5,6 +5,10 @@
  *  Note: This header dosen't expose to the users
  */
 
+#ifndef  _POSIX_C_SOURCE
+# define _POSIX_C_SOURCE 200809L
+#endif
+
 #include <time.h>
 
 #include "flibs/fev.h"

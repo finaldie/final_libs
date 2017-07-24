@@ -23,7 +23,8 @@ FNET_OBJS = \
     fnet/fnet.o
 
 FTIME_OBJS = \
-    ftime/ftime.o
+    ftime/ftime.o \
+    ftime/ftimefd.o
 
 FLOCK_OBJS = \
     flock/flock.o
