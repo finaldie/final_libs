@@ -12,7 +12,7 @@ See [change log](ChangeLog.md)
 ## Library contains
 Lib Name | Description |
 ---------|-------------|
-flist    | Lockfree single-linked list in one-producer one-consumer scenario |
+flist    | Lockfree FIFO single-linked list in one-producer one-consumer scenario |
 fdlist   | Double-linked list |
 fhash    | Hash table |
 flock    | A wraper, which is safer and easier to use pthread condition |
