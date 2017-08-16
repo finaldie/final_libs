@@ -97,7 +97,7 @@ void test_async_log()
     flog_set_buffer_size(1024 * 1024);
     size_t buffer_size = flog_get_buffer_size();
     FCUNIT_ASSERT(buffer_size == (1024*1024));
-    flog_register_event_callback(_test_async_event);
+    flog_register_event(_test_async_event);
 
     log_handler = flog_create("./tests/logs/test_async_log", FLOG_F_ASYNC);
     FCUNIT_ASSERT(log_handler);
@@ -143,11 +143,37 @@ void test_log_cookie()
     flog_destroy(log_handler);
 }
 
+void test_log_stdout() {
+    log_handler = flog_create("/proc/self/fd/1", 0);
+    FCUNIT_ASSERT(log_handler);
+
+    flog_set_roll_size(0);
+    flog_set_level(FLOG_LEVEL_INFO);
+    flog_set_cookie("log cookie");
+
+    FLOG_INFO(log_handler, "This is stdout test");
+    flog_destroy(log_handler);
+}
+
+void test_log_stdout1() {
+    log_handler = flog_create("/dev/stdout", 0);
+    FCUNIT_ASSERT(log_handler);
+
+    flog_set_roll_size(0);
+    flog_set_level(FLOG_LEVEL_INFO);
+    flog_set_cookie("log cookie");
+
+    FLOG_INFO(log_handler, "This is stdout test1");
+    flog_destroy(log_handler);
+}
+
 int main(int argc, char** argv)
 {
     FCUNIT_RUN(test_sync_log);
     FCUNIT_RUN(test_async_log);
     FCUNIT_RUN(test_log_cookie);
+    //FCUNIT_RUN(test_log_stdout);
+    //FCUNIT_RUN(test_log_stdout1);
 
     return 0;
 }

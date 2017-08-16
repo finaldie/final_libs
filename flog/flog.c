@@ -7,6 +7,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include <pthread.h>
 #include <unistd.h>
 #include <errno.h>
@@ -43,7 +44,7 @@
 #define LOG_MAX_FILE_NAME             (256)
 #define LOG_MAX_OUTPUT_NAME           (512)
 
-#define LOG_TIME_FMT                  "%04d:%02d:%02d_%02d:%02d:%02d."
+#define LOG_TIME_FMT                  "%04d-%02d-%02d %02d:%02d:%02d."
 #define LOG_TIME_LEN                  (20)
 #define LOG_TIME_MS_FMT               "%03lu "
 #define LOG_TIME_MS_LEN               (4)
@@ -239,6 +240,15 @@ int _log_set_nonblocking(int fd)
     return flag;
 }
 
+static inline
+bool _log_rolling_enabled(flog_file_t* f) {
+    if (g_log->roll_size && unlikely(f->file_size > g_log->roll_size)) {
+        return 1;
+    }
+
+    return 0;
+}
+
 static
 size_t _log_filesize(flog_file_t* f)
 {
@@ -294,12 +304,12 @@ void _log_get_time(time_t tm_time, char* time_str)
 static
 void _log_flush_file(flog_file_t* lf, time_t now)
 {
-    if (fsync(lf->fd)) {
-        printError("cannot fsync file");
-        return;
-    }
-
+    int r = fsync(lf->fd);
     lf->last_flush_time = now;
+
+    if (r && lf->debug) {
+        printError("cannot fsync file");
+    }
 }
 
 static
@@ -626,9 +636,10 @@ void _log_try_flush_and_rollfile(flog_file_t* f)
         has_flush = 1;
     }
 
-    if (unlikely(f->file_size > g_log->roll_size)) {
+    if (_log_rolling_enabled(f)) {
         // if not flush, force to flush once
         if (!has_flush) _log_flush_file(f, now);
+
         _log_roll_file(f);
     }
 }
@@ -991,6 +1002,7 @@ flog_file_t* flog_create(const char* filename, int flags)
         // set the file size according to the file's metadata, since we may
         // reopen it before it be rolled to another file
         f->file_size = _log_filesize(f);
+
         f->last_flush_time = time(NULL);
         snprintf(f->filename, LOG_MAX_FILE_NAME, "%s", filename);
         fhash_str_set(g_log->phash, filename, f);
@@ -1101,9 +1113,6 @@ void flog_vwritef(flog_file_t* f, const char* fmt, va_list ap)
     }
 }
 
-/**
- * If size == 0, that's a invalid argument
- */
 void flog_set_roll_size(size_t size)
 {
     // init log system global data
@@ -1155,7 +1164,7 @@ size_t flog_get_buffer_size()
     return g_log->buffer_size;
 }
 
-void flog_register_event_callback(flog_event_func pfunc)
+void flog_register_event(flog_event_func pfunc)
 {
     // init log system global data
     pthread_once(&init_create, _log_init);
