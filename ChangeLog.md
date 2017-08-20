@@ -1,3 +1,9 @@
+* 2017-07-24 0.9.9
+   * Remove all the `__WORDSIZE` macro detection
+   * Support compiling on `musl` libc
+   * Support `FLIB_CFLAGS` and `FLIB_LDFLAGS` user defined macros
+   * Cleanup useless files
+   * Refine README
 * 2017-04-10 0.9.8
    * **flog:** Log the content sequentially
    * **fmbuf:** Add fmbuf_empty()

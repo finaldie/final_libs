@@ -7,6 +7,7 @@ extern "C" {
 
 #include <stddef.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 // note: the '#' in the content means note line
 

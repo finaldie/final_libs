@@ -6,9 +6,17 @@ extern "C" {
 #endif
 
 #include <stdlib.h>
-#include <signal.h>
 #include <time.h>
 #include <unistd.h>
+
+/**
+ * POSIX timer which be triggered by signal, only be avaliable when:
+ *   _POSIX_C_SOURCE >= 199309L
+ */
+
+#if defined _POSIX_C_SOURCE && _POSIX_C_SOURCE >= 199309L
+
+# include <signal.h>
 
 typedef void (*ftimer_cb)(void*);
 typedef struct _f_timer {
@@ -20,30 +28,34 @@ typedef struct _f_timer {
     void*   arg;
 } ftimer;
 
-int    ftimer_create(ftimer*, long long nsecs, long long alter,
-                    ftimer_cb pfunc, void* arg);
-int    ftimer_start(ftimer*);
-int    ftimer_del(ftimer*);
+int ftimer_create(ftimer*, long long nsecs, long long interval,
+                 ftimer_cb pfunc, void* arg);
+int ftimer_start(ftimer*);
+int ftimer_del(ftimer*);
 
-#ifdef __linux__
-# ifndef HAVE_TIMERFD_H
-# define HAVE_TIMERFD_H 1
+#endif   // _POSIX_C_SOURCE macro detection
 
-# include <sys/timerfd.h>
+/**
+ * Linux specific timer which be triggered by a file descriptor
+ */
 
-int    ftimerfd_create();
-int    ftimerfd_start(int fd, long long nsecs, long long alter);
-int    ftimerfd_stop(int fd);
-# endif
-#endif
+#if defined __linux__
 
-// return a time value its format is:
-// current time * 1000000 + current usec
+int ftimerfd_create();
+int ftimerfd_start(int fd, long long nsecs, long long interval);
+int ftimerfd_stop(int fd);
+
+#endif  // __linux__
+
+/**
+ * Return A `long long` time value, unit: micro-seconds. it's equal to:
+ *  current time second * 1000000 + current usec
+ */
 unsigned long long ftime_gettime();
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif
+#endif // FTIME_H
 

@@ -1,3 +1,7 @@
+#ifndef  _POSIX_C_SOURCE
+# define _POSIX_C_SOURCE 200809L
+#endif
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -22,9 +26,7 @@
 typedef struct test_arg {
     fev_state* fev;
     int fd;
-#if __WORDSIZE == 64
-    int padding;
-#endif
+    int _padding;
 } test_arg;
 
 typedef struct fake_fev_event {

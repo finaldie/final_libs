@@ -5,6 +5,10 @@
  *  Note: This header dosen't expose to the users
  */
 
+#ifndef  _POSIX_C_SOURCE
+# define _POSIX_C_SOURCE 200809L
+#endif
+
 #include <time.h>
 
 #include "flibs/fev.h"
@@ -21,9 +25,7 @@ struct _ftimer_node {
     fev_timer_svc*  owner;
     long            expiration;
     int             isvalid;
-#if __WORDSIZE == 64
     int             _padding;
-#endif
 };
 
 // This operation table control the low level data storage/operation behaivor

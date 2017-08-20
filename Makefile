@@ -4,6 +4,11 @@ SHARED ?= false
 INCLUDE_FOLDER = include/flibs
 LIB_FOLDER = lib
 
+# User Defined Flags
+FLIB_CFLAGS ?=
+FLIB_LDFLAGS ?=
+
+# Include all sub-Makfiles
 include .Makefile.inc
 include .Makefile.objs
 include .Makefile.libs
@@ -17,6 +22,8 @@ all: $(TARGET_LIBS)
 	@echo "prefix = $(prefix)"
 	@echo "PLATFORM BIT = $(PLAT_BIT)"
 	@echo "debug = $(debug)"
+	@echo "FLIB_CFLAGS = $(FLIBS_CFLAGS)"
+	@echo "FLIB_LDFLAGS = $(FLIBS_LDFLAGS)"
 	test -d $(LIB_FOLDER) || mkdir -p $(LIB_FOLDER)
 	cp $(TARGET_LIBS) $(LIB_FOLDER)
 

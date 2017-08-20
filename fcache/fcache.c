@@ -18,9 +18,7 @@ struct _fcache {
     size_t   op_count;
     int      enable_balance;
 
-#if __WORDSIZE == 64
-    int      padding;
-#endif
+    int      _padding;
 };
 
 fcache_t* fcache_create(size_t max_size, cache_obj_free obj_free)

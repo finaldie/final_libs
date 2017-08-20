@@ -1,0 +1,15 @@
+{
+   <known: musl free>
+   Memcheck:Free
+   fun:free
+   obj:/lib/ld-musl-x86_64.so.1
+}
+
+{
+   <known: musl epoll_pwait>
+   Memcheck:Param
+   epoll_pwait(sigmask)
+   fun:epoll_pwait
+   ...
+}
+

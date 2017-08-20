@@ -6,6 +6,18 @@
 
 #include "flibs/ftime.h"
 
+#if defined _POSIX_C_SOURCE && _POSIX_C_SOURCE >= 199309L
+
+# define CLOCKID     CLOCK_MONOTONIC
+# define SIG         SIGRTMIN
+# define TRANS_STONS (1000000000l)
+
+# define errExit(msg) \
+do { \
+    perror(msg); exit(EXIT_FAILURE); \
+} while (0)
+
+
 static pthread_once_t init_catch = PTHREAD_ONCE_INIT;
 
 struct gt_catch {
@@ -13,14 +25,6 @@ struct gt_catch {
     sigset_t         mask;
 } g_catch;
 
-#define CLOCKID CLOCK_REALTIME
-#define SIG SIGRTMIN
-#define TRANS_STONS    1000000000l
-
-#define errExit(msg) \
-do { \
-    perror(msg); exit(EXIT_FAILURE); \
-} while (0)
 
 void handler(int sig, siginfo_t *si, void *uc __attribute__((unused)))
 {
@@ -49,13 +53,13 @@ int ftimer_create(ftimer* pt, long long nsecs, long long alter,
 
     pt->sev.sigev_notify = SIGEV_SIGNAL;
     pt->sev.sigev_signo = SIG;
-    pt->sev.sigev_value.sival_ptr = pt;    //store self
+    pt->sev.sigev_value.sival_ptr = pt;    // Store itself
     if (timer_create(CLOCKID, &pt->sev, &pt->timerid) == -1)
         return 1;
 
-    pt->its.it_value.tv_sec = (time_t)(nsecs / TRANS_STONS);
-    pt->its.it_value.tv_nsec = (long int)(nsecs % TRANS_STONS);
-    pt->its.it_interval.tv_sec = (time_t)(alter / TRANS_STONS);
+    pt->its.it_value.tv_sec     = (time_t)  (nsecs / TRANS_STONS);
+    pt->its.it_value.tv_nsec    = (long int)(nsecs % TRANS_STONS);
+    pt->its.it_interval.tv_sec  = (time_t)  (alter / TRANS_STONS);
     pt->its.it_interval.tv_nsec = (long int)(alter % TRANS_STONS);
 
     pt->cb = pfunc;
@@ -78,42 +82,7 @@ int ftimer_del(ftimer* pt)
     return timer_delete(pt->timerid);
 }
 
-int ftimerfd_create()
-{
-    int fd = timerfd_create(CLOCKID, TFD_NONBLOCK);
-
-    if( fd == -1 )
-        return -1;
-    return fd;
-}
-
-int ftimerfd_start(int fd, long long nsesc, long long alter)
-{
-    struct itimerspec new_value;
-    new_value.it_value.tv_sec = (time_t)(nsesc / TRANS_STONS);
-    new_value.it_value.tv_nsec = (long int)(nsesc % TRANS_STONS);
-    new_value.it_interval.tv_sec = (time_t)(alter / TRANS_STONS);
-    new_value.it_interval.tv_nsec = (long int)(alter % TRANS_STONS);
-
-    if ( timerfd_settime(fd, 0, &new_value, NULL) == -1 ) {
-        return 1;
-    } else {
-        return 0;
-    }
-}
-
-int ftimerfd_stop(int fd)
-{
-    struct itimerspec new_value;
-    new_value.it_value.tv_sec = 0;
-    new_value.it_value.tv_nsec = 0;
-    new_value.it_interval.tv_sec = 0;
-    new_value.it_interval.tv_nsec = 0;
-
-    if ( timerfd_settime(fd, 0, &new_value, NULL) == -1 )
-        return 1;
-    return 0;
-}
+#endif // _POSIX_C_SOURCE macro detection
 
 unsigned long long ftime_gettime()
 {

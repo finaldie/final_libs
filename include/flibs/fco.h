@@ -1,6 +1,15 @@
 #ifndef FCOROUTINE_H
 #define FCOROUTINE_H
 
+/**
+ * fco context, to help user make huge amount of user contexts, also provide
+ *  the basic interfaces like yield/resume to build the application easier.
+ *
+ * Notes: This fco_context is not recommended to use, since it may leading
+ *  portability issues. And in certain 64bit platform may be not working
+ *  as expected.
+ */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -17,8 +26,8 @@ typedef struct _fco_sched fco_sched;
 typedef struct _fco fco;
 
 typedef void* (*pfunc_co)(fco*, void* arg);
-typedef void (*phook_cb)(fco*, void* arg);
-typedef void (*plugin_init)(fco_sched*, void* arg);
+typedef void  (*phook_cb)(fco*, void* arg);
+typedef void  (*plugin_init)(fco_sched*, void* arg);
 
 fco_sched* fco_scheduler_create();
 void       fco_scheduler_destroy(fco_sched*);

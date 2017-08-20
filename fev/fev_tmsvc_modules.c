@@ -1,3 +1,7 @@
+#ifndef  _POSIX_C_SOURCE
+# define _POSIX_C_SOURCE 200809L
+#endif
+
 #include <stdio.h>
 #include "fev_tmsvc_modules.h"
 
@@ -5,7 +9,7 @@
 int fev_tmmod_timeout(struct timespec* start, struct timespec* now,
                       long expiration)
 {
-    long int diff_sec = now->tv_sec - start->tv_sec;
+    long int diff_sec  = now->tv_sec  - start->tv_sec;
     long int diff_nsec = now->tv_nsec - start->tv_nsec;
 
     // if the timer will be started in the future, exit with no-timeout

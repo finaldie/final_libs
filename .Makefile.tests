@@ -10,12 +10,15 @@ TEST_TARGETS = \
     tests/test_fev
 
 VALGRIND = valgrind --tool=memcheck -v --leak-check=full \
+	    --suppressions=./tests/valgrind/musl.suppression \
 	    --gen-suppressions=all --error-exitcode=1
 
 VALGRIND_FCO = valgrind --tool=memcheck -v --leak-check=full \
+	    --suppressions=./tests/valgrind/musl.suppression \
 	    --suppressions=./tests/valgrind/fco.suppression \
 	    --gen-suppressions=all --error-exitcode=1
 
 VALGRIND_FEV = valgrind --tool=memcheck -v --leak-check=full \
+	    --suppressions=./tests/valgrind/musl.suppression \
 	    --suppressions=./tests/valgrind/fev.suppression \
 	    --gen-suppressions=all --error-exitcode=1

@@ -1,3 +1,7 @@
+#ifndef  _POSIX_C_SOURCE
+# define _POSIX_C_SOURCE 200809L
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,7 +11,52 @@
 
 #include "flibs/fco.h"
 
-#define FCO_DEFAULT_STACK_SIZE (1024*1024)
+#if defined FLIB_SKIP_LEGACY || defined FLIB_LEGACY_FCO
+
+fco_sched* fco_scheduler_create() {
+    errno = ENOSYS;
+    return NULL;
+}
+
+void       fco_scheduler_destroy(fco_sched* sched) {
+    errno = ENOSYS;
+    return;
+}
+
+fco*       fco_main_create(fco_sched* sched, pfunc_co entry) {
+    errno = ENOSYS;
+    return NULL;
+}
+
+fco*       fco_create(fco* co, pfunc_co entry, int type) {
+    errno = ENOSYS;
+    return NULL;
+}
+
+void*      fco_resume(fco* co, void* arg) {
+    errno = ENOSYS;
+    return NULL;
+}
+
+void*      fco_yield(fco* co, void* arg) {
+    errno = ENOSYS;
+    return NULL;
+}
+
+int        fco_status(fco* co) {
+    errno = ENOSYS;
+    return -1;
+}
+
+void       fco_register_plugin(fco_sched* sched, void* arg, plugin_init init,
+                               phook_cb before_sw, phook_cb after_sw) {
+    errno = ENOSYS;
+    return;
+}
+
+#else
+
+# define FCO_DEFAULT_STACK_SIZE (1024*1024)
 
 typedef struct plugin_node {
     phook_cb cb;
@@ -24,9 +73,8 @@ typedef struct plugin_meta {
 struct _fco {
     ucontext_t   ctx;
 
-#if __WORDSIZE == 32
-    int _padding;
-#endif
+    // Padding for 32bit platform
+    char         _padding[sizeof(void*)];
 
     ucontext_t*  prev_ctx;
     fco_sched*   root;
@@ -209,7 +257,7 @@ fco* fco_create(fco* co, pfunc_co pf, int type)
     }
 }
 
-#if __WORDSIZE == 64
+# if UINTPTR_MAX == UINT64_MAX
 static
 void co_main(uint32_t co_low32, uint32_t co_hi32)
 {
@@ -221,7 +269,7 @@ void co_main(uint32_t co_low32, uint32_t co_hi32)
     co->owner->arg = ret;
     co->status = FCO_STATUS_DEAD;
 }
-#else
+# else
 static
 void co_main(fco* co)
 {
@@ -231,7 +279,7 @@ void co_main(fco* co)
     co->owner->arg = ret;
     co->status = FCO_STATUS_DEAD;
 }
-#endif
+# endif
 
 static
 void _fco_do_swap(ucontext_t* save, ucontext_t* to)
@@ -266,12 +314,12 @@ void* fco_resume(fco* co, void* arg)
             co->owner->arg = arg;
             co->status = FCO_STATUS_RUNNING;
             uintptr_t lco = (uintptr_t)co;
-#if __WORDSIZE == 64
+# if UINTPTR_MAX == UINT64_MAX
             makecontext(&co->ctx, (void (*)(void)) co_main, 2, (uint32_t)lco,
                         (uint32_t)(lco >> 32));
-#else
+# else
             makecontext(&co->ctx, (void (*)(void)) co_main, 1, lco);
-#endif
+# endif
             _fco_call_plugin(co, 0);
             _fco_do_swap(co->prev_ctx, &co->ctx);
             _fco_call_plugin(co, 1);
@@ -308,3 +356,6 @@ int fco_status(fco* co)
     if ( !co ) return FCO_STATUS_DEAD;
     return co->status;
 }
+
+#endif // Legacy macro detection
+

@@ -1,6 +1,13 @@
 #include <fcunit.h>
 #include "flibs/fco.h"
 
+#if defined FLIB_SKIP_LEGACY || defined FLIB_LEGACY_FCO || defined FLIB_SKIP_FCO
+void test_fco() {
+    printf("Legacy fco library, won't test it... ");
+}
+
+#else // If doesn't skip fco, then run the following test cases
+
 static
 void* test2(fco* co, void* arg)
 {
@@ -47,6 +54,8 @@ void test_fco()
     fco_scheduler_destroy(sched);
     //printf("[in main] after resume2\n");
 }
+
+#endif // Legacy macro detection
 
 int main(int argc, char** argv)
 {
