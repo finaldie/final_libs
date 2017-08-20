@@ -1,5 +1,5 @@
 * 2017-08-19 1.0.1
-   * **flog:** Support output to `stdout` and file-rolling can be disabled
+   * **flog:** File-rolling can be disabled
 * 2017-07-24 0.9.9
    * Remove all the `__WORDSIZE` macro detection
    * Support compiling on `musl` libc
