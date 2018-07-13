@@ -1,3 +1,5 @@
+* 2018-07-13 1.0-rc1
+   * Use `_DEFAULT_SOURCE` instead of `_BSD_SOURCE`
 * 2017-07-24 0.9.9
    * Remove all the `__WORDSIZE` macro detection
    * Support compiling on `musl` libc
