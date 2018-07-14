@@ -3,10 +3,12 @@
 
 /******************************************************************************
  * Description: Asynchronous logging system
- *   The base idea of this system is using the thread cache to buffer log
+ *   The base idea of this system is to use the thread cache to buffer log
  *   messages, and there is one background thread to fetch log messages.
  *   So it try the best to remove locks, which will be influence performance.
  *   It could be very fast, simple and strong. have a fun :)
+ *
+ * And flog always use GMT timezone
  *****************************************************************************/
 
 #ifdef __cplusplus
@@ -133,12 +135,14 @@ void flog_vset_cookie(const char* fmt, va_list ap);
 void flog_clear_cookie();
 
 /**
- *  @brief Set file roll size, when greater than the given size, log system
+ *  @brief Set file rolling size, when greater than the given size, log system
  *      will roll a new file to continue writing messages, default value is 2G
  *
  *  @param size     set max size for rolling
  *
  *  @return         void
+ *
+ *  @note Set to 0 means disable file rolling
  */
 void flog_set_roll_size(size_t size);
 
@@ -176,7 +180,7 @@ size_t flog_get_buffer_size();
  *
  *  @return         void
  */
-void flog_register_event_callback(flog_event_func pfunc);
+void flog_register_event(flog_event_func pfunc);
 
 #ifdef __cplusplus
 }

@@ -154,7 +154,7 @@ void do_test(int num, int thread_num)
         printf("current buffer size per-thread = %lu\n", flog_get_buffer_size());
     }
     flog_set_roll_size(FILE_ROLL_SIZE);
-    flog_register_event_callback(get_log_event);
+    flog_register_event(get_log_event);
     init_counters();
     sleep(1);
 
