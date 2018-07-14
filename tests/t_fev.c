@@ -351,6 +351,7 @@ static void* fake_listener1(void* arg)
     start = 1;
 
     fev_conn_arg_t carg;
+    memset(&carg, 0, sizeof(carg));
     //printf("before start async conn, time=%ld\n", time(NULL));
     int ret = fev_conn(g_fev, "127.0.0.1", 17759, 5000, _test_for_conn, carg);
     FCUNIT_ASSERT(0 == ret);

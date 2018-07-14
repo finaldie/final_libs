@@ -1,3 +1,5 @@
+* 2018-07-13 1.1.1
+   * Use `_DEFAULT_SOURCE` instead of `_BSD_SOURCE`
 * 2017-08-19 1.0.1
    * **flog:** File-rolling can be disabled
 * 2017-07-24 0.9.9

@@ -408,6 +408,20 @@
    obj:*
 }
 
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value4
+   obj:*
+   fun:_fco_delete
+   fun:fco_resume
+   fun:test
+   fun:co_main
+   fun:makecontext
+   obj:*
+   fun:test_fco
+   fun:main
+}
+
 ########## Raspberry Pi ############
 {
    <fco_resume jump condition>
