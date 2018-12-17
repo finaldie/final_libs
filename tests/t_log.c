@@ -91,7 +91,6 @@ void _test_async_event(flog_event_t event)
 
 void test_async_log()
 {
-    flog_set_roll_size(160);
     flog_set_flush_interval(1);
     flog_set_buffer_size(1024 * 1024);
     size_t buffer_size = flog_get_buffer_size();
@@ -101,6 +100,7 @@ void test_async_log()
     logger = flog_create("./tests/logs/test_async_log", FLOG_F_ASYNC);
     FCUNIT_ASSERT(logger);
     flog_set_level(logger, FLOG_LEVEL_DEBUG);
+    flog_set_rolling_size(logger, 160);
 
     pthread_t tid;
     pthread_create(&tid, NULL, _test_async_log, NULL);
@@ -147,7 +147,7 @@ void test_log_stdout() {
     logger = flog_create("/proc/self/fd/1", 0);
     FCUNIT_ASSERT(logger);
 
-    flog_set_roll_size(0);
+    flog_set_rolling_size(logger, 0);
     flog_set_level(logger, FLOG_LEVEL_INFO);
     flog_set_cookie("log cookie");
 
@@ -159,7 +159,7 @@ void test_log_stdout1() {
     logger = flog_create("/dev/stdout", 0);
     FCUNIT_ASSERT(logger);
 
-    flog_set_roll_size(0);
+    flog_set_rolling_size(logger, 0);
     flog_set_level(logger, FLOG_LEVEL_INFO);
     flog_set_cookie("log cookie");
 

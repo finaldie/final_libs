@@ -71,6 +71,7 @@ struct flog_file_t {
     char   filename[LOG_MAX_FILE_NAME];
     char   poutput_filename[LOG_MAX_OUTPUT_NAME];
     size_t ref_count;
+    size_t rolling_size;
 
     uint32_t async :1; // Sync or Async
     uint32_t debug :1;
@@ -124,7 +125,6 @@ typedef struct _log_t {
     pthread_key_t   key;
 
     int             epfd;        // epoll fd
-    size_t          roll_size;
     size_t          buffer_size; // buffer size per user thread
     time_t          flush_interval;
     pthread_t       b_tid;       // fetcher pthread id
@@ -243,7 +243,7 @@ int _log_set_nonblocking(int fd)
 
 static inline
 bool _log_rolling_enabled(flog_file_t* f) {
-    if (g_log->roll_size && unlikely(f->file_size > g_log->roll_size)) {
+    if (f->rolling_size && unlikely(f->file_size > f->rolling_size)) {
         return 1;
     }
 
@@ -938,7 +938,6 @@ void _log_init()
     }
 
     t_log->event_cb    = NULL;
-    t_log->roll_size   = LOG_DEFAULT_ROLL_SIZE;
     t_log->buffer_size = LOG_DEFAULT_LOCAL_BUFFER_SIZE;
     t_log->is_fetcher_started = 0;
     t_log->flush_interval     = LOG_DEFAULT_FLUSH_INTERVAL;
@@ -1008,6 +1007,7 @@ flog_file_t* flog_create(const char* filename, int flags)
         snprintf(f->filename, LOG_MAX_FILE_NAME, "%s", filename);
         fhash_str_set(g_log->phash, filename, f);
         f->ref_count = 1;
+        f->rolling_size = LOG_DEFAULT_ROLL_SIZE;
         f->async = (uint32_t)((flags & FLOG_F_ASYNC) != 0);
         f->debug = (uint32_t)((flags & FLOG_F_DEBUG) != 0);
 
@@ -1114,15 +1114,13 @@ void flog_vwritef(flog_file_t* f, const char* fmt, va_list ap)
     }
 }
 
-void flog_set_roll_size(size_t size)
+void flog_set_rolling_size(flog_file_t* logger, size_t size)
 {
-    // init log system global data
-    pthread_once(&init_create, _log_init);
-    if (!g_log || !size) return;
+    if (!logger) return;
 
     pthread_mutex_lock(&g_log->lock);
     {
-        g_log->roll_size = size;
+        logger->rolling_size = size;
     }
     pthread_mutex_unlock(&g_log->lock);
 }

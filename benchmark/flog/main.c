@@ -148,15 +148,16 @@ static
 void do_test(int num, int thread_num)
 {
     flog_set_flush_interval(2);
-    flog_set_level(logger, FLOG_LEVEL_DEBUG);
     flog_set_buffer_size(MAX_BUFF_SIZE_PER_THREAD);
-
-    if ( log_mode & FLOG_F_ASYNC ) {
-        printf("current buffer size per-thread = %lu\n", flog_get_buffer_size());
-    }
-    flog_set_roll_size(FILE_ROLL_SIZE);
     flog_register_event(get_log_event);
     init_counters();
+
+    if (log_mode & FLOG_F_ASYNC) {
+        printf("current buffer size per-thread = %lu\n", flog_get_buffer_size());
+    }
+
+    flog_set_level(logger, FLOG_LEVEL_DEBUG);
+    flog_set_rolling_size(logger, FILE_ROLL_SIZE);
     sleep(1);
 
     unsigned long long start_time = ftime_gettime();

@@ -106,7 +106,7 @@ void flog_writef(flog_file_t*, const char* fmt, ...);
 void flog_vwritef(flog_file_t*, const char* fmt, va_list ap);
 
 /**
- * @brief Set log cookie, user set up once, then every log will include this
+ * @brief Set log cookie, user set it up once, then every log will include this
  *        cookie string
  * @note  Cookie string is per-thread, and the max length of cookie is 256 bytes
  *
@@ -144,7 +144,7 @@ void flog_clear_cookie();
  *
  *  @note Set to 0 means disable file rolling
  */
-void flog_set_roll_size(size_t size);
+void flog_set_rolling_size(flog_file_t*, size_t size);
 
 /**
  *  @brief Set max flush interval, unit second
