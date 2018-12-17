@@ -37,8 +37,7 @@ FCONF_OBJS = \
     fconf/fconf.o
 
 FLOG_OBJS = \
-    flog/flog.o \
-    flog/flog_level.o
+    flog/flog.o
 
 FEV_OBJS = \
     fev/fev.o \

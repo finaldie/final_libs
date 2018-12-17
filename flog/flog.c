@@ -62,7 +62,7 @@
 #define LOG_PTO_THREAD_QUIT           1
 
 // Atomic Interfaces
-#define fatomic_inc(x) __sync_add_and_fetch(&x, 1)
+#define fatomic_inc(x) __sync_add_and_fetch(&(x), 1)
 
 // Every file have only one log_file structure data
 struct flog_file_t {
@@ -74,7 +74,8 @@ struct flog_file_t {
 
     uint32_t async :1; // Sync or Async
     uint32_t debug :1;
-    uint32_t _reserved :30;
+    uint32_t lv    :3;
+    uint32_t _reserved :27;
 
     int    fd;        // File descriptor of logger file
 
@@ -1232,3 +1233,41 @@ void flog_clear_cookie()
     thread_data_t* th_data = _get_or_create_thdata();
     _log_clear_cookie(th_data);
 }
+
+int flog_set_level(flog_file_t* logger, int level) {
+    if (!logger) return -1;
+
+    int old_lv = logger->lv;
+    logger->lv = (uint32_t)level & 0x7;
+
+    return old_lv;
+}
+
+int flog_get_level(flog_file_t* logger) {
+    return logger ? logger->lv : -1;
+}
+
+int flog_is_trace_enabled(flog_file_t* logger) {
+    return logger ? FLOG_LEVEL_TRACE >= logger->lv : 0;
+}
+
+int flog_is_debug_enabled(flog_file_t* logger) {
+    return logger ? FLOG_LEVEL_DEBUG >= logger->lv : 0;
+}
+
+int flog_is_info_enabled (flog_file_t* logger) {
+    return logger ? FLOG_LEVEL_INFO >= logger->lv : 0;
+}
+
+int flog_is_warn_enabled (flog_file_t* logger) {
+    return logger ? FLOG_LEVEL_WARN >= logger->lv : 0;
+}
+
+int flog_is_error_enabled(flog_file_t* logger) {
+    return logger ? FLOG_LEVEL_ERROR >= logger->lv : 0;
+}
+
+int flog_is_fatal_enabled(flog_file_t* logger) {
+    return logger ? FLOG_LEVEL_FATAL >= logger->lv : 0;
+}
+
