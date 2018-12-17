@@ -91,7 +91,6 @@ void _test_async_event(flog_event_t event)
 
 void test_async_log()
 {
-    flog_set_flush_interval(1);
     flog_set_buffer_size(1024 * 1024);
     size_t buffer_size = flog_get_buffer_size();
     FCUNIT_ASSERT(buffer_size == (1024*1024));
@@ -101,6 +100,7 @@ void test_async_log()
     FCUNIT_ASSERT(logger);
     flog_set_level(logger, FLOG_LEVEL_DEBUG);
     flog_set_rolling_size(logger, 160);
+    flog_set_flush_interval(logger, 1);
 
     pthread_t tid;
     pthread_create(&tid, NULL, _test_async_log, NULL);

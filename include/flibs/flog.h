@@ -153,7 +153,7 @@ void flog_set_rolling_size(flog_file_t*, size_t size);
  *
  *  @return         void
  */
-void flog_set_flush_interval(time_t sec);
+void flog_set_flush_interval(flog_file_t*, time_t sec);
 
 /**
  *  @brief Set buffer size for per user thread, should set before async writing

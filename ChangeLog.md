@@ -1,5 +1,7 @@
 * 2018-12-16 1.2.1
    * **flog:** set log-level per logger
+   * **flog:** set rolling-size per logger
+   * **flog:** set flush-interval per logger
 * 2018-07-13 1.1.1
    * Use `_DEFAULT_SOURCE` instead of `_BSD_SOURCE`
 * 2017-08-19 1.0.1

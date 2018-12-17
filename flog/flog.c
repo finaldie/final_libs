@@ -72,6 +72,7 @@ struct flog_file_t {
     char   poutput_filename[LOG_MAX_OUTPUT_NAME];
     size_t ref_count;
     size_t rolling_size;
+    time_t flush_interval;
 
     uint32_t async :1; // Sync or Async
     uint32_t debug :1;
@@ -126,7 +127,6 @@ typedef struct _log_t {
 
     int             epfd;        // epoll fd
     size_t          buffer_size; // buffer size per user thread
-    time_t          flush_interval;
     pthread_t       b_tid;       // fetcher pthread id
     uint32_t        is_fetcher_started :1;
     uint32_t        is_fetcher_running :1;
@@ -632,7 +632,7 @@ void _log_try_flush_and_rollfile(flog_file_t* f)
     int has_flush = 0;
     time_t now = time(NULL);
 
-    if (now - f->last_flush_time >= g_log->flush_interval) {
+    if (now - f->last_flush_time >= f->flush_interval) {
         _log_flush_file(f, now);
         has_flush = 1;
     }
@@ -798,7 +798,7 @@ int _log_process_timeout(void* ud,
 {
     flog_file_t* f = (flog_file_t*)value;
     time_t now = time(NULL);
-    if (now - f->last_flush_time >= g_log->flush_interval) {
+    if (now - f->last_flush_time >= f->flush_interval) {
         _log_flush_file(f, now);
     }
 
@@ -940,7 +940,6 @@ void _log_init()
     t_log->event_cb    = NULL;
     t_log->buffer_size = LOG_DEFAULT_LOCAL_BUFFER_SIZE;
     t_log->is_fetcher_started = 0;
-    t_log->flush_interval     = LOG_DEFAULT_FLUSH_INTERVAL;
 
     g_log = t_log;
 
@@ -1008,6 +1007,7 @@ flog_file_t* flog_create(const char* filename, int flags)
         fhash_str_set(g_log->phash, filename, f);
         f->ref_count = 1;
         f->rolling_size = LOG_DEFAULT_ROLL_SIZE;
+        f->flush_interval = LOG_DEFAULT_FLUSH_INTERVAL;
         f->async = (uint32_t)((flags & FLOG_F_ASYNC) != 0);
         f->debug = (uint32_t)((flags & FLOG_F_DEBUG) != 0);
 
@@ -1128,15 +1128,13 @@ void flog_set_rolling_size(flog_file_t* logger, size_t size)
 /**
  * If sec == 0, it will flush it immediately
  */
-void flog_set_flush_interval(time_t sec)
+void flog_set_flush_interval(flog_file_t* logger, time_t sec)
 {
-    // init log system global data
-    pthread_once(&init_create, _log_init);
-    if (!g_log) return;
+    if (!logger) return;
 
     pthread_mutex_lock(&g_log->lock);
     {
-        g_log->flush_interval = sec;
+        logger->flush_interval = sec;
     }
     pthread_mutex_unlock(&g_log->lock);
 }

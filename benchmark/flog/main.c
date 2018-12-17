@@ -147,7 +147,6 @@ void* write_log(void* arg)
 static
 void do_test(int num, int thread_num)
 {
-    flog_set_flush_interval(2);
     flog_set_buffer_size(MAX_BUFF_SIZE_PER_THREAD);
     flog_register_event(get_log_event);
     init_counters();
@@ -158,6 +157,7 @@ void do_test(int num, int thread_num)
 
     flog_set_level(logger, FLOG_LEVEL_DEBUG);
     flog_set_rolling_size(logger, FILE_ROLL_SIZE);
+    flog_set_flush_interval(logger, 2);
     sleep(1);
 
     unsigned long long start_time = ftime_gettime();
