@@ -12,6 +12,8 @@ before_install:
     - cat /etc/issue
     - sudo apt-get update -qq
     - sudo apt-get install libc6-dbg:i386 libc6-dev-i386 valgrind doxygen
+    - echo "Packages below for fixing building in Xenial"
+    - sudo apt-get install linux-libc-dev
 
 install: true
 
