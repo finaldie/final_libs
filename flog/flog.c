@@ -12,11 +12,11 @@
 #include <unistd.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <time.h>
 #include <sys/eventfd.h>
 #include <sys/epoll.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/time.h>
 #include <assert.h>
 
 #include "flibs/compiler.h"
@@ -37,6 +37,7 @@
 
 #define LOG_FETCHER_MAXPOLL           (1024)
 #define LOG_FETCHER_MAXWAIT           (1000)
+#define LOG_NS_PER_MS                 (1000000L)
 
 #define LOG_FILENAME_FMT              "%s-%s.%d"
 #define LOG_FILE_TIME_FMT             "%04d_%02d_%02d_%02d_%02d_%02d.%03lu"
@@ -132,7 +133,7 @@ typedef struct _log_t {
     uint32_t        is_fetcher_running :1;
     uint32_t        _reserved          :30;
 
-    int             _padding;
+    clockid_t       clockid;
 } f_log;
 
 // Define global log struct
@@ -271,19 +272,19 @@ int _lopen(const char* filename)
 static inline
 char* _log_generate_filename(const char* filename, char* output_filename)
 {
-    struct timeval tv;
-    if (unlikely(gettimeofday(&tv, NULL))) {
+    struct timespec tp;
+    if (unlikely(clock_gettime(g_log->clockid, &tp))) {
         printError("cannot get current time");
         abort();
     }
 
     char now_time[LOG_FILE_TIME_BUFSZ];
-    time_t tm_time = tv.tv_sec;
+    time_t tm_time = tp.tv_sec;
     struct tm now;
     gmtime_r(&tm_time, &now);
     snprintf(now_time, LOG_FILE_TIME_BUFSZ, LOG_FILE_TIME_FMT,
-                (now.tm_year + 1900), now.tm_mon + 1, now.tm_mday,
-                now.tm_hour, now.tm_min, now.tm_sec, tv.tv_usec / 1000);
+             (now.tm_year + 1900), now.tm_mon + 1, now.tm_mday,
+             now.tm_hour, now.tm_min, now.tm_sec, tp.tv_nsec / LOG_NS_PER_MS);
 
     snprintf(output_filename, LOG_MAX_OUTPUT_NAME, LOG_FILENAME_FMT,
             filename, now_time, getpid());
@@ -441,20 +442,20 @@ const char* _log_get_header(size_t* header_len/*out*/)
 {
     thread_data_t* th_data = _get_or_create_thdata();
 
-    struct timeval tv;
-    if (unlikely(gettimeofday(&tv, NULL))) {
+    struct timespec tp;
+    if (unlikely(clock_gettime(g_log->clockid, &tp))) {
         printError("cannot get current time");
         abort();
     }
 
-    time_t now = tv.tv_sec;
+    time_t now = tp.tv_sec;
     if (now > th_data->last_time) {
         _log_get_time(now, th_data->last_time_str);
         th_data->last_time = now;
     }
 
     char tm_ms[LOG_TIME_MS_LEN + 1];
-    snprintf(tm_ms, LOG_TIME_MS_LEN + 1, LOG_TIME_MS_FMT, tv.tv_usec / 1000);
+    snprintf(tm_ms, LOG_TIME_MS_LEN + 1, LOG_TIME_MS_FMT, tp.tv_nsec / LOG_NS_PER_MS);
 
     memcpy(th_data->header, th_data->last_time_str, LOG_TIME_LEN);
     memcpy(th_data->header + LOG_TIME_LEN, tm_ms, LOG_TIME_MS_LEN);
@@ -940,6 +941,23 @@ void _log_init()
     t_log->event_cb    = NULL;
     t_log->buffer_size = LOG_DEFAULT_LOCAL_BUFFER_SIZE;
     t_log->is_fetcher_started = 0;
+    t_log->clockid = CLOCK_REALTIME;
+
+    // Since we only care about the resolution in milliseconds level,
+    //  to make it faster, try to get/set it to 'CLOCK_REALTIME_COARSE'
+    //
+    // Notes: In most of the system/device:
+    //   - CLOCK_REALTIME / CLOCK_MONOTONIC has 1ns resolution
+    //   - CLOCK_REALTIME_COARSE / CLOCK_MONOTONIC_COARSE has 1ms resolution
+    //
+    //   For some single-board unit, the xx_COARSE resolution could be 10ms,
+    //   so only in this case we fallback to CLOCK_REALTIME.
+    struct timespec resolution;
+    if (0 == clock_getres(CLOCK_REALTIME_COARSE, &resolution)) {
+        if (resolution.tv_nsec <= LOG_NS_PER_MS) {
+            t_log->clockid = CLOCK_REALTIME_COARSE;
+        }
+    }
 
     g_log = t_log;
 
