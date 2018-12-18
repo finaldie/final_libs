@@ -1,5 +1,9 @@
-#ifndef  _POSIX_C_SOURCE
-# define _POSIX_C_SOURCE 200809L
+#ifndef   _POSIX_C_SOURCE
+#  define _POSIX_C_SOURCE 200809L
+#endif
+
+#ifndef   _GNU_SOURCE
+#  define _GNU_SOURCE
 #endif
 
 #include <stdio.h>
@@ -37,6 +41,7 @@
 
 #define LOG_FETCHER_MAXPOLL           (1024)
 #define LOG_FETCHER_MAXWAIT           (1000)
+#define LOG_FETCHER_DEFAULT_NAME      ("logger")
 #define LOG_NS_PER_MS                 (1000000L)
 
 #define LOG_FILENAME_FMT              "%s-%s.%d"
@@ -870,6 +875,10 @@ void _create_fetcher_thread(){
         printError("create fetcher thread failed");
         exit(1);
     }
+
+#ifdef _GNU_SOURCE
+    pthread_setname_np(g_log->b_tid, LOG_FETCHER_DEFAULT_NAME);
+#endif
 }
 
 static
@@ -1030,8 +1039,8 @@ flog_file_t* flog_create(const char* filename, int flags)
         f->debug = (uint32_t)((flags & FLOG_F_DEBUG) != 0);
 
         if (f->async && !g_log->is_fetcher_started) {
-            _create_fetcher_thread();
             g_log->is_fetcher_started = 1;
+            _create_fetcher_thread();
         }
     }
     pthread_mutex_unlock(&g_log->lock);
