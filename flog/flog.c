@@ -1,5 +1,9 @@
-#ifndef  _POSIX_C_SOURCE
-# define _POSIX_C_SOURCE 200809L
+#ifndef   _POSIX_C_SOURCE
+#  define _POSIX_C_SOURCE 200809L
+#endif
+
+#ifndef   _GNU_SOURCE
+#  define _GNU_SOURCE
 #endif
 
 #include <stdio.h>
@@ -12,11 +16,11 @@
 #include <unistd.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <time.h>
 #include <sys/eventfd.h>
 #include <sys/epoll.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/time.h>
 #include <assert.h>
 
 #include "flibs/compiler.h"
@@ -37,6 +41,8 @@
 
 #define LOG_FETCHER_MAXPOLL           (1024)
 #define LOG_FETCHER_MAXWAIT           (1000)
+#define LOG_FETCHER_DEFAULT_NAME      ("logger")
+#define LOG_NS_PER_MS                 (1000000L)
 
 #define LOG_FILENAME_FMT              "%s-%s.%d"
 #define LOG_FILE_TIME_FMT             "%04d_%02d_%02d_%02d_%02d_%02d.%03lu"
@@ -62,7 +68,7 @@
 #define LOG_PTO_THREAD_QUIT           1
 
 // Atomic Interfaces
-#define fatomic_inc(x) __sync_add_and_fetch(&x, 1)
+#define fatomic_inc(x) __sync_add_and_fetch(&(x), 1)
 
 // Every file have only one log_file structure data
 struct flog_file_t {
@@ -71,10 +77,13 @@ struct flog_file_t {
     char   filename[LOG_MAX_FILE_NAME];
     char   poutput_filename[LOG_MAX_OUTPUT_NAME];
     size_t ref_count;
+    size_t rolling_size;
+    time_t flush_interval;
 
     uint32_t async :1; // Sync or Async
     uint32_t debug :1;
-    uint32_t _reserved :30;
+    uint32_t lv    :3;
+    uint32_t _reserved :27;
 
     int    fd;        // File descriptor of logger file
 
@@ -123,15 +132,13 @@ typedef struct _log_t {
     pthread_key_t   key;
 
     int             epfd;        // epoll fd
-    size_t          roll_size;
     size_t          buffer_size; // buffer size per user thread
-    time_t          flush_interval;
     pthread_t       b_tid;       // fetcher pthread id
     uint32_t        is_fetcher_started :1;
     uint32_t        is_fetcher_running :1;
     uint32_t        _reserved          :30;
 
-    int             _padding;
+    clockid_t       clockid;
 } f_log;
 
 // Define global log struct
@@ -242,7 +249,7 @@ int _log_set_nonblocking(int fd)
 
 static inline
 bool _log_rolling_enabled(flog_file_t* f) {
-    if (g_log->roll_size && unlikely(f->file_size > g_log->roll_size)) {
+    if (f->rolling_size && unlikely(f->file_size > f->rolling_size)) {
         return 1;
     }
 
@@ -270,19 +277,19 @@ int _lopen(const char* filename)
 static inline
 char* _log_generate_filename(const char* filename, char* output_filename)
 {
-    struct timeval tv;
-    if (unlikely(gettimeofday(&tv, NULL))) {
+    struct timespec tp;
+    if (unlikely(clock_gettime(g_log->clockid, &tp))) {
         printError("cannot get current time");
         abort();
     }
 
     char now_time[LOG_FILE_TIME_BUFSZ];
-    time_t tm_time = tv.tv_sec;
+    time_t tm_time = tp.tv_sec;
     struct tm now;
     gmtime_r(&tm_time, &now);
     snprintf(now_time, LOG_FILE_TIME_BUFSZ, LOG_FILE_TIME_FMT,
-                (now.tm_year + 1900), now.tm_mon + 1, now.tm_mday,
-                now.tm_hour, now.tm_min, now.tm_sec, tv.tv_usec / 1000);
+             (now.tm_year + 1900), now.tm_mon + 1, now.tm_mday,
+             now.tm_hour, now.tm_min, now.tm_sec, tp.tv_nsec / LOG_NS_PER_MS);
 
     snprintf(output_filename, LOG_MAX_OUTPUT_NAME, LOG_FILENAME_FMT,
             filename, now_time, getpid());
@@ -440,20 +447,20 @@ const char* _log_get_header(size_t* header_len/*out*/)
 {
     thread_data_t* th_data = _get_or_create_thdata();
 
-    struct timeval tv;
-    if (unlikely(gettimeofday(&tv, NULL))) {
+    struct timespec tp;
+    if (unlikely(clock_gettime(g_log->clockid, &tp))) {
         printError("cannot get current time");
         abort();
     }
 
-    time_t now = tv.tv_sec;
+    time_t now = tp.tv_sec;
     if (now > th_data->last_time) {
         _log_get_time(now, th_data->last_time_str);
         th_data->last_time = now;
     }
 
     char tm_ms[LOG_TIME_MS_LEN + 1];
-    snprintf(tm_ms, LOG_TIME_MS_LEN + 1, LOG_TIME_MS_FMT, tv.tv_usec / 1000);
+    snprintf(tm_ms, LOG_TIME_MS_LEN + 1, LOG_TIME_MS_FMT, tp.tv_nsec / LOG_NS_PER_MS);
 
     memcpy(th_data->header, th_data->last_time_str, LOG_TIME_LEN);
     memcpy(th_data->header + LOG_TIME_LEN, tm_ms, LOG_TIME_MS_LEN);
@@ -631,7 +638,7 @@ void _log_try_flush_and_rollfile(flog_file_t* f)
     int has_flush = 0;
     time_t now = time(NULL);
 
-    if (now - f->last_flush_time >= g_log->flush_interval) {
+    if (now - f->last_flush_time >= f->flush_interval) {
         _log_flush_file(f, now);
         has_flush = 1;
     }
@@ -797,7 +804,7 @@ int _log_process_timeout(void* ud,
 {
     flog_file_t* f = (flog_file_t*)value;
     time_t now = time(NULL);
-    if (now - f->last_flush_time >= g_log->flush_interval) {
+    if (now - f->last_flush_time >= f->flush_interval) {
         _log_flush_file(f, now);
     }
 
@@ -868,6 +875,10 @@ void _create_fetcher_thread(){
         printError("create fetcher thread failed");
         exit(1);
     }
+
+#ifdef _GNU_SOURCE
+    pthread_setname_np(g_log->b_tid, LOG_FETCHER_DEFAULT_NAME);
+#endif
 }
 
 static
@@ -937,10 +948,25 @@ void _log_init()
     }
 
     t_log->event_cb    = NULL;
-    t_log->roll_size   = LOG_DEFAULT_ROLL_SIZE;
     t_log->buffer_size = LOG_DEFAULT_LOCAL_BUFFER_SIZE;
     t_log->is_fetcher_started = 0;
-    t_log->flush_interval     = LOG_DEFAULT_FLUSH_INTERVAL;
+    t_log->clockid = CLOCK_REALTIME;
+
+    // Since we only care about the resolution in milliseconds level,
+    //  to make it faster, try to get/set it to 'CLOCK_REALTIME_COARSE'
+    //
+    // Notes: In most of the system/device:
+    //   - CLOCK_REALTIME / CLOCK_MONOTONIC has 1ns resolution
+    //   - CLOCK_REALTIME_COARSE / CLOCK_MONOTONIC_COARSE has 1ms resolution
+    //
+    //   For some single-board unit, the xx_COARSE resolution could be 10ms,
+    //   so only in this case we fallback to CLOCK_REALTIME.
+    struct timespec resolution;
+    if (0 == clock_getres(CLOCK_REALTIME_COARSE, &resolution)) {
+        if (resolution.tv_nsec <= LOG_NS_PER_MS) {
+            t_log->clockid = CLOCK_REALTIME_COARSE;
+        }
+    }
 
     g_log = t_log;
 
@@ -1007,12 +1033,14 @@ flog_file_t* flog_create(const char* filename, int flags)
         snprintf(f->filename, LOG_MAX_FILE_NAME, "%s", filename);
         fhash_str_set(g_log->phash, filename, f);
         f->ref_count = 1;
+        f->rolling_size = LOG_DEFAULT_ROLL_SIZE;
+        f->flush_interval = LOG_DEFAULT_FLUSH_INTERVAL;
         f->async = (uint32_t)((flags & FLOG_F_ASYNC) != 0);
         f->debug = (uint32_t)((flags & FLOG_F_DEBUG) != 0);
 
         if (f->async && !g_log->is_fetcher_started) {
-            _create_fetcher_thread();
             g_log->is_fetcher_started = 1;
+            _create_fetcher_thread();
         }
     }
     pthread_mutex_unlock(&g_log->lock);
@@ -1113,15 +1141,13 @@ void flog_vwritef(flog_file_t* f, const char* fmt, va_list ap)
     }
 }
 
-void flog_set_roll_size(size_t size)
+void flog_set_rolling_size(flog_file_t* logger, size_t size)
 {
-    // init log system global data
-    pthread_once(&init_create, _log_init);
-    if (!g_log || !size) return;
+    if (!logger) return;
 
     pthread_mutex_lock(&g_log->lock);
     {
-        g_log->roll_size = size;
+        logger->rolling_size = size;
     }
     pthread_mutex_unlock(&g_log->lock);
 }
@@ -1129,15 +1155,13 @@ void flog_set_roll_size(size_t size)
 /**
  * If sec == 0, it will flush it immediately
  */
-void flog_set_flush_interval(time_t sec)
+void flog_set_flush_interval(flog_file_t* logger, time_t sec)
 {
-    // init log system global data
-    pthread_once(&init_create, _log_init);
-    if (!g_log) return;
+    if (!logger) return;
 
     pthread_mutex_lock(&g_log->lock);
     {
-        g_log->flush_interval = sec;
+        logger->flush_interval = sec;
     }
     pthread_mutex_unlock(&g_log->lock);
 }
@@ -1232,3 +1256,41 @@ void flog_clear_cookie()
     thread_data_t* th_data = _get_or_create_thdata();
     _log_clear_cookie(th_data);
 }
+
+int flog_set_level(flog_file_t* logger, int level) {
+    if (!logger) return -1;
+
+    int old_lv = logger->lv;
+    logger->lv = (uint32_t)level & 0x7;
+
+    return old_lv;
+}
+
+int flog_get_level(flog_file_t* logger) {
+    return logger ? logger->lv : -1;
+}
+
+int flog_is_trace_enabled(flog_file_t* logger) {
+    return logger ? FLOG_LEVEL_TRACE >= logger->lv : 0;
+}
+
+int flog_is_debug_enabled(flog_file_t* logger) {
+    return logger ? FLOG_LEVEL_DEBUG >= logger->lv : 0;
+}
+
+int flog_is_info_enabled (flog_file_t* logger) {
+    return logger ? FLOG_LEVEL_INFO >= logger->lv : 0;
+}
+
+int flog_is_warn_enabled (flog_file_t* logger) {
+    return logger ? FLOG_LEVEL_WARN >= logger->lv : 0;
+}
+
+int flog_is_error_enabled(flog_file_t* logger) {
+    return logger ? FLOG_LEVEL_ERROR >= logger->lv : 0;
+}
+
+int flog_is_fatal_enabled(flog_file_t* logger) {
+    return logger ? FLOG_LEVEL_FATAL >= logger->lv : 0;
+}
+

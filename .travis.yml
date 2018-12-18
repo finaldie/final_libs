@@ -1,6 +1,6 @@
 language: c
 
-dist: trusty
+dist: xenial
 sudo: required
 
 compiler:
@@ -12,6 +12,8 @@ before_install:
     - cat /etc/issue
     - sudo apt-get update -qq
     - sudo apt-get install libc6-dbg:i386 libc6-dev-i386 valgrind doxygen
+    - echo "Packages below for fixing build in Xenial"
+    - sudo apt-get install gcc-multilib linux-libc-dev linux-libc-dev:i386
 
 install: true
 

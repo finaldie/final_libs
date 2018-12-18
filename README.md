@@ -1,4 +1,10 @@
-[![Build Status](https://travis-ci.org/finaldie/final_libs.svg?branch=0.9)](https://travis-ci.org/finaldie/final_libs)
+[![Build Status](https://travis-ci.org/finaldie/final_libs.svg?branch=master)](https://travis-ci.org/finaldie/final_libs)
+[![GitHub license](https://img.shields.io/github/license/finaldie/final_libs.svg)]()
+[![Platform](https://img.shields.io/badge/platform-Linux-blue.svg)]()
+![GitHub release](https://img.shields.io/github/release/finaldie/final_libs.svg)
+![GitHub closed pull requests](https://img.shields.io/github/issues-pr-closed/finaldie/final_libs.svg)
+![GitHub language count](https://img.shields.io/github/languages/count/finaldie/final_libs.svg)
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/finaldie/final_libs.svg)
 
 Common Libraries (Linux Platform)
 =========================================

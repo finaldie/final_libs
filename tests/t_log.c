@@ -10,15 +10,15 @@
 #include <fcunit.h>
 #include "flibs/flog.h"
 
-static flog_file_t* log_handler = NULL;
+static flog_file_t* logger = NULL;
 
 static
 void    _test_log()
 {
-    FLOG_DEBUG(log_handler, "debug log test");
-    FLOG_ERROR(log_handler, "error log test");
-    flog_set_level(FLOG_LEVEL_ERROR);
-    flog_write(log_handler, "hello world", 11);
+    FLOG_DEBUG(logger, "debug log test");
+    FLOG_ERROR(logger, "error log test");
+    flog_set_level(logger, FLOG_LEVEL_ERROR);
+    flog_write(logger, "hello world", 11);
     sleep(2);   // wait for log system
 
     int fd = open("./tests/logs/test_log", O_RDONLY);
@@ -41,22 +41,21 @@ void    _test_log()
 }
 
 void    test_sync_log(){
-    log_handler = flog_create("./tests/logs/test_log", 0);
-    FCUNIT_ASSERT(log_handler);
+    logger = flog_create("./tests/logs/test_log", 0);
+    FCUNIT_ASSERT(logger);
     _test_log();
-    flog_destroy(log_handler);
+    flog_destroy(logger);
 }
 
 static
 void* _test_async_log(void* arg __attribute__((unused)))
 {
-    FLOG_DEBUG(log_handler, "debug log test");
-    FLOG_ERROR(log_handler, "error log test"); // first writen
-    flog_set_level(FLOG_LEVEL_DEBUG);
+    FLOG_DEBUG(logger, "debug log test");
+    FLOG_ERROR(logger, "error log test"); // first writen
     sleep(2);   // wait for log system
-    FLOG_DEBUG(log_handler, "debug log test1"); // second writen
-    FLOG_DEBUG(log_handler, "debug log test2"); // will be writen in new file
-    flog_write(log_handler, "hello world", 11);
+    FLOG_DEBUG(logger, "debug log test1"); // second writen
+    FLOG_DEBUG(logger, "debug log test2"); // will be writen in new file
+    flog_write(logger, "hello world", 11);
     sleep(2);   // wait for log system
 
     //printf("try to open file:%s\n", "./tests/logs/test_async_log");
@@ -92,28 +91,29 @@ void _test_async_event(flog_event_t event)
 
 void test_async_log()
 {
-    flog_set_roll_size(110);
-    flog_set_flush_interval(1);
     flog_set_buffer_size(1024 * 1024);
     size_t buffer_size = flog_get_buffer_size();
     FCUNIT_ASSERT(buffer_size == (1024*1024));
     flog_register_event(_test_async_event);
 
-    log_handler = flog_create("./tests/logs/test_async_log", FLOG_F_ASYNC);
-    FCUNIT_ASSERT(log_handler);
+    logger = flog_create("./tests/logs/test_async_log", FLOG_F_ASYNC);
+    FCUNIT_ASSERT(logger);
+    flog_set_level(logger, FLOG_LEVEL_DEBUG);
+    flog_set_rolling_size(logger, 160);
+    flog_set_flush_interval(logger, 1);
 
     pthread_t tid;
     pthread_create(&tid, NULL, _test_async_log, NULL);
     pthread_join(tid, NULL);
-    flog_destroy(log_handler);
+    flog_destroy(logger);
 }
 
 static
 void _test_log_cookie()
 {
-    flog_set_level(FLOG_LEVEL_INFO);
+    flog_set_level(logger, FLOG_LEVEL_INFO);
     flog_set_cookie("this is the log cookie");
-    FLOG_INFO(log_handler, "test log cookie");
+    FLOG_INFO(logger, "test log cookie");
     sleep(2);
 
     // open the log file and assert the content
@@ -136,35 +136,35 @@ void _test_log_cookie()
 
 void test_log_cookie()
 {
-    log_handler = flog_create("./tests/logs/test_log_cookie", 0);
-    FCUNIT_ASSERT(log_handler);
+    logger = flog_create("./tests/logs/test_log_cookie", 0);
+    FCUNIT_ASSERT(logger);
 
     _test_log_cookie();
-    flog_destroy(log_handler);
+    flog_destroy(logger);
 }
 
 void test_log_stdout() {
-    log_handler = flog_create("/proc/self/fd/1", 0);
-    FCUNIT_ASSERT(log_handler);
+    logger = flog_create("/proc/self/fd/1", 0);
+    FCUNIT_ASSERT(logger);
 
-    flog_set_roll_size(0);
-    flog_set_level(FLOG_LEVEL_INFO);
+    flog_set_rolling_size(logger, 0);
+    flog_set_level(logger, FLOG_LEVEL_INFO);
     flog_set_cookie("log cookie");
 
-    FLOG_INFO(log_handler, "This is stdout test");
-    flog_destroy(log_handler);
+    FLOG_INFO(logger, "This is stdout test");
+    flog_destroy(logger);
 }
 
 void test_log_stdout1() {
-    log_handler = flog_create("/dev/stdout", 0);
-    FCUNIT_ASSERT(log_handler);
+    logger = flog_create("/dev/stdout", 0);
+    FCUNIT_ASSERT(logger);
 
-    flog_set_roll_size(0);
-    flog_set_level(FLOG_LEVEL_INFO);
+    flog_set_rolling_size(logger, 0);
+    flog_set_level(logger, FLOG_LEVEL_INFO);
     flog_set_cookie("log cookie");
 
-    FLOG_INFO(log_handler, "This is stdout test1");
-    flog_destroy(log_handler);
+    FLOG_INFO(logger, "This is stdout test1");
+    flog_destroy(logger);
 }
 
 int main(int argc, char** argv)

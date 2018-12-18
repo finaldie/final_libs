@@ -5,6 +5,8 @@
 extern "C" {
 #endif
 
+struct flog_file_t;
+
 // fLog Levels
 #define FLOG_LEVEL_TRACE 0
 #define FLOG_LEVEL_DEBUG 1
@@ -14,28 +16,26 @@ extern "C" {
 #define FLOG_LEVEL_FATAL 5
 
 /**
- * @brief Set global log level
- * @note  This is all the flog loggers
+ * @brief Set log level for a logger
  *
- * @param level     log level
- * @return          previous log level
+ * @param level  log level
+ * @return       previous log level
  */
-int          flog_set_level(int level);
+int flog_set_level(struct flog_file_t*, int level);
 
 /**
- * @brief Get global log level
+ * @brief Get loggers' log level
  *
- * @return          current log level
+ * @return       current log level
  */
-int          flog_get_level();
+int flog_get_level(struct flog_file_t*);
 
-// private, no need to call them directly
-int          flog_is_trace_enabled();
-int          flog_is_debug_enabled();
-int          flog_is_info_enabled();
-int          flog_is_warn_enabled();
-int          flog_is_error_enabled();
-int          flog_is_fatal_enabled();
+int flog_is_trace_enabled(struct flog_file_t*);
+int flog_is_debug_enabled(struct flog_file_t*);
+int flog_is_info_enabled (struct flog_file_t*);
+int flog_is_warn_enabled (struct flog_file_t*);
+int flog_is_error_enabled(struct flog_file_t*);
+int flog_is_fatal_enabled(struct flog_file_t*);
 
 #ifdef __cplusplus
 }

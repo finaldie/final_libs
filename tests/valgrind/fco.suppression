@@ -503,3 +503,24 @@
    fun:test_fco
    fun:main
 }
+
+{
+   <Known issue on Travis Xenial 32bit clang: Use of uninitialised value of size 4>
+   Memcheck:Value4
+   fun:_fco_delete
+   fun:fco_resume
+   fun:test
+   fun:co_main
+   fun:makecontext
+}
+
+{
+   <Known issue on Travis Xenial 32bit gcc: Use of uninitialised value of size 4>
+   Memcheck:Value4
+   obj:*
+   fun:_fco_delete
+   fun:fco_resume
+   fun:test
+   fun:co_main
+   fun:makecontext
+}

@@ -1,4 +1,4 @@
-#define _BSD_SOURCE 1
+#define _DEFAULT_SOURCE 1
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,7 +15,7 @@
 #define MAX_BUFF_SIZE_PER_THREAD (1024 * 1024 * 200)
 #define FILE_ROLL_SIZE           (1024 * 1024 * 100)
 
-static flog_file_t* log_handler = NULL;
+static flog_file_t* logger = NULL;
 static char log_str[MAX_LOG_SIZE];
 
 // metrics
@@ -108,7 +108,7 @@ void* write_log(void* arg)
 
         int step = 0;
         for ( j = 0; j < max_num_per_group; ++j, ++step ) {
-            FLOG_DEBUG(log_handler, "%s", log_str);
+            FLOG_DEBUG(logger, "%s", log_str);
 
             if ( (log_mode & FLOG_F_ASYNC) && (step == sleep_step) ) {
                 step = 0;
@@ -147,15 +147,17 @@ void* write_log(void* arg)
 static
 void do_test(int num, int thread_num)
 {
-    flog_set_flush_interval(2);
-    flog_set_level(FLOG_LEVEL_DEBUG);
     flog_set_buffer_size(MAX_BUFF_SIZE_PER_THREAD);
-    if ( log_mode & FLOG_F_ASYNC ) {
-        printf("current buffer size per-thread = %lu\n", flog_get_buffer_size());
-    }
-    flog_set_roll_size(FILE_ROLL_SIZE);
     flog_register_event(get_log_event);
     init_counters();
+
+    if (log_mode & FLOG_F_ASYNC) {
+        printf("current buffer size per-thread = %lu\n", flog_get_buffer_size());
+    }
+
+    flog_set_level(logger, FLOG_LEVEL_DEBUG);
+    flog_set_rolling_size(logger, FILE_ROLL_SIZE);
+    flog_set_flush_interval(logger, 2);
     sleep(1);
 
     unsigned long long start_time = ftime_gettime();
@@ -186,60 +188,60 @@ static
 void test_single_sync(int num)
 {
     log_mode = 0;
-    log_handler = flog_create("benchmark/flog/logs/sync_single_thread.log", log_mode);
+    logger = flog_create("benchmark/flog/logs/sync_single_thread.log", log_mode);
     printf("[SYNC]start single testing...\n");
     do_test(num, 1);
     sleep(2);
     printf("[SYNC]end single testing\n\n");
-    flog_destroy(log_handler);
+    flog_destroy(logger);
 }
 
 static
 void test_multi_sync(int num, int thread_num)
 {
     log_mode = 0;
-    log_handler = flog_create("benchmark/flog/logs/sync_multithread.log", log_mode);
+    logger = flog_create("benchmark/flog/logs/sync_multithread.log", log_mode);
     printf("[SYNC]start multip testing ( totally, we start %d threads for testing)...\n", thread_num);
     do_test(num, thread_num);
     sleep(4);
     printf("[SYNC]end multip testing\n\n");
-    flog_destroy(log_handler);
+    flog_destroy(logger);
 }
 
 static
 void test_single_async(int num)
 {
     log_mode = FLOG_F_ASYNC;
-    log_handler = flog_create("benchmark/flog/logs/async_single_thread.log", log_mode);
+    logger = flog_create("benchmark/flog/logs/async_single_thread.log", log_mode);
     printf("[ASYNC]start single testing...\n");
     do_test(num, 1);
     sleep(2);
     printf("[ASYNC]end single testing\n\n");
-    flog_destroy(log_handler);
+    flog_destroy(logger);
 }
 
 static
 void test_multi_async(int num, int thread_num)
 {
     log_mode = FLOG_F_ASYNC;
-    log_handler = flog_create("benchmark/flog/logs/async_multithread.log", log_mode);
+    logger = flog_create("benchmark/flog/logs/async_multithread.log", log_mode);
     printf("[ASYNC]start multip testing ( totally, we start %d threads for testing)...\n", thread_num);
     do_test(num, thread_num);
     sleep(6);
     printf("[ASYNC]end multip testing\n\n");
-    flog_destroy(log_handler);
+    flog_destroy(logger);
 }
 
 static
 void test_multi_async_debug(int num, int thread_num)
 {
     log_mode = FLOG_F_ASYNC | FLOG_F_DEBUG;
-    log_handler = flog_create("benchmark/flog/logs/async_multithread_debug.log", log_mode);
+    logger = flog_create("benchmark/flog/logs/async_multithread_debug.log", log_mode);
     printf("[ASYNC]start multip testing - debug ( totally, we start %d threads for testing)...\n", thread_num);
     do_test(num, thread_num);
     sleep(6);
     printf("[ASYNC]end multip testing - debug\n\n");
-    flog_destroy(log_handler);
+    flog_destroy(logger);
 }
 
 size_t critical_test()

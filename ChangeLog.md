@@ -1,3 +1,9 @@
+* 2018-12-16 1.2.1
+   * **flog:** Set log-level per logger
+   * **flog:** Set rolling-size per logger
+   * **flog:** Set flush-interval per logger
+   * **flog:** Set `logger` as the background thread name
+   * **flog:** Replace `gettimeofday` with `clock_gettime`
 * 2018-07-13 1.1.1
    * Use `_DEFAULT_SOURCE` instead of `_BSD_SOURCE`
 * 2017-08-19 1.0.1
