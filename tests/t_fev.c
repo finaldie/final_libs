@@ -405,13 +405,57 @@ void test_timer_service()
     g_fev = fev_create(1024);
     FCUNIT_ASSERT(g_fev);
 
-    fev_timer_svc* svc = fev_tmsvc_create(g_fev, 1000, /*million second*/
-                                                  FEV_TMSVC_SINGLE_LINKED);
+    fev_timer_svc* svc = fev_tmsvc_create(g_fev, 1000, FEV_TMSVC_SINGLE_LINKED);
     FCUNIT_ASSERT(svc);
 
     time_t now = time(NULL);
     start = 1;
-    ftimer_node* tn = fev_tmsvc_timer_add(svc, 2000, _timeout, &now);
+    ftimer_node* tn = fev_tmsvc_timer_add(svc, 2000, 0, _timeout, &now);
+    FCUNIT_ASSERT(tn);
+
+    while (start) {
+        fev_poll(g_fev, 500);
+    }
+
+    fev_tmsvc_destroy(svc);
+}
+
+typedef struct timer_data {
+    time_t start;
+    int    count;
+    int    _padding;
+} timer_data;
+
+static void _timeout1(fev_state* fev, void* arg)
+{
+    (void)fev;
+    timer_data* tdata = arg;
+    time_t trigger_time = time(NULL);
+    time_t start_time   = tdata->start;
+    tdata->count += 1;
+
+    //printf("In timeout, start_time = %ld, trigger_time = %ld, diff = %ld\n",
+    //       start_time, trigger_time, trigger_time - start_time);
+
+    FCUNIT_ASSERT(trigger_time - start_time >= 2 * tdata->count);
+
+    if (tdata->count > 5) {
+        start = 0;
+    }
+}
+
+void test_timer_service_cron()
+{
+    g_fev = NULL;
+    g_fev = fev_create(1024);
+    FCUNIT_ASSERT(g_fev);
+
+    fev_timer_svc* svc = fev_tmsvc_create(g_fev, 1000, FEV_TMSVC_SINGLE_LINKED);
+    FCUNIT_ASSERT(svc);
+
+    timer_data tdata = {.start = time(NULL), .count = 0};
+    start = 1;
+    ftimer_node* tn = fev_tmsvc_timer_add(svc, 2000, 2000, _timeout1, &tdata);
     FCUNIT_ASSERT(tn);
 
     while (start) {
@@ -428,6 +472,7 @@ int main(int argc, char** argv)
     FCUNIT_RUN(test_fev_buff);
     FCUNIT_RUN(test_fev_conn);
     FCUNIT_RUN(test_timer_service);
+    FCUNIT_RUN(test_timer_service_cron);
 
     return 0;
 }

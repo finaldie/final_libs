@@ -6,7 +6,9 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "flibs/compiler.h"
 #include "flibs/fdlist.h"
+#include "flibs/fev_timer_service.h"
 #include "fev_tmsvc_modules.h"
 
 typedef struct tm_single_linked_data {
@@ -38,7 +40,7 @@ int _destroy_timerlist(fdlist* timer_list)
 static
 int _init(void** mod_data)
 {
-    tm_sl_data* sl_data = calloc(1, sizeof(tm_sl_data));
+    tm_sl_data* sl_data  = calloc(1, sizeof(tm_sl_data));
     sl_data->timer_list  = fdlist_create();
     sl_data->backup_list = fdlist_create();
 
@@ -69,14 +71,30 @@ int _process(fev_state* fev, void* mod_data, struct timespec* now)
     while ((timer_node = fdlist_pop(sl_data->timer_list))) {
         ftimer_node* node = fdlist_get_nodedata(timer_node);
 
-        if (node && node->isvalid && node->cb) {
-            if (fev_tmmod_timeout(&node->start, now, node->expiration)) {
-                node->cb(fev, node->arg);
-                _destroy_timer(timer_node);
-                expired++;
-            } else {
-                fdlist_push(sl_data->backup_list, timer_node);
+        if (unlikely(!node || !node->valid || !node->cb)) {
+            _destroy_timer(timer_node);
+            continue;
+        }
+
+        int timeout = fev_tmmod_timeout(node, now);
+        if (timeout) {
+            node->cb(fev, node->arg);
+
+            // Re-calculate expiration time
+            if (node->interval > 0) {
+                long delayed = TIMEMS(*now) - TIMEMS(node->start) - node->expiration;
+                long new_expiration = node->interval - delayed;
+                new_expiration = new_expiration > 0 ? new_expiration : 0;
+
+                fev_tmsvc_timer_resetn(node, new_expiration);
             }
+
+            node->triggered = 1;
+            expired++;
+        }
+
+        if (node->interval > 0 || !timeout) {
+            fdlist_push(sl_data->backup_list, timer_node);
         } else {
             _destroy_timer(timer_node);
         }
@@ -111,45 +129,45 @@ int _del(ftimer_node* node __attribute__((unused)),
     return 0;
 }
 
-typedef struct first_expired {
+typedef struct top_expired {
     ftimer_node* node;
-} first_expired;
+} top_expired;
 
 static
 int _node_each(fdlist_node_t* node, void* ud) {
     ftimer_node* timer_node = fdlist_get_nodedata(node);
-    if (!timer_node->isvalid) {
+    if (!timer_node->valid) {
         return 0;
     }
 
-    first_expired* first = ud;
-    if (first->node) {
+    top_expired* top = ud;
+    if (top->node) {
         long timer_ms = TIMEMS(timer_node->start)  + timer_node->expiration;
-        long min_ms   = TIMEMS(first->node->start) + first->node->expiration;
+        long min_ms   = TIMEMS(top->node->start) + top->node->expiration;
 
         if (timer_ms < min_ms) {
-            first->node = timer_node;
+            top->node = timer_node;
         }
     } else {
-        first->node = timer_node;
+        top->node = timer_node;
     }
     return 0;
 }
 
 static
-ftimer_node* _first(void* mod_data) {
+ftimer_node* _top(void* mod_data) {
     tm_sl_data* sl_data = mod_data;
-    first_expired first = {NULL};
+    top_expired top = {NULL};
 
-    fdlist_foreach(sl_data->timer_list, _node_each, &first);
-    return first.node;
+    fdlist_foreach(sl_data->timer_list, _node_each, &top);
+    return top.node;
 }
 
-fev_tmsvc_opt sl_opt = {
+fev_tmsvc_ops_t sl_ops = {
     .init    = _init,
     .destroy = _destroy,
     .process = _process,
     .add     = _add,
     .del     = _del,
-    .first   = _first
+    .top     = _top
 };

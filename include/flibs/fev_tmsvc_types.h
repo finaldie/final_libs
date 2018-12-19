@@ -7,11 +7,6 @@ extern "C" {
 
 #include <flibs/fev.h>
 
-#define NS_PER_SECOND 1000000000L
-#define NS_PER_MS     1000000L
-
-#define MS_PER_SECOND 1000
-
 typedef enum fev_tmsvc_model_t {
     FEV_TMSVC_SINGLE_LINKED = 0,
     FEV_TMSVC_TIMER_WHEEL = 1     // NOT SUPPORT

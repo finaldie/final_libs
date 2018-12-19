@@ -12,7 +12,7 @@ extern "C" {
 
 fev_timer_svc* fev_tmsvc_create(
                 fev_state*,
-                uint32_t interval,     // unit millisecond
+                uint32_t precision,     // unit millisecond
                 fev_tmsvc_model_t type
                 );
 
@@ -28,11 +28,12 @@ int fev_tmsvc_process(fev_timer_svc*);
 /**
  * Get the first valid expired timer node
  */
-ftimer_node* fev_tmsvc_first(fev_timer_svc*);
+ftimer_node* fev_tmsvc_top(fev_timer_svc*);
 
 ftimer_node* fev_tmsvc_timer_add(
                fev_timer_svc*,
-               long expiration,       // unit millisecond
+               long delay,       // Initial delay. unit millisecond
+               long interval,    // Interval if > 0. unit millisecond
                ftimer_cb,
                void* arg);
 
@@ -52,6 +53,8 @@ int fev_tmsvc_timer_del(ftimer_node*);
 int   fev_tmsvc_timer_reset(ftimer_node*);
 
 int   fev_tmsvc_timer_resetn(ftimer_node*, long expiration);
+
+long  fev_tmsvc_timer_starttime(const ftimer_node*);
 
 long  fev_tmsvc_timer_expiration(const ftimer_node*);
 

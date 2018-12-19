@@ -87,7 +87,7 @@ int    fev_conn(fev_state* fev,
         fev_conn_info* conn_info = calloc(1, sizeof(fev_conn_info));
         conn_info->fd = sockfd;
         fev_timer_svc* timer_svc = fev_module_data(fev, FEV_CONN_MODULE_NAME);
-        conn_info->timer = fev_tmsvc_timer_add(timer_svc, timeout,
+        conn_info->timer = fev_tmsvc_timer_add(timer_svc, timeout, 0,
                                                on_timer, conn_info);
         if (!conn_info->timer) {
             close(sockfd);

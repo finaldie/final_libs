@@ -1,3 +1,6 @@
+* 2018-12-19 1.2.2
+   * **fev:** `fev_timer_service` introduces `interval` parameter
+   * **fev:** Makes `fev_timer_service` repeated timer more accurate
 * 2018-12-16 1.2.1
    * **flog:** Set log-level per logger
    * **flog:** Set rolling-size per logger
