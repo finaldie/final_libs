@@ -418,6 +418,8 @@ void test_timer_service()
     }
 
     fev_tmsvc_destroy(svc);
+    fev_destroy(g_fev);
+    g_fev = NULL;
 }
 
 typedef struct timer_data {
@@ -439,7 +441,7 @@ static void _timeout1(fev_state* fev, void* arg)
 
     FCUNIT_ASSERT(trigger_time - start_time >= 2 * tdata->count);
 
-    if (tdata->count > 5) {
+    if (tdata->count > 3) {
         start = 0;
     }
 }
@@ -463,6 +465,8 @@ void test_timer_service_cron()
     }
 
     fev_tmsvc_destroy(svc);
+    fev_destroy(g_fev);
+    g_fev = NULL;
 }
 
 int main(int argc, char** argv)
