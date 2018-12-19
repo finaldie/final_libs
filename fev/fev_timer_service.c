@@ -44,6 +44,7 @@
 #include <errno.h>
 #include <limits.h>
 
+#include "flibs/compiler.h"
 #include "fev_tmsvc_modules.h"
 #include "flibs/fev_timer_service.h"
 
@@ -52,40 +53,37 @@
 #endif
 
 struct _fev_timer_svc {
-    fev_state*     fev;
-    fev_timer*     ftimer;
-    void*          mod_data;
-    fev_tmsvc_opt* opt;
-    uint32_t       interval; // ms
-    clockid_t      clockid;
+    fev_state*       fev;
+    fev_timer*       ftimer;
+    void*            mod_data;
+    fev_tmsvc_ops_t* ops;
+    uint32_t         interval; // ms
+    clockid_t        clockid;
 };
 
 static
 int _process_expired(fev_timer_svc* svc) {
-
     // Get current timestamp
     struct timespec now;
-    if (clock_gettime(svc->clockid, &now)) {
+    if (unlikely(clock_gettime(svc->clockid, &now))) {
         fprintf(stderr, "FATAL ERROR! timer service cannot get current "
                 "timestamp:%s\n", strerror(errno));
         abort();
     }
 
     // Process the expired timers
-    return svc->opt->process(svc->fev, svc->mod_data, &now);
+    return svc->ops->process(svc->fev, svc->mod_data, &now);
 }
 
 static
-void timer_svc_callback(fev_state* fev, void* arg)
-{
+void timer_svc_callback(fev_state* fev, void* arg) {
     _process_expired(arg);
 }
 
 fev_timer_svc* fev_tmsvc_create(
                 fev_state* fev,
                 uint32_t interval,      // unit millisecond
-                fev_tmsvc_model_t type)
-{
+                fev_tmsvc_model_t type) {
     if (!fev) {
         return NULL;
     }
@@ -102,32 +100,29 @@ fev_timer_svc* fev_tmsvc_create(
     }
 
     // init the opt table
-    timer_svc->opt = tmsvc_opt_tbl[type];
-    int mod_init_ret = timer_svc->opt->init(&timer_svc->mod_data);
+    timer_svc->ops = tmsvc_ops_tbl[type];
+    int mod_init_ret = timer_svc->ops->init(&timer_svc->mod_data);
 
     if (mod_init_ret) {
-        timer_svc->opt->destroy(timer_svc->mod_data);
+        timer_svc->ops->destroy(timer_svc->mod_data);
         fev_del_timer_event(fev, timer_svc->ftimer);
         free(timer_svc);
         return NULL;
     }
 
+    timer_svc->clockid = CLOCK_MONOTONIC;
+
     struct timespec resolution;
     if (0 == clock_getres(CLOCK_MONOTONIC_COARSE, &resolution)) {
         if (resolution.tv_nsec <= NS_PER_MS) {
             timer_svc->clockid = CLOCK_MONOTONIC_COARSE;
-            goto done;
         }
     }
 
-    timer_svc->clockid = CLOCK_MONOTONIC;
-
-done:
     return timer_svc;
 }
 
-void fev_tmsvc_destroy(fev_timer_svc* svc)
-{
+void fev_tmsvc_destroy(fev_timer_svc* svc) {
     if (!svc) {
         return;
     }
@@ -135,99 +130,90 @@ void fev_tmsvc_destroy(fev_timer_svc* svc)
     // must delete the timer event at first, then we
     // can delete all the other structures safety
     fev_del_timer_event(svc->fev, svc->ftimer);
-    svc->opt->destroy(svc->mod_data);
+    svc->ops->destroy(svc->mod_data);
     free(svc);
 
     return;
 }
 
 int fev_tmsvc_process(fev_timer_svc* svc) {
-    if (!svc) return -1;
-
-    return _process_expired(svc);
+    return svc ? _process_expired(svc) : -1;
 }
 
-ftimer_node* fev_tmsvc_first(fev_timer_svc* svc) {
-    if (!svc) return NULL;
-
-    return svc->opt->first(svc->mod_data);
+ftimer_node* fev_tmsvc_top(fev_timer_svc* svc) {
+    return svc ? svc->ops->top(svc->mod_data) : NULL;
 }
 
 ftimer_node* fev_tmsvc_timer_add(
                 fev_timer_svc* svc,
-                long expiration, /* unit ms */
+                long delay, /* unit ms */
+                long interval, /* unit ms */
                 ftimer_cb timer_cb,
-                void* arg)
-{
-    if (!svc || expiration < 0 || !timer_cb) {
+                void* arg) {
+    if (unlikely(!svc || delay < 0 || interval < 0 || !timer_cb)) {
         return NULL;
     }
 
     ftimer_node* node = calloc(1, sizeof(ftimer_node));
 
-    if (clock_gettime(svc->clockid, &node->start)) {
+    if (unlikely(clock_gettime(svc->clockid, &node->start))) {
         free(node);
         return NULL;
     }
 
-    node->cb = timer_cb;
-    node->arg = arg;
-    node->owner = svc;
-    node->expiration = expiration;
-    node->isvalid = 1;
-    if (!node->owner) {
-        free(node);
-        return NULL;
-    }
+    node->cb         = timer_cb;
+    node->arg        = arg;
+    node->owner      = svc;
+    node->interval   = interval;
+    node->expiration = delay;
+    node->valid      = 1;
 
     // call the module add method to do the actual adding action
-    if (svc->opt->add(node, svc->mod_data)) {
+    if (unlikely(svc->ops->add(node, svc->mod_data))) {
         free(node);
+        return NULL;
     }
 
     return node;
 }
 
-int  fev_tmsvc_timer_del(ftimer_node* node)
-{
-    if (!node || !node->owner) {
+int  fev_tmsvc_timer_del(ftimer_node* node) {
+    if (unlikely(!node || !node->owner)) {
         return 1;
     }
 
     // only set the node as invalid,
-    node->isvalid = 0;
+    node->valid = 0;
 
     // run private del method
     fev_timer_svc* svc = node->owner;
-    if (svc->opt->del) {
-        return svc->opt->del(node, svc->mod_data);
+    if (svc->ops->del) {
+        return svc->ops->del(node, svc->mod_data);
     }
 
     return 0;
 }
 
-int fev_tmsvc_timer_reset(ftimer_node* node)
-{
-    if (!node || !node->owner) {
+int fev_tmsvc_timer_reset(ftimer_node* node) {
+    if (unlikely(!node || !node->owner)) {
         return 1;
     }
 
     fev_timer_svc* svc = node->owner;
-    if (clock_gettime(svc->clockid, &node->start)) {
+    if (unlikely(clock_gettime(svc->clockid, &node->start))) {
         return 1;
     }
 
     return 0;
 }
 
-int fev_tmsvc_timer_resetn(ftimer_node* node, long expiration)
-{
-    if (!node || !node->owner || expiration < 0) {
+int fev_tmsvc_timer_resetn(ftimer_node* node, long expiration) {
+    if (unlikely(!node || !node->owner || expiration < 0)) {
         return 1;
     }
 
     fev_timer_svc* svc = node->owner;
-    if (clock_gettime(svc->clockid, &node->start)) {
+    if (unlikely(clock_gettime(svc->clockid, &node->start))) {
         return 1;
     }
 
@@ -236,29 +222,28 @@ int fev_tmsvc_timer_resetn(ftimer_node* node, long expiration)
 }
 
 int fev_tmsvc_timer_valid(const ftimer_node* node) {
-    return node && node->isvalid;
+    return node && node->valid;
+}
+
+long  fev_tmsvc_timer_starttime(const ftimer_node* node) {
+    return node ? TIMEMS(node->start) : -1;
 }
 
 long fev_tmsvc_timer_expiration(const ftimer_node* node) {
-    if (!node) return LONG_MIN;
+    if (unlikely(!node)) return LONG_MIN;
     fev_timer_svc* svc = node->owner;
 
     // Get current timestamp
     struct timespec now;
-    if (clock_gettime(svc->clockid, &now)) {
+    if (unlikely(clock_gettime(svc->clockid, &now))) {
         fprintf(stderr, "FATAL ERROR! timer service cannot get current "
                 "timestamp:%s\n", strerror(errno));
         abort();
     }
 
-    long now_ms   = TIMEMS(now);
-    long timer_ms = TIMEMS(node->start);
-    timer_ms += node->expiration;
-
-    return timer_ms - now_ms;
+    return TIMEMS(node->start) + node->expiration - TIMEMS(now);
 }
 
 void* fev_tmsvc_timer_data(const ftimer_node* node) {
-    if (!node) return NULL;
-    return node->arg;
+    return node ? node->arg : NULL;
 }

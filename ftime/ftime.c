@@ -47,7 +47,7 @@ void ftimer_create_signal()
 }
 
 int ftimer_create(ftimer* pt, long long nsecs, long long alter,
-                    ftimer_cb pfunc, void* arg)
+                  ftimer_cb pfunc, void* arg)
 {
     pthread_once(&init_catch, ftimer_create_signal);
 

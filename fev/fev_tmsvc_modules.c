@@ -6,11 +6,9 @@
 #include "fev_tmsvc_modules.h"
 
 // The resolution is million seconds for this API
-int fev_tmmod_timeout(struct timespec* start, struct timespec* now,
-                      long expiration)
-{
-    long int diff_sec  = now->tv_sec  - start->tv_sec;
-    long int diff_nsec = now->tv_nsec - start->tv_nsec;
+int fev_tmmod_timeout(ftimer_node* node, struct timespec* now) {
+    long int diff_sec  = now->tv_sec  - node->start.tv_sec;
+    long int diff_nsec = now->tv_nsec - node->start.tv_nsec;
 
     // if the timer will be started in the future, exit with no-timeout
     if (diff_sec < 0) {
@@ -23,18 +21,18 @@ int fev_tmmod_timeout(struct timespec* start, struct timespec* now,
 
     long int diff_ms = diff_sec * MS_PER_SECOND + (diff_nsec / NS_PER_MS);
 
-    if (diff_ms >= expiration) {
+    if (diff_ms >= node->expiration) {
         return 1;
     } else {
         return 0;
     }
 }
 
-extern fev_tmsvc_opt sl_opt;
+extern fev_tmsvc_ops_t sl_ops;
 
 // global opt table
 // every type of timer module should register in this table
-fev_tmsvc_opt* tmsvc_opt_tbl[] = {
-    &sl_opt,   // for FEV_TMSVC_SINGLE_LINKED
+fev_tmsvc_ops_t* tmsvc_ops_tbl[] = {
+    &sl_ops,   // for FEV_TMSVC_SINGLE_LINKED
     NULL       // reserve for FEV_TMSVC_TIMER_WHEEL
 };
