@@ -56,7 +56,11 @@ int   fev_tmsvc_timer_resetn(ftimer_node*, long expiration);
 
 long  fev_tmsvc_timer_starttime(const ftimer_node*);
 
+long  fev_tmsvc_timer_remaining(const ftimer_node*);
+
 long  fev_tmsvc_timer_expiration(const ftimer_node*);
+
+long  fev_tmsvc_timer_interval(const ftimer_node*);
 
 int   fev_tmsvc_timer_valid(const ftimer_node*);
 
