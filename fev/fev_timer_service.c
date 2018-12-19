@@ -229,7 +229,7 @@ long  fev_tmsvc_timer_starttime(const ftimer_node* node) {
     return node ? TIMEMS(node->start) : -1;
 }
 
-long fev_tmsvc_timer_expiration(const ftimer_node* node) {
+long fev_tmsvc_timer_remaining(const ftimer_node* node) {
     if (unlikely(!node)) return LONG_MIN;
     fev_timer_svc* svc = node->owner;
 
@@ -242,6 +242,14 @@ long fev_tmsvc_timer_expiration(const ftimer_node* node) {
     }
 
     return TIMEMS(node->start) + node->expiration - TIMEMS(now);
+}
+
+long  fev_tmsvc_timer_expiration(const ftimer_node* node) {
+    return node ? node->expiration : -1;
+}
+
+long  fev_tmsvc_timer_interval(const ftimer_node* node) {
+    return node ? node->interval : -1;
 }
 
 void* fev_tmsvc_timer_data(const ftimer_node* node) {
