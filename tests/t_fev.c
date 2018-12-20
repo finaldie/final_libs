@@ -441,7 +441,7 @@ static void _timeout1(fev_state* fev, void* arg)
 
     FCUNIT_ASSERT(trigger_time - start_time >= 2 * tdata->count);
 
-    if (tdata->count > 3) {
+    if (tdata->count > 2) {
         start = 0;
     }
 }
