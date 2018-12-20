@@ -82,11 +82,9 @@ int _process(fev_state* fev, void* mod_data, struct timespec* now)
 
             // Re-calculate expiration time
             if (node->interval > 0) {
-                long delayed = TIMEMS(*now) - TIMEMS(node->start) - node->expiration;
-                long new_expiration = node->interval - delayed;
-                new_expiration = new_expiration > 0 ? new_expiration : 0;
-
-                fev_tmsvc_timer_resetn(node, new_expiration);
+                node->expiration = node->interval;
+                node->start.tv_sec  += node->expiration / MS_PER_SECOND;
+                node->start.tv_nsec += (node->expiration * NS_PER_MS) % NS_PER_SECOND;
             }
 
             node->triggered = 1;
