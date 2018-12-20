@@ -8,7 +8,6 @@
 
 #include "flibs/compiler.h"
 #include "flibs/fdlist.h"
-#include "flibs/fev_timer_service.h"
 #include "fev_tmsvc_modules.h"
 
 typedef struct tm_single_linked_data {
