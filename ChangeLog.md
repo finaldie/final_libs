@@ -1,3 +1,5 @@
+* 2019-01-01 1.2.3
+   * **fev:** Refine helper macros
 * 2018-12-19 1.2.2
    * **fev:** `fev_timer_service` introduces `interval` parameter
    * **fev:** Makes `fev_timer_service` repeated timer more accurate

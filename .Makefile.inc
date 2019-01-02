@@ -7,7 +7,14 @@ STD += -std=c99
 WARN += -Wall
 EXTRA += -pedantic -Wpadded -Werror -Wextra -Wno-unused-parameter
 EXTRA += -Wno-unused-function -Wfloat-equal -Winline -Wdisabled-optimization
-EXTRA += -Wconversion -fno-omit-frame-pointer
+EXTRA += -Wconversion
+
+ifneq ($(CC), clang)
+EXTRA += -Wno-format-truncation
+endif
+
+FEATURE += -fno-omit-frame-pointer
+
 OTHER += -pipe -g -ggdb3
 CC_SHARED += -fPIC
 MACRO +=
@@ -17,10 +24,11 @@ INC += \
 
 ifeq ($(debug), false)
 OPT += -O2
-EXTRA += -fstack-protector
+FEATURE += -fstack-protector
 else
-EXTRA += -fstack-protector-all
-MACRO += -O0 -finstrument-functions
+OPT += -O0
+FEATURE += -fstack-protector-all \
+	   -finstrument-functions
 endif
 
 # linking flags
@@ -43,8 +51,8 @@ DEP_LDFLAGS += \
     -Lfco
 
 # Combined Flags
-FL_CFLAGS = $(CFLAGS) $(FLIB_CFLAGS) $(STD) $(WARN) $(EXTRA) $(MACRO) $(OPT) \
-	    $(OTHER) $(CC_SHARED) $(INC)
+FL_CFLAGS = $(CFLAGS) $(FLIB_CFLAGS) $(STD) $(WARN) $(EXTRA) $(FEATURE) \
+	    $(MACRO) $(OPT) $(OTHER) $(CC_SHARED) $(INC)
 FL_LDFLAGS = $(LDFLAGS) $(FLIB_LDFLAGS) $(OPT) $(OTHER) $(LD_SHARED) $(DEP_LDFLAGS)
 FL_BIN_LDFLAGS = $(LDFLAGS) $(FLIB_LDFLAGS) $(OPT) $(OTHER) $(DEP_LDFLAGS)
 
