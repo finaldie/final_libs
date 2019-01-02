@@ -26,3 +26,5 @@ benchmark/flog/benchmark
 benchmark/flog/logs
 
 doc
+
+compile_commands.json
