@@ -28,6 +28,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include "flibs/compiler.h"
 #include "flibs/fev.h"
 #include "flibs/fhash.h"
 
@@ -120,7 +121,7 @@ fev_state*    fev_create(int max_ev_size)
 
 void    fev_destroy(fev_state* fev)
 {
-    if (!fev) return;
+    if (!fev) { return; }
 
     // delete module's private data first
     fev_module_t* module = NULL;
@@ -149,17 +150,20 @@ void    fev_destroy(fev_state* fev)
 int     fev_reg_event(fev_state* fev, int fd, int mask,
                       fev_read_cb pread, fev_write_cb pwrite, void* arg)
 {
-    if (!fev) return -1;
+    if (unlikely(!fev)) { return -1; }
+    if (unlikely(fev_get_mask(fev, fd) < 0)) { return -1; }
 
     // only reversed FEV_READ & FEV_WRITE state
     mask &= FEV_READ | FEV_WRITE;
-    if (mask == FEV_NIL) return -2;
+    if (mask == FEV_NIL) { return -2; }
 
-    if (fev->fevents[fd].mask != FEV_NIL)
+    if (unlikely(fev->fevents[fd].mask != FEV_NIL)) {
         return -3;
+    }
 
-    if (fev_state_addevent(fev, fd, mask) == -1)
+    if (unlikely(fev_state_addevent(fev, fd, mask))) {
         return -4;
+    }
 
     fev->fevents[fd].pread = pread;
     fev->fevents[fd].pwrite = pwrite;
@@ -170,20 +174,24 @@ int     fev_reg_event(fev_state* fev, int fd, int mask,
 
 int fev_add_event(fev_state* fev, int fd, int mask)
 {
-    if (!fev) return -1;
+    if (unlikely(!fev)) { return -1; }
+    if (unlikely(fev_get_mask(fev, fd) < 0)) { return -1; }
 
     // only reversed FEV_READ & FEV_WRITE state
     mask &= FEV_READ | FEV_WRITE;
-    if (mask == FEV_NIL) return 0;
+    if (mask == FEV_NIL) { return 0; }
 
-    if (fev->fevents[fd].mask == FEV_NIL)
+    if (unlikely(fev->fevents[fd].mask == FEV_NIL)) {
         return -2;
+    }
 
-    if (fev->fevents[fd].mask == mask)
+    if (fev->fevents[fd].mask == mask) {
         return 0;
+    }
 
-    if (fev_state_addevent(fev, fd, mask) == -1)
+    if (unlikely(fev_state_addevent(fev, fd, mask))) {
         return -3;
+    }
 
     return 0;
 }
@@ -193,15 +201,17 @@ int fev_add_event(fev_state* fev, int fd, int mask)
 // return  0 : sucess
 int     fev_del_event(fev_state* fev, int fd, int mask)
 {
-    if (!fev) return -1;
-    if (fev->fevents[fd].mask == FEV_NIL) return 0;
+    if (unlikely(!fev)) { return -1; }
+    if (unlikely(fev_get_mask(fev, fd) < 0)) { return -1; }
+    if (fev->fevents[fd].mask == FEV_NIL) { return 0; }
 
     // only reversed FEV_READ & FEV_WRITE state
     mask &= FEV_READ | FEV_WRITE;
-    if (mask == FEV_NIL) return 0;
+    if (mask == FEV_NIL) { return 0; }
 
-    if (fev_state_delevent(fev, fd, mask) == -1)
+    if (fev_state_delevent(fev, fd, mask)) {
         return -2;
+    }
 
     //finally if the fd's mask is FEV_NIL , then put the fd into firelist
     if (fev->fevents[fd].mask == FEV_NIL) {
@@ -239,9 +249,9 @@ void _execute_module_postpoll(fev_state* fev) {
 
 int     fev_poll(fev_state* fev, int timeout)
 {
-    if (!fev) return 0;
+    if (unlikely(!fev)) { return 0; }
 
-    if (fev->in_processing) {
+    if (unlikely(fev->in_processing)) {
         perror("fev_poll shouldn't support nest call");
         return -2;
     }
@@ -259,15 +269,16 @@ int     fev_poll(fev_state* fev, int timeout)
 
 int  fev_get_mask(fev_state* fev, int fd)
 {
-    if (fd < 0 || fd >= fev->max_ev_size)
+    if (unlikely(fd < 0 || fd >= fev->max_ev_size)) {
         return -1;
+    }
 
     return fev->fevents[fd].mask;
 }
 
 int  fev_get_fd(fev_state* fev)
 {
-    if (!fev) return -1;
+    if (unlikely(!fev)) { return -1; }
     return fev_state_getfd(fev);
 }
 
