@@ -15,58 +15,52 @@ extern "C" {
 // public macors, flog advantage logger helper macros
 // usage: FLOG_XXX(logger, "hello");
 // usage: FLOG_XXX(logger, "%s", string);
-#define FLOG_TRACE(logger, ...) \
-    do { \
-        if (unlikely(flog_is_trace_enabled(logger))) { \
-            flog_writef(logger, \
-                        __FILE__ ":" FTO_STR(__LINE__) " TRACE - " \
-                        __VA_ARGS__); \
-        } \
+#define FLOG_TRACE(logger, ...)                                         \
+    do {                                                                \
+        if (unlikely(flog_is_trace_enabled(logger))) {                  \
+            flog_writef(logger, __FILE__                                \
+                        ":" FTO_STR(__LINE__) " TRACE - " __VA_ARGS__); \
+        }                                                               \
     } while (0)
 
-#define FLOG_DEBUG(logger, ...) \
-    do { \
-        if (unlikely(flog_is_debug_enabled(logger))) { \
-            flog_writef(logger, \
-                        __FILE__ ":" FTO_STR(__LINE__) " DEBUG - " \
-                        __VA_ARGS__); \
-        } \
+#define FLOG_DEBUG(logger, ...)                                         \
+    do {                                                                \
+        if (unlikely(flog_is_debug_enabled(logger))) {                  \
+            flog_writef(logger, __FILE__                                \
+                        ":" FTO_STR(__LINE__) " DEBUG - " __VA_ARGS__); \
+        }                                                               \
     } while (0)
 
-#define FLOG_INFO(logger, ...) \
-    do { \
-        if (flog_is_info_enabled(logger)) { \
-            flog_writef(logger, \
-                        __FILE__ ":" FTO_STR(__LINE__) " INFO - " \
-                        __VA_ARGS__); \
-        } \
+#define FLOG_INFO(logger, ...)                                         \
+    do {                                                               \
+        if (flog_is_info_enabled(logger)) {                            \
+            flog_writef(logger, __FILE__                               \
+                        ":" FTO_STR(__LINE__) " INFO - " __VA_ARGS__); \
+        }                                                              \
     } while (0)
 
-#define FLOG_WARN(logger, ...) \
-    do { \
-        if (flog_is_warn_enabled(logger)) { \
-            flog_writef(logger, \
-                        __FILE__ ":" FTO_STR(__LINE__) " WARN - " \
-                        __VA_ARGS__); \
-        } \
+#define FLOG_WARN(logger, ...)                                         \
+    do {                                                               \
+        if (flog_is_warn_enabled(logger)) {                            \
+            flog_writef(logger, __FILE__                               \
+                        ":" FTO_STR(__LINE__) " WARN - " __VA_ARGS__); \
+        }                                                              \
     } while (0)
 
-#define FLOG_ERROR(logger, ...) \
-    do { \
-        if (flog_is_error_enabled(logger)) { \
-            flog_writef(logger, \
-                        __FILE__ ":" FTO_STR(__LINE__) " ERROR - " \
-                        __VA_ARGS__); \
-        } \
+#define FLOG_ERROR(logger, ...)                                         \
+    do {                                                                \
+        if (flog_is_error_enabled(logger)) {                            \
+            flog_writef(logger, __FILE__                                \
+                        ":" FTO_STR(__LINE__) " ERROR - " __VA_ARGS__); \
+        }                                                               \
     } while (0)
 
-#define FLOG_FATAL(logger, ...) \
-    do { \
-        if (flog_is_fatal_enabled(logger)) { \
-            flog_writef(logger, \
-                        __FILE__ ":" FTO_STR(__LINE__) " FATAL - " \
-                        __VA_ARGS__); \
-        } \
+#define FLOG_FATAL(logger, ...)                                         \
+    do {                                                                \
+        if (flog_is_fatal_enabled(logger)) {                            \
+            flog_writef(logger, __FILE__                                \
+                        ":" FTO_STR(__LINE__) " FATAL - " __VA_ARGS__); \
+        }                                                               \
     } while (0)
 
 #ifdef __cplusplus
@@ -74,4 +68,3 @@ extern "C" {
 #endif
 
 #endif
-
