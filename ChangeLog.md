@@ -1,3 +1,5 @@
+- 2020-01-19 1.4.1
+  - **fnet:** Fix compile warning in gcc-8
 - 2019-01-04 1.3.2
   - **fev:** Makes `fev_` APIs robuster
 - 2019-01-01 1.3.1
