@@ -418,7 +418,7 @@ int     fnet_get_host(const char* host_name, fhost_info_t* hinfo)
 
     size_t host_name_len = strlen(hptr->h_name) + 1;
     char* h_name = calloc(1, host_name_len);
-    hinfo->official_name = strncpy(h_name, hptr->h_name, host_name_len);
+    hinfo->official_name = memcpy(h_name, hptr->h_name, host_name_len);
 
     for (pptr = hptr->h_aliases; *pptr != NULL; pptr++)
         hinfo->alias_count++;
@@ -430,7 +430,7 @@ int     fnet_get_host(const char* host_name, fhost_info_t* hinfo)
          pptr++, i++) {
         size_t len = strlen(*pptr) + 1;
         char* alias_name = calloc(1, len);
-        hinfo->alias_names[i] = strncpy(alias_name, *pptr, len);
+        hinfo->alias_names[i] = memcpy(alias_name, *pptr, len);
     }
 
     switch (hptr->h_addrtype) {
